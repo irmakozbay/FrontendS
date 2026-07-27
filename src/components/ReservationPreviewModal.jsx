@@ -44,10 +44,43 @@ function getGenderLabel(gender) {
     const labels = {
         MR: "Bay",
         MRS: "Bayan",
-        CHD: "Çocuk",
+        CHILD_MALE: "Erkek Çocuk",
+        CHILD_FEMALE: "Kız Çocuk",
+        MALE: "Erkek",
+        FEMALE: "Kadın",
     };
 
     return labels[gender] || gender || "-";
+}
+
+function getPassengerTypeLabel(passenger, t, refDateStr) {
+    if (!passenger) return t ? t("res_preview_adult", "Yetişkin") : "Yetişkin";
+    let type = passenger.type ? passenger.type.toUpperCase() : "";
+
+    if (passenger.birthDate) {
+        try {
+            const bDate = new Date(passenger.birthDate);
+            const refDate = refDateStr ? new Date(refDateStr) : new Date();
+            let ageMonths = (refDate.getFullYear() - bDate.getFullYear()) * 12 + (refDate.getMonth() - bDate.getMonth());
+            if (refDate.getDate() < bDate.getDate()) ageMonths--;
+
+            if (ageMonths >= 0 && ageMonths < 24) {
+                type = "INFANT";
+            } else if (ageMonths >= 24 && ageMonths < 144) {
+                type = "CHILD";
+            } else if (ageMonths >= 144) {
+                type = "ADULT";
+            }
+        } catch (e) {}
+    }
+
+    if (type === "INFANT" || type === "BABY") {
+        return t ? t("unit_infant", "Bebek") : "Bebek";
+    }
+    if (type === "CHILD") {
+        return t ? t("res_preview_child", "Çocuk") : "Çocuk";
+    }
+    return t ? t("res_preview_adult", "Yetişkin") : "Yetişkin";
 }
 
 function getNationalityLabel(nationality) {
@@ -262,95 +295,102 @@ export default function ReservationPreviewModal({
                         </div>
 
                         <div className="space-y-3">
-                            {passengers.map((passenger, index) => (
-                                <div
-                                    key={passenger.id || index}
-                                    className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <div className="rounded-xl bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-                                            {passenger.type === "CHILD" ? (
-                                                <Baby size={18} />
-                                            ) : (
-                                                <User size={18} />
-                                            )}
-                                        </div>
 
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
-                                                <p className="font-bold text-slate-900 dark:text-white">
-                                                    {passenger.firstName}{" "}
-                                                    {passenger.lastName}
-                                                </p>
+                            {passengers.map((passenger, index) => {
+                                const refDate = bookingDetails?.startDate || bookingDetails?.checkIn || selectedItem?.startDate || selectedItem?.checkIn;
+                                const pTypeLabel = getPassengerTypeLabel(passenger, t, refDate);
+                                const isBabyOrChild = pTypeLabel === t("unit_infant", "Bebek") || pTypeLabel === t("res_preview_child", "Çocuk") || passenger.type === "INFANT" || passenger.type === "CHILD";
 
-                                                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                                    {passenger.type === "CHILD"
-                                                        ? t("res_preview_child", "Çocuk")
-                                                        : t("res_preview_adult", "Yetişkin")}
-                                                </span>
+
+                                return (
+                                    <div
+                                        key={passenger.id || index}
+                                        className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="rounded-xl bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+                                                {isBabyOrChild ? (
+                                                    <Baby size={18} />
+                                                ) : (
+                                                    <User size={18} />
+                                                )}
                                             </div>
 
-                                            <div className="mt-3 grid grid-cols-1 gap-x-5 gap-y-2 text-sm text-slate-600 dark:text-slate-300 sm:grid-cols-2">
-                                                <p>
-                                                    <span className="font-semibold">
-                                                        {t("res_preview_birthdate", "Doğum tarihi:")}
-                                                    </span>{" "}
-                                                    {formatDate(
-                                                        passenger.birthDate
-                                                    )}
-                                                </p>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex flex-col justify-between gap-1 sm:flex-row sm:items-center">
+                                                    <p className="font-bold text-slate-900 dark:text-white">
+                                                        {passenger.firstName}{" "}
+                                                        {passenger.lastName}
+                                                    </p>
 
-                                                <p>
-                                                    <span className="font-semibold">
-                                                        {t("res_preview_gender", "Cinsiyet:")}
-                                                    </span>{" "}
-                                                    {getGenderLabel(
-                                                        passenger.gender
-                                                    )}
-                                                </p>
-
-                                                <p>
-                                                    <span className="font-semibold">
-                                                        {t("res_preview_nationality", "Uyruk:")}
-                                                    </span>{" "}
-                                                    {getNationalityLabel(
-                                                        passenger.nationality
-                                                    )}
-                                                </p>
-
-                                                <p>
-                                                    <span className="font-semibold">
-                                                        {passenger.nationality ===
-                                                            "TR"
-                                                            ? t("res_preview_tc_no", "T.C. Kimlik No:")
-                                                            : t("res_preview_passport", "Pasaport No:")}
-                                                    </span>{" "}
-                                                    {passenger.identityNumber ||
-                                                        "-"}
-                                                </p>
-                                            </div>
-
-                                            <div className="mt-3 grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300 sm:grid-cols-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Mail size={15} />
-                                                    <span className="break-all">
-                                                        {passenger.email || "-"}
+                                                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                                        {pTypeLabel}
                                                     </span>
                                                 </div>
 
-                                                <div className="flex items-center gap-2">
-                                                    <Phone size={15} />
-                                                    <span>
-                                                        {passenger.phone || "-"}
-                                                    </span>
+                                                <div className="mt-3 grid grid-cols-1 gap-x-5 gap-y-2 text-sm text-slate-600 dark:text-slate-300 sm:grid-cols-2">
+                                                    <p>
+                                                        <span className="font-semibold">
+                                                            {t("res_preview_birthdate", "Doğum tarihi:")}
+                                                        </span>{" "}
+                                                        {formatDate(
+                                                            passenger.birthDate
+                                                        )}
+                                                    </p>
+
+                                                    <p>
+                                                        <span className="font-semibold">
+                                                            {t("res_preview_gender", "Cinsiyet:")}
+                                                        </span>{" "}
+                                                        {getGenderLabel(
+                                                            passenger.gender
+                                                        )}
+                                                    </p>
+
+                                                    <p>
+                                                        <span className="font-semibold">
+                                                            {t("res_preview_nationality", "Uyruk:")}
+                                                        </span>{" "}
+                                                        {getNationalityLabel(
+                                                            passenger.nationality
+                                                        )}
+                                                    </p>
+
+                                                    <p>
+                                                        <span className="font-semibold">
+                                                            {passenger.nationality ===
+                                                                "TR"
+                                                                ? t("res_preview_tc_no", "T.C. Kimlik No:")
+                                                                : t("res_preview_passport", "Pasaport No:")}
+                                                        </span>{" "}
+                                                        {passenger.identityNumber ||
+                                                            "-"}
+                                                    </p>
+                                                </div>
+
+                                                <div className="mt-3 grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300 sm:grid-cols-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <Mail size={15} />
+                                                        <span className="break-all">
+                                                            {passenger.email || "-"}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <Phone size={15} />
+                                                        <span>
+                                                            {passenger.phone || "-"}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </section>
+
 
                     <section className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 dark:border-blue-900 dark:bg-blue-950/20">
                         <label className="flex cursor-pointer items-start gap-3">

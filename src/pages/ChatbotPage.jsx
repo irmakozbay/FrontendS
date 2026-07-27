@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import {
   PanelLeftOpen,
@@ -636,6 +636,8 @@ export default function Index() {
   // az önce eklenen mesajın üzerine geçmişi yeniden yükler (ya da URL'de
   // hiçbir zaman sessionId olmayacağı için "else" dalı her seferinde sohbeti
   // sıfırlardı).
+  const location = useLocation();
+
   useEffect(() => {
     setIsChatCompleted(false);
     if (urlSessionId) {
@@ -677,7 +679,6 @@ export default function Index() {
           setIsChatActive(history.length > 0);
 
           // Arama tipini, en güncel sonuç içeren mesajdaki verinin şekline göre belirle
-          // (bookingMeta hiç yazılmamış eski sohbetlerde bile doğru çalışır)
           const lastResultMessage = [...response.data].reverse().find(msg => msg.results && msg.results.length > 0);
           if (lastResultMessage) {
             const isFlight = lastResultMessage.results[0].airline !== undefined;
@@ -693,46 +694,32 @@ export default function Index() {
             }
           }
 
-            // Bu oturum için backend'de toplanmış kriterleri (kalkış/varış/yolcu/tarih)
-            // ayrıca çek — mesaj geçmişinde bu bilgiler saklanmıyor, oturumun kendi
-            // kriter kaydından (search_criteria_json) geliyor.
-            try {
-              const criteriaResponse = await api.get(`/api/chat/sessions/${urlSessionId}/criteria`);
-              const c = criteriaResponse.data;
-              if (c) {
-                // Backend'den gelen kriter (c) her zaman TAM ve GÜNCEL bir anlık
-                // görüntüdür (bkz. ChatCriteriaSummary.from) — hiçbir zaman kısmi
-                // değildir. Bu yüzden burada `|| prev.X` gibi bir "eskiyi koru"
-                // yedeği KULLANMIYORUZ: aksi hâlde backend bir alanı gerçekten
-                // sıfırladığında (ör. reddedilen bir arama geri alındığında) panel
-                // hâlâ eski/"hayalet" değeri göstermeye devam ederdi.
-                setBookingDetails(prev => ({
-                  ...prev,
-                  city: c.locationOrHotelName || "",
-                  checkIn: c.checkInDate || c.departureDate || "",
-                  checkOut: c.checkOutDate || "",
-                  guests: formatGuestCount(c.adultCount, c.childCount, c.passengerCount, t, c.infantCount, c.roomCount, c.childAges) || "",
-                  adultCount: c.adultCount !== undefined && c.adultCount !== null ? c.adultCount : prev.adultCount,
-                  childCount: c.childCount !== undefined && c.childCount !== null ? c.childCount : prev.childCount,
-                  childAges: c.childAges || [],
-                  infantCount: c.infantCount !== undefined && c.infantCount !== null ? c.infantCount : prev.infantCount,
-                  infantAges: c.infantAges || [],
-                  roomCount: c.roomCount !== undefined && c.roomCount !== null ? c.roomCount : prev.roomCount,
-                  passengerCount: c.passengerCount !== undefined && c.passengerCount !== null ? c.passengerCount : prev.passengerCount,
-                  departureCity: c.departureLocation || "",
-                  arrivalCity: c.arrivalLocation || "",
-                  returnDate: c.returnDate || ""
-                }));
-                setSessionCriteria({
-                  maxPrice: c.maxPrice || null,
-                  minStars: c.minStars || null
-                });
-              }
-            } catch (criteriaErr) {
-            console.error("Failed to load session criteria", urlSessionId, criteriaErr);
+          try {
+            const criteriaResponse = await api.get(`/api/chat/sessions/${urlSessionId}/criteria`);
+            const c = criteriaResponse.data;
+            if (c) {
+              setBookingDetails(prev => ({
+                ...prev,
+                city: c.destination || c.city || "",
+                departureCity: c.departureCity || "",
+                arrivalCity: c.arrivalCity || c.destination || "",
+                checkIn: c.checkIn || c.departureDate || "",
+                checkOut: c.checkOut || "",
+                returnDate: c.returnDate || "",
+                adultCount: c.adultCount ?? 1,
+                childCount: c.childCount ?? 0,
+                childAges: c.childAges || [],
+                infantCount: c.infantCount ?? 0,
+                infantAges: c.infantAges || [],
+                roomCount: c.roomCount ?? 1,
+                passengerCount: c.passengerCount ?? ((c.adultCount || 1) + (c.childCount || 0) + (c.infantCount || 0))
+              }));
+            }
+          } catch (critErr) {
+            console.error("Failed to load session criteria", urlSessionId, critErr);
           }
         } catch (err) {
-          console.error("Failed to load message history for session", urlSessionId, err);
+          console.error("Failed to load session history", urlSessionId, err);
         } finally {
           setIsThinking(false);
         }
@@ -745,8 +732,11 @@ export default function Index() {
       setBookingDetails({ city: "", departureCity: "", arrivalCity: "", checkIn: "", checkOut: "", guests: "", adultCount: 1, childCount: 0, childAges: [], infantCount: 0, infantAges: [], passengerCount: 1, hotelName: "", airline: "", price: "", returnDate: "" });
       setSelectedHotel(null);
       setSelectedFlight(null);
+      if (location.state?.initialPrompt) {
+        setInputValue(location.state.initialPrompt);
+      }
     }
-  }, [urlSessionId]);
+  }, [urlSessionId, location.state]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1269,12 +1259,12 @@ export default function Index() {
                 <div className="w-full max-w-[850px] flex-1 flex flex-col h-full relative justify-between overflow-hidden">
                   <div className="flex-1 overflow-y-auto p-2 space-y-4 pb-28 w-full">
                     {messages.map((msg) => (
-                      <div key={msg.id} className={`flex items-start gap-3 w-full ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                      <div key={msg.id} className={`flex items-center gap-3 w-full ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
                         {msg.sender === "bot" && (
-                          <div className="w-12 h-12 flex items-center justify-center flex-shrink-0 select-none overflow-hidden p-1">
+                          <div className="w-28 h-28 flex items-center justify-center flex-shrink-0 select-none overflow-hidden translate-y-2">
                             <img
-                              src="/logo.png"
-                              alt="Sanny Logo"
+                              src="/maskot.png"
+                              alt="Sanny"
                               className="w-full h-full object-contain"
                             />
                           </div>
@@ -1326,11 +1316,11 @@ export default function Index() {
                     ))}
 
                     {isThinking && (
-                      <div className="flex items-start gap-3 justify-start">
-                        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0 select-none overflow-hidden p-1">
+                      <div className="flex items-center gap-3 justify-start">
+                        <div className="w-28 h-28 flex items-center justify-center flex-shrink-0 select-none overflow-hidden translate-y-2">
                           <img
-                            src="/logo.png"
-                            alt="Sanny Logo"
+                            src="/maskot.png"
+                            alt="Sanny"
                             className="w-full h-full object-contain"
                           />
                         </div>

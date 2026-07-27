@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Sun, Moon, User as UserIcon } from 'lucide-react';
+import { Sun, Moon, User as UserIcon, ArrowLeft } from 'lucide-react';
 import SannyLogo from '../components/SannyLogo';
 import LanguageSelector from '../components/LanguageSelector';
 import api from '../services/api';
@@ -238,8 +238,15 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative font-sans bg-transparent">
-      <SannyLogo />
-      
+      {/* Top Left Branding Link to Welcome */}
+      <Link 
+        to="/" 
+        className="fixed top-4 left-4 z-50 group flex items-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+        title={t('auth.backToHome', 'Ana Sayfaya Dön')}
+      >
+        <SannyLogo className="flex items-center gap-2 select-none" />
+      </Link>
+
       {/* Top Right Controls (Theme Toggle + Language Selector) */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
         <button
