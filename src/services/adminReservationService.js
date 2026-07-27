@@ -1,25 +1,6 @@
-const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:8083";
+import api from "./api.js";
 
 export async function getReservations() {
-    const token = localStorage.getItem("adminToken") || sessionStorage.getItem("adminToken");
-
-    const response = await fetch(
-        `${API_BASE_URL}/api/admin/reservations`,
-        {
-            method: "GET",
-            headers: {
-                Accept: "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-        }
-    );
-
-    if (!response.ok) {
-        throw new Error(
-            `Rezervasyonlar alınamadı. HTTP kodu: ${response.status}`
-        );
-    }
-
-    return response.json();
+    const response = await api.get("/api/admin/reservations");
+    return response.data;
 }
