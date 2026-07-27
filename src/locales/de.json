@@ -753,6 +753,7 @@
     "units": {
       "adult": "Erwachsener",
       "child": "Kind",
+      "infant": "Baby",
       "passenger": "Passagier",
       "night": "Nacht",
       "room": "Zimmer",

@@ -753,6 +753,7 @@
     "units": {
       "adult": "yetişkin",
       "child": "çocuk",
+      "infant": "bebek",
       "passenger": "yolcu",
       "night": "gece",
       "room": "oda",
