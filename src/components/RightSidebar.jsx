@@ -109,6 +109,7 @@ function GuestSelector({
   setChildCount,
   childAges,
   setChildAges,
+  infantCount = 0,
   t,
 }) {
   const increaseAdults = () => {
@@ -184,6 +185,11 @@ function GuestSelector({
             {childCount > 0
               ? `, ${childCount} ${t("rightSidebar.units.child", {
                 defaultValue: "Çocuk",
+              })}`
+              : ""}
+            {infantCount > 0
+              ? `, ${infantCount} ${t("rightSidebar.units.infant", {
+                defaultValue: "Bebek",
               })}`
               : ""}
           </p>
@@ -416,6 +422,9 @@ export default function RightSidebar({
       ? bookingDetails.childAges.map(String)
       : []
   );
+  const [infantCount, setInfantCount] = useState(
+    Number(bookingDetails.infantCount) || 0
+  );
 
   const isHotel = searchType !== "flight";
 
@@ -424,16 +433,19 @@ export default function RightSidebar({
   useEffect(() => {
     const nextAdultCount = Number(bookingDetails.adultCount) || 1;
     const nextChildCount = Number(bookingDetails.childCount) || 0;
+    const nextInfantCount = Number(bookingDetails.infantCount) || 0;
     const nextChildAges = Array.isArray(bookingDetails.childAges)
       ? bookingDetails.childAges.map(String)
       : Array(nextChildCount).fill("");
 
     setAdultCount(nextAdultCount);
     setChildCount(nextChildCount);
+    setInfantCount(nextInfantCount);
     setChildAges(nextChildAges.slice(0, nextChildCount));
   }, [
     bookingDetails.adultCount,
     bookingDetails.childCount,
+    bookingDetails.infantCount,
     bookingDetails.childAges,
   ]);
 
@@ -479,6 +491,11 @@ export default function RightSidebar({
         defaultValue: "Çocuk",
       })}`
       : ""
+    }${infantCount > 0
+      ? `, ${infantCount} ${t("rightSidebar.units.infant", {
+        defaultValue: "Bebek",
+      })}`
+      : ""
     }`
     : bookingDetails.guests ||
     `${bookingDetails.passengerCount || 1} ${t(
@@ -496,6 +513,7 @@ export default function RightSidebar({
     ...bookingDetails,
     adultCount,
     childCount,
+    infantCount,
     childAges: childAges.map((age) =>
       age === "" ? "" : Number(age)
     ),
@@ -620,6 +638,7 @@ export default function RightSidebar({
         setChildCount={setChildCount}
         childAges={childAges}
         setChildAges={setChildAges}
+        infantCount={infantCount}
         t={t}
       />
 
