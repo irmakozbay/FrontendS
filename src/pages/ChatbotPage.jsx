@@ -149,10 +149,18 @@ function mapProductInfoToHotelDetail(productInfo) {
     description = texts.join("\n\n");
   }
 
-  const facilities = new Set();
+  // TourVisio her olanağı "highlighted" (otelin öne çıkardığı) olarak
+  // işaretleyebiliyor — önceden bu bilgi atılıp düz bir isim listesine
+  // indirgeniyordu. Artık obje olarak taşınıyor ki panelde öne çıkanlar
+  // ayrı gösterilebilsin.
+  const facilitiesByName = new Map();
   if (firstSeason?.facilityCategories) {
     firstSeason.facilityCategories.forEach(cat => {
-      (cat.facilities || []).forEach(f => { if (f.name) facilities.add(f.name); });
+      (cat.facilities || []).forEach(f => {
+        if (f.name && !facilitiesByName.has(f.name)) {
+          facilitiesByName.set(f.name, { name: f.name, highlighted: Boolean(f.highlighted) });
+        }
+      });
     });
   }
 
@@ -160,7 +168,7 @@ function mapProductInfoToHotelDetail(productInfo) {
     address: hotel.address || null,
     photos: [...photoUrls].filter(Boolean),
     description: description || null,
-    facilities: [...facilities],
+    facilities: [...facilitiesByName.values()],
     themes: (hotel.themes || []).map(t => t.name).filter(Boolean),
     geolocation: hotel.geolocation
       ? { latitude: hotel.geolocation.latitude, longitude: hotel.geolocation.longitude }
@@ -733,7 +741,7 @@ export default function Index() {
       setSelectedHotel(null);
       setSelectedFlight(null);
       if (location.state?.initialPrompt) {
-        setInputValue(location.state.initialPrompt);
+        setSearchQuery(location.state.initialPrompt);
       }
     }
   }, [urlSessionId, location.state]);
@@ -1421,7 +1429,10 @@ export default function Index() {
           onClick={() => setActivePanel(null)}
         >
           <div
-            className="w-full max-w-[850px] h-[85vh] max-h-[85vh] bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col relative animate-fade-in scale-100 transition-all"
+            className={cn(
+              "w-full h-[90vh] max-h-[90vh] bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col relative animate-fade-in scale-100 transition-all",
+              (activePanel === 'hotelDetail' || activePanel === 'flightDetail') ? "max-w-[1180px]" : "max-w-[850px]"
+            )}
             onClick={(e) => e.stopPropagation()}
           >
             {activePanel === 'hotelDetail' && (
@@ -1430,7 +1441,17 @@ export default function Index() {
                 bookingDetails={bookingDetails}
                 loadingDetail={hotelDetailLoading}
                 onClose={() => setActivePanel(null)}
-                onProceed={() => setActivePanel('reservation')}
+                onProceed={() => {
+                  setActivePanel(null);
+                  navigate("/reservation", {
+                    state: {
+                      selectedItem: selectedHotel,
+                      selectedHotel,
+                      bookingDetails,
+                      sessionId,
+                    },
+                  });
+                }}
               />
             )}
             {activePanel === 'reservation' && (
@@ -1461,7 +1482,17 @@ export default function Index() {
                 flight={selectedFlight}
                 bookingDetails={bookingDetails}
                 onClose={() => setActivePanel(null)}
-                onProceed={() => setActivePanel('flightReservation')}
+                onProceed={() => {
+                  setActivePanel(null);
+                  navigate("/reservation", {
+                    state: {
+                      selectedItem: selectedFlight,
+                      selectedFlight,
+                      bookingDetails,
+                      sessionId,
+                    },
+                  });
+                }}
               />
             )}
             {activePanel === 'flightReservation' && (
