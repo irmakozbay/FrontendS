@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+import WelcomePage from "./pages/WelcomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import ChatbotPage from "./pages/ChatbotPage.jsx";
@@ -19,11 +20,24 @@ import Dashboard from "./pages/admin/Dashboard.jsx";
 import Reservations from "./pages/admin/Reservations.jsx";
 import Users from "./pages/admin/Users.jsx";
 import ChatLogs from "./pages/admin/ChatLogs.jsx";
+import SystemMetrics from "./pages/admin/SystemMetrics.jsx";
+import Analytics from "./pages/admin/Analytics.jsx";
+import Forecaster from "./pages/admin/Forecaster.jsx";
+import TourVisioErrors from "./pages/admin/TourVisioErrors.jsx";
 
 import { ThemeProvider } from "./components/ThemeContext.jsx";
-import { AuthProvider } from "./components/AuthContext.jsx";
+import { AuthProvider, useAuth } from "./components/AuthContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
+
+// Root redirect handler: if already authenticated redirect to /chat, else render WelcomePage
+function RootRoute() {
+  const { isAuthenticated } = useAuth();
+  if (isAuthenticated) {
+    return <Navigate to="/chat" replace />;
+  }
+  return <WelcomePage />;
+}
 
 // ==========================================
 // GEÇİCİ BİLEŞENLER (PLACEHOLDERS)
@@ -57,10 +71,10 @@ export default function App() {
           <div className="relative min-h-screen w-full bg-white text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-50">
             <Routes>
               {/* Ana yönlendirme */}
-              <Route
-                path="/"
-                element={<Navigate to="/login" replace />}
-              />
+              <Route path="/" element={<RootRoute />} />
+              <Route path="/welcome" element={<WelcomePage />} />
+
+              {/* Layout dışında açılması gereken sayfalar */}
 
               {/* Layout dışında açılması gereken sayfalar */}
               <Route path="/login" element={<LoginPage />} />
@@ -83,6 +97,10 @@ export default function App() {
                 />
                 <Route path="users" element={<Users />} />
                 <Route path="chats" element={<ChatLogs />} />
+                <Route path="metrics" element={<SystemMetrics />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="forecaster" element={<Forecaster />} />
+                <Route path="errors" element={<TourVisioErrors />} />
               </Route>
 
               {/* KULLANICI & GUEST ROTALARI (ProtectedRoute) */}

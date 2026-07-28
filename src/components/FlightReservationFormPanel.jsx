@@ -38,7 +38,8 @@ function toDateOnly(value) {
   return date.toISOString().slice(0, 10);
 }
 
-const getPassengerErrors = (passenger, index = 0, t) => {
+const getPassengerErrors = (passenger, index = 0, t, referenceDateStr) => {
+
   const errors = {};
   const isPrimaryContact = index === 0;
 
@@ -67,21 +68,41 @@ const getPassengerErrors = (passenger, index = 0, t) => {
     errors.birthDate = t("res_form_error_birth_date", "Doğum tarihi gereklidir.");
   } else {
     const birthDate = new Date(passenger.birthDate);
+    const refDate = referenceDateStr ? new Date(referenceDateStr) : new Date();
 
-    if (birthDate >= new Date()) {
-      errors.birthDate = t("res_form_error_past_birth_date", "Doğum tarihi geçmişte olmalıdır.");
-    } else if (isPrimaryContact) {
-      const eighteenYearsAgo = new Date();
-      eighteenYearsAgo.setFullYear(
-        eighteenYearsAgo.getFullYear() - 18
-      );
+    if (birthDate >= refDate) {
+      errors.birthDate = t("res_form_error_past_birth_date", "Doğum tarihi uçuş/rezervasyon tarihinden önce olmalıdır.");
+    } else {
+      let ageMonths = (refDate.getFullYear() - birthDate.getFullYear()) * 12 + (refDate.getMonth() - birthDate.getMonth());
+      if (refDate.getDate() < birthDate.getDate()) ageMonths--;
 
-      if (birthDate > eighteenYearsAgo) {
-        errors.birthDate =
-          t("res_form_error_age", "Rezervasyonu yapan kişi 18 yaşından büyük olmalıdır.");
+      const pType = passenger.type ? passenger.type.toUpperCase() : "ADULT";
+
+      if (pType === "INFANT" || pType === "BABY") {
+        if (ageMonths >= 24) {
+          errors.birthDate = t(
+            "res_form_error_infant_age",
+            "Bebek yolcular uçuş tarihinde 2 yaşından küçük olmalıdır."
+          );
+        }
+      } else if (pType === "CHILD") {
+        if (ageMonths < 24 || ageMonths >= 144) {
+          errors.birthDate = t(
+            "res_form_error_child_age",
+            "Çocuk yolcular uçuş tarihinde 2 - 12 yaş arasında olmalıdır."
+          );
+        }
+      } else if (isPrimaryContact) {
+        if (ageMonths < 216) {
+          errors.birthDate = t(
+            "res_form_error_age",
+            "Rezervasyonu yapan kişi 18 yaşından büyük olmalıdır."
+          );
+        }
       }
     }
   }
+
 
   if (isPrimaryContact) {
     if (!passenger.email?.trim()) {

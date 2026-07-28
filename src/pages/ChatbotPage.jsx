@@ -86,27 +86,19 @@ function sortResults(results, sortKey) {
 // TourVisio aramasında çocuklar yetişkin sayısına eklenerek gönderilir (TourVisio'da
 // ayrı bir çocuk kavramı yok), ama kullanıcıya burada gerçek yetişkin/çocuk ayrımı
 // gösterilir.
-function formatGuestCount(adultCount, childCount, passengerCount, t, infantCount, roomCount, childAges) {
-  const guestParts = [];
+function formatGuestCount(adultCount, childCount, passengerCount, t, infantCount) {
   if (adultCount) {
-    guestParts.push(`${adultCount} ${t("unit_adult") || "Yetişkin"}`);
-  }
-  if (childCount && childCount > 0) {
-    if (childAges && childAges.length > 0) {
-      const ageLabel = t("unit_age") || "Yaş";
-      guestParts.push(`${childCount} ${t("unit_child") || "Çocuk"} (${ageLabel}: ${childAges.join(", ")})`);
-    } else {
-      guestParts.push(`${childCount} ${t("unit_child") || "Çocuk"}`);
+    const parts = [`${adultCount} ${t("unit_adult")}`];
+    if (childCount) {
+      parts.push(`${childCount} ${t("unit_child")}`);
     }
-  }
-  if (infantCount && infantCount > 0) {
-    guestParts.push(`${infantCount} ${t("unit_infant") || "Bebek"}`);
-  }
-  if (guestParts.length > 0) {
-    return guestParts.join(", ");
+    if (infantCount) {
+      parts.push(`${infantCount} ${t("unit_infant")}`);
+    }
+    return parts.join(", ");
   }
   if (passengerCount) {
-    return `${passengerCount} ${t("unit_person") || "Kişi"}`;
+    return `${passengerCount} ${t("unit_person")}`;
   }
   return null;
 }
@@ -162,9 +154,6 @@ function mapProductInfoToHotelDetail(productInfo) {
     description: description || null,
     facilities: [...facilities],
     themes: (hotel.themes || []).map(t => t.name).filter(Boolean),
-    geolocation: hotel.geolocation
-      ? { latitude: hotel.geolocation.latitude, longitude: hotel.geolocation.longitude }
-      : null,
   };
 }
 
@@ -219,7 +208,7 @@ function HotelSearchResults({
   const handleFilterChange = (newStar, newMaxPrice) => {
     setSelectedStar(newStar);
     setMaxPrice(newMaxPrice);
-    
+
     const raw = msg.originalHotels || msg.results || [];
     const filtered = raw.filter(item => {
       if (item.airline !== undefined) return true;
@@ -242,10 +231,10 @@ function HotelSearchResults({
     if (isLatestResultMsg) {
       const criteriaMaxPrice = sessionCriteria.maxPrice === 0 || !sessionCriteria.maxPrice ? "" : sessionCriteria.maxPrice.toString();
       const criteriaMinStars = sessionCriteria.minStars === 0 || !sessionCriteria.minStars ? "" : sessionCriteria.minStars.toString();
-      
+
       setSelectedStar(criteriaMinStars);
       setMaxPrice(criteriaMaxPrice);
-      
+
       const raw = msg.originalHotels || msg.results || [];
       const filtered = raw.filter(item => {
         if (item.airline !== undefined) return true;
@@ -374,7 +363,7 @@ function HotelSearchResults({
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+      <div className="grid min-w-0 w-full grid-cols-1 gap-3 sm:grid-cols-2">
         {sortedList.map((result, idx) => {
           const isFlight = result.airline !== undefined;
           if (isFlight) {
@@ -399,7 +388,7 @@ function HotelSearchResults({
                   }));
                 }}
                 className={cn(
-                  "w-full text-left bg-white dark:bg-slate-900 border rounded-xl p-4 shadow-sm flex flex-col gap-2 transition-all duration-200 cursor-pointer hover:border-amber-500 hover:shadow-md focus:outline-none",
+                  "min-w-0 w-full overflow-hidden text-left bg-white dark:bg-slate-900 border rounded-xl p-4 shadow-sm flex flex-col gap-2 transition-all duration-200 cursor-pointer hover:border-amber-500 hover:shadow-md focus:outline-none",
                   isCurrentlySelected ? "border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/50 dark:bg-amber-950/20" : "border-slate-200 dark:border-slate-800"
                 )}
               >
@@ -466,7 +455,7 @@ function HotelSearchResults({
                   }
                 }}
                 className={cn(
-                  "w-full text-left bg-white dark:bg-slate-900 border rounded-xl p-3 shadow-sm flex items-start gap-3 transition-all duration-200 cursor-pointer hover:border-amber-500 hover:shadow-md focus:outline-none",
+                  "min-w-0 w-full overflow-hidden text-left bg-white dark:bg-slate-900 border rounded-xl p-3 shadow-sm flex items-start gap-3 transition-all duration-200 cursor-pointer hover:border-amber-500 hover:shadow-md focus:outline-none",
                   isCurrentlySelected ? "border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/50 dark:bg-amber-950/20" : "border-slate-200 dark:border-slate-800"
                 )}
               >
@@ -582,7 +571,6 @@ export default function Index() {
     childAges: [],
     infantCount: 0,
     infantAges: [],
-    roomCount: 1,
     passengerCount: 1,
     hotelName: "",
     price: "",
@@ -594,12 +582,8 @@ export default function Index() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const urlSessionId = searchParams.get('sessionId') || '';
-  // Misafir oturumlarında sessionId URL'ye yazılmıyor (geçmiş kaydedilmesin diye),
-  // ama bu yüzden aktif sohbetin kendi kimliği de hiçbir yerde tutulmuyordu — her
-  // mesaj sessionId=null gönderip backend'de YENİ bir oturum açtırıyor, önceki
-  // tüm kriterleri (konum, tarih, yolcu sayısı) sıfırlıyordu. Misafir için bu
-  // kimliği sessionStorage'da tutuyoruz ki sekme yenilense bile sohbet devam etsin.
+
+  // Guest users get or reuse a guestSessionId stored in sessionStorage
   const getGuestSessionId = () => {
     let id = sessionStorage.getItem('guestSessionId');
     if (!id) {
@@ -608,7 +592,8 @@ export default function Index() {
     }
     return id;
   };
-  const sessionId = urlSessionId || (isGuest ? getGuestSessionId() : '');
+
+  const sessionId = searchParams.get('sessionId') || (isGuest ? getGuestSessionId() : '');
   const [isListening, setIsListening] = useState(false);
 
   const videoRef = useRef(null);
@@ -630,36 +615,24 @@ export default function Index() {
   }, [theme]);
 
   // --- Oturum Geçmişini ve bookingMeta Durumunu Yükleme ---
-  // Bu efekt SADECE URL'deki sessionId'ye (deep-link / kayıtlı geçmişe dönüş)
-  // tepki verir — misafirin kendi içindeki guestSessionId'ye değil. Aksi hâlde
-  // ilk mesajdan sonra guestSessionId dolduğunda bu efekt tekrar tetiklenip
-  // az önce eklenen mesajın üzerine geçmişi yeniden yükler (ya da URL'de
-  // hiçbir zaman sessionId olmayacağı için "else" dalı her seferinde sohbeti
-  // sıfırlardı).
   useEffect(() => {
     setIsChatCompleted(false);
-    if (urlSessionId) {
+    if (sessionId) {
       const loadHistory = async () => {
-        setIsThinking(true);
-        // Oturum değiştiğinde önceki oturumun state'lerinin sızmasını engellemek için resetle
-        setBookingDetails({ city: "", departureCity: "", arrivalCity: "", checkIn: "", checkOut: "", guests: "", adultCount: 1, childCount: 0, childAges: [], infantCount: 0, infantAges: [], roomCount: 1, passengerCount: 1, hotelName: "", airline: "", price: "", returnDate: "" });
-        setReservationGuests(null);
-        setSelectedHotel(null);
-        setSelectedFlight(null);
-
         try {
+          setIsThinking(true);
           setThinkingStep("Loading history...");
 
           try {
-            const sessionResponse = await api.get(`/api/chat/sessions/${urlSessionId}`);
+            const sessionResponse = await api.get(`/api/chat/sessions/${sessionId}`);
             if (sessionResponse.data?.chatStatus === 'COMPLETED') {
               setIsChatCompleted(true);
             }
           } catch (sessionErr) {
-            console.error("Failed to load session details", urlSessionId, sessionErr);
+            console.error("Failed to load session details", sessionId, sessionErr);
           }
 
-          const response = await api.get(`/api/chat/sessions/${urlSessionId}/messages`);
+          const response = await api.get(`/api/chat/sessions/${sessionId}/messages`);
 
           const history = response.data.map((msg, idx) => ({
             id: idx,
@@ -693,46 +666,45 @@ export default function Index() {
             }
           }
 
-            // Bu oturum için backend'de toplanmış kriterleri (kalkış/varış/yolcu/tarih)
-            // ayrıca çek — mesaj geçmişinde bu bilgiler saklanmıyor, oturumun kendi
-            // kriter kaydından (search_criteria_json) geliyor.
-            try {
-              const criteriaResponse = await api.get(`/api/chat/sessions/${urlSessionId}/criteria`);
-              const c = criteriaResponse.data;
-              if (c) {
-                // Backend'den gelen kriter (c) her zaman TAM ve GÜNCEL bir anlık
-                // görüntüdür (bkz. ChatCriteriaSummary.from) — hiçbir zaman kısmi
-                // değildir. Bu yüzden burada `|| prev.X` gibi bir "eskiyi koru"
-                // yedeği KULLANMIYORUZ: aksi hâlde backend bir alanı gerçekten
-                // sıfırladığında (ör. reddedilen bir arama geri alındığında) panel
-                // hâlâ eski/"hayalet" değeri göstermeye devam ederdi.
-                setBookingDetails(prev => ({
-                  ...prev,
-                  city: c.locationOrHotelName || "",
-                  checkIn: c.checkInDate || c.departureDate || "",
-                  checkOut: c.checkOutDate || "",
-                  guests: formatGuestCount(c.adultCount, c.childCount, c.passengerCount, t, c.infantCount, c.roomCount, c.childAges) || "",
-                  adultCount: c.adultCount !== undefined && c.adultCount !== null ? c.adultCount : prev.adultCount,
-                  childCount: c.childCount !== undefined && c.childCount !== null ? c.childCount : prev.childCount,
-                  childAges: c.childAges || [],
-                  infantCount: c.infantCount !== undefined && c.infantCount !== null ? c.infantCount : prev.infantCount,
-                  infantAges: c.infantAges || [],
-                  roomCount: c.roomCount !== undefined && c.roomCount !== null ? c.roomCount : prev.roomCount,
-                  passengerCount: c.passengerCount !== undefined && c.passengerCount !== null ? c.passengerCount : prev.passengerCount,
-                  departureCity: c.departureLocation || "",
-                  arrivalCity: c.arrivalLocation || "",
-                  returnDate: c.returnDate || ""
-                }));
-                setSessionCriteria({
-                  maxPrice: c.maxPrice || null,
-                  minStars: c.minStars || null
-                });
-              }
-            } catch (criteriaErr) {
-            console.error("Failed to load session criteria", urlSessionId, criteriaErr);
+          // Bu oturum için backend'de toplanmış kriterleri (kalkış/varış/yolcu/tarih)
+          // ayrıca çek — mesaj geçmişinde bu bilgiler saklanmıyor, oturumun kendi
+          // kriter kaydından (search_criteria_json) geliyor.
+          try {
+            const criteriaResponse = await api.get(`/api/chat/sessions/${sessionId}/criteria`);
+            const c = criteriaResponse.data;
+            if (c) {
+              // Backend'den gelen kriter (c) her zaman TAM ve GÜNCEL bir anlık
+              // görüntüdür (bkz. ChatCriteriaSummary.from) — hiçbir zaman kısmi
+              // değildir. Bu yüzden burada `|| prev.X` gibi bir "eskiyi koru"
+              // yedeği KULLANMIYORUZ: aksi hâlde backend bir alanı gerçekten
+              // sıfırladığında (ör. reddedilen bir arama geri alındığında) panel
+              // hâlâ eski/"hayalet" değeri göstermeye devam ederdi.
+              setBookingDetails(prev => ({
+                ...prev,
+                city: c.locationOrHotelName || "",
+                checkIn: c.checkInDate || c.departureDate || "",
+                checkOut: c.checkOutDate || "",
+                guests: formatGuestCount(c.adultCount, c.childCount, c.passengerCount, t, c.infantCount) || "",
+                adultCount: c.adultCount !== undefined && c.adultCount !== null ? c.adultCount : prev.adultCount,
+                childCount: c.childCount !== undefined && c.childCount !== null ? c.childCount : prev.childCount,
+                childAges: c.childAges || [],
+                infantCount: c.infantCount !== undefined && c.infantCount !== null ? c.infantCount : prev.infantCount,
+                infantAges: c.infantAges || [],
+                passengerCount: c.passengerCount !== undefined && c.passengerCount !== null ? c.passengerCount : prev.passengerCount,
+                departureCity: c.departureLocation || "",
+                arrivalCity: c.arrivalLocation || "",
+                returnDate: c.returnDate || ""
+              }));
+              setSessionCriteria({
+                maxPrice: c.maxPrice || null,
+                minStars: c.minStars || null
+              });
+            }
+          } catch (criteriaErr) {
+            console.error("Failed to load session criteria", sessionId, criteriaErr);
           }
         } catch (err) {
-          console.error("Failed to load message history for session", urlSessionId, err);
+          console.error("Failed to load message history for session", sessionId, err);
         } finally {
           setIsThinking(false);
         }
@@ -746,7 +718,7 @@ export default function Index() {
       setSelectedHotel(null);
       setSelectedFlight(null);
     }
-  }, [urlSessionId]);
+  }, [sessionId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -905,13 +877,12 @@ export default function Index() {
           city: c.locationOrHotelName || "",
           checkIn: c.checkInDate || c.departureDate || extractedFromQuery.checkIn || "",
           checkOut: c.checkOutDate || extractedFromQuery.checkOut || "",
-          guests: formatGuestCount(c.adultCount, c.childCount, c.passengerCount, t, c.infantCount, c.roomCount, c.childAges) || extractedFromQuery.guests || "",
+          guests: formatGuestCount(c.adultCount, c.childCount, c.passengerCount, t, c.infantCount) || extractedFromQuery.guests || "",
           adultCount: c.adultCount !== undefined && c.adultCount !== null ? c.adultCount : prev.adultCount,
           childCount: c.childCount !== undefined && c.childCount !== null ? c.childCount : prev.childCount,
           childAges: c.childAges || [],
           infantCount: c.infantCount !== undefined && c.infantCount !== null ? c.infantCount : prev.infantCount,
           infantAges: c.infantAges || [],
-          roomCount: c.roomCount !== undefined && c.roomCount !== null ? c.roomCount : prev.roomCount,
           passengerCount: c.passengerCount !== undefined && c.passengerCount !== null ? c.passengerCount : prev.passengerCount,
           departureCity: c.departureLocation || "",
           arrivalCity: c.arrivalLocation || "",
@@ -955,8 +926,11 @@ export default function Index() {
         });
       }
 
-      if (data.sessionId && data.sessionId !== sessionId && !isGuest) {
-        setSearchParams({ sessionId: data.sessionId });
+      if (data.sessionId && data.sessionId !== sessionId) {
+        // Misafir oturumlarında sessionId URL'ye yazılmaz (geçmiş kaydedilmez)
+        if (!isGuest) {
+          setSearchParams({ sessionId: data.sessionId });
+        }
       }
 
     } catch (err) {
@@ -1112,10 +1086,9 @@ export default function Index() {
           setSearchQuery("");
           setSearchType("hotel");
           setActivePanel(null);
-          setBookingDetails({ city: "", departureCity: "", arrivalCity: "", checkIn: "", checkOut: "", guests: "", adultCount: 1, childCount: 0, childAges: [], infantCount: 0, infantAges: [], roomCount: 1, passengerCount: 1, hotelName: "", airline: "", price: "", returnDate: "" });
+          setBookingDetails({ city: "", departureCity: "", arrivalCity: "", checkIn: "", checkOut: "", guests: "", adultCount: 1, childCount: 0, childAges: [], infantCount: 0, infantAges: [], passengerCount: 1, hotelName: "", airline: "", price: "", returnDate: "" });
           setSelectedHotel(null);
           setSelectedFlight(null);
-          sessionStorage.removeItem('guestSessionId');
         }}
       />
 
@@ -1141,11 +1114,19 @@ export default function Index() {
           </button>
         )}
 
-        <div className="flex-1 flex h-full relative z-20 w-full overflow-hidden">
+        <div
+          className="relative z-20 grid h-full min-w-0 flex-1 overflow-hidden"
+          style={{
+            gridTemplateColumns:
+              isChatActive && isRightSidebarOpen
+                ? "minmax(0, 1fr) 410px"
+                : "minmax(0, 1fr)",
+          }}
+        >
 
           {/* CHAT ALANI */}
-          <div className="flex flex-col h-full relative min-w-0 flex-1 transition-all duration-300 ease-in-out w-full">
-            <div className="flex-1 overflow-y-auto px-4 py-8 flex flex-col items-center justify-center h-full relative">
+          <div className="h-full min-w-0 w-full overflow-hidden transition-all duration-300 ease-in-out">
+            <div className="flex h-full min-w-0 flex-col items-center overflow-y-auto px-4 py-8 relative">
 
               {!isChatActive ? (
                 // ==================== 1. KARŞILAMA EKRANI VE ORTAKDAKİ INPUT ====================
@@ -1251,7 +1232,7 @@ export default function Index() {
                       {[
                         "starter_hotel_antalya",
                         "starter_flight_ist_ayt",
-                        "suggested_prompt_istanbul_hotel"
+                        "starter_best_hotels_antalya"
                       ].map((queryKey) => (
                         <button
                           key={queryKey}
@@ -1266,7 +1247,7 @@ export default function Index() {
                 </div>
               ) : (
                 // ==================== 2. AKTİF SOHBET LAYOUT'U ====================
-                <div className="w-full max-w-[850px] flex-1 flex flex-col h-full relative justify-between overflow-hidden">
+                <div className="mx-auto flex h-full w-full max-w-[850px] min-w-0 flex-1 flex-col justify-between overflow-hidden relative">
                   <div className="flex-1 overflow-y-auto p-2 space-y-4 pb-28 w-full">
                     {messages.map((msg) => (
                       <div key={msg.id} className={`flex items-start gap-3 w-full ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
@@ -1279,10 +1260,10 @@ export default function Index() {
                             />
                           </div>
                         )}
-                        <div className="flex flex-col max-w-[75%]">
+                        <div className="flex min-w-0 max-w-[75%] flex-col">
                           {(msg.text || (msg.chatStatus === "BOOKING" && msg.selectedItem)) && (
                             <div
-                              className={`p-4 rounded-2xl shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${msg.sender === "user"
+                              className={`max-w-full break-words p-4 rounded-2xl shadow-sm text-sm leading-relaxed whitespace-pre-wrap ${msg.sender === "user"
                                 ? "bg-amber-500 text-white rounded-tr-none"
                                 : "bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 text-[#0F172A] dark:text-slate-100 rounded-tl-none"
                                 }`}

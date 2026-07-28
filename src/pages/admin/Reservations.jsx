@@ -15,6 +15,7 @@ export default function Reservations() {
 
     const [reservations, setReservations] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [activeTab, setActiveTab] = useState("ALL"); // "ALL", "HOTEL", "FLIGHT"
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -41,6 +42,9 @@ export default function Reservations() {
 
     const filteredReservations = reservations.filter((reservation) => {
         const searchValue = searchTerm.trim().toLocaleLowerCase('tr-TR');
+        const typeMatch = activeTab === "ALL" || (reservation.type || "").toUpperCase() === activeTab;
+
+        if (!typeMatch) return false;
 
         return (
             (reservation.reservationNumber || "")
@@ -115,17 +119,21 @@ export default function Reservations() {
         );
     }
 
+    const allCount = reservations.length;
+    const hotelCount = reservations.filter((r) => (r.type || "").toUpperCase() === "HOTEL").length;
+    const flightCount = reservations.filter((r) => (r.type || "").toUpperCase() === "FLIGHT").length;
+
     return (
         <div className="space-y-6">
             {/* Sayfa başlığı */}
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        {t("reservations.title")}
+                        {t("reservations.title", "Rezervasyonlar")}
                     </h1>
 
                     <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-                        {t("reservations.description")}
+                        {t("reservations.description", "Sistemdeki tüm otel ve uçuş rezervasyonlarını görüntüleyin.")}
                     </p>
                 </div>
 
@@ -134,7 +142,8 @@ export default function Reservations() {
 
                     <span>
                         {t("reservations.reservation_count", {
-                            count: reservations.length,
+                            count: filteredReservations.length,
+                            defaultValue: `Toplam: ${filteredReservations.length} Kayıt`
                         })}
                     </span>
                 </div>
@@ -150,10 +159,10 @@ export default function Reservations() {
             )}
 
             {/* Rezervasyon tablosu */}
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                {/* Arama alanı */}
-                <div className="border-b border-gray-100 p-5 dark:border-slate-800">
-                    <div className="relative max-w-xl">
+            <div className="overflow-hidden rounded-2xl border border-gray-250 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+                {/* Arama alanı ve Sekmeler */}
+                <div className="flex flex-col gap-4 border-b border-gray-100 p-5 dark:border-slate-800 md:flex-row md:items-center md:justify-between">
+                    <div className="relative w-full max-w-md">
                         <Search
                             size={18}
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500"
@@ -162,20 +171,72 @@ export default function Reservations() {
                         <input
                             type="text"
                             placeholder={t(
-                                "reservations.search_placeholder"
+                                "reservations.search_placeholder",
+                                "PNR, ürün adı veya destinasyon ara..."
                             )}
                             value={searchTerm}
                             onChange={(event) =>
                                 setSearchTerm(event.target.value)
                             }
-                            className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:ring-orange-950"
+                            className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:ring-orange-950"
                         />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5 rounded-xl bg-gray-50 p-1.5 dark:bg-slate-950/80">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("ALL")}
+                            className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
+                                activeTab === "ALL"
+                                    ? "bg-white text-orange-500 shadow-sm dark:bg-slate-800 dark:text-orange-400"
+                                    : "text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-slate-200"
+                            }`}
+                        >
+                            {t("reservations.tabs.all", "Tümü")}
+                            <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+                                activeTab === "ALL" ? "bg-orange-50 text-orange-500 dark:bg-orange-950/40 dark:text-orange-400" : "bg-gray-200/60 text-gray-500 dark:bg-slate-800 dark:text-slate-400"
+                            }`}>
+                                {allCount}
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("HOTEL")}
+                            className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
+                                activeTab === "HOTEL"
+                                    ? "bg-white text-orange-500 shadow-sm dark:bg-slate-800 dark:text-orange-400"
+                                    : "text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-slate-200"
+                            }`}
+                        >
+                            {t("reservations.tabs.hotel", "Otel")}
+                            <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+                                activeTab === "HOTEL" ? "bg-orange-50 text-orange-500 dark:bg-orange-950/40 dark:text-orange-400" : "bg-gray-200/60 text-gray-500 dark:bg-slate-800 dark:text-slate-400"
+                            }`}>
+                                {hotelCount}
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("FLIGHT")}
+                            className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all ${
+                                activeTab === "FLIGHT"
+                                    ? "bg-white text-orange-500 shadow-sm dark:bg-slate-800 dark:text-orange-400"
+                                    : "text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-slate-200"
+                            }`}
+                        >
+                            {t("reservations.tabs.flight", "Uçuş")}
+                            <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+                                activeTab === "FLIGHT" ? "bg-orange-50 text-orange-500 dark:bg-orange-950/40 dark:text-orange-400" : "bg-gray-200/60 text-gray-500 dark:bg-slate-800 dark:text-slate-400"
+                            }`}>
+                                {flightCount}
+                            </span>
+                        </button>
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[1100px] text-left">
-                        <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+                        <thead className="border-b border-gray-150 bg-gray-50/50 text-xs font-bold uppercase tracking-wider text-gray-400 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">
                             <tr>
                                 <th className="px-6 py-4">
                                     {t(
@@ -228,8 +289,12 @@ export default function Reservations() {
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                                            {reservation.type || "-"}
+                                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                            (reservation.type || "").toUpperCase() === "HOTEL"
+                                                ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                                : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                        }`}>
+                                            {(reservation.type || "-").toUpperCase()}
                                         </span>
                                     </td>
 

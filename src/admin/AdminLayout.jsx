@@ -11,7 +11,11 @@ import {
     ChevronDown,
     Sun,
     Moon,
-    LogOut
+    LogOut,
+    Activity,
+    BarChart3,
+    Brain,
+    AlertTriangle,
 } from "lucide-react";
 
 export default function AdminLayout() {
@@ -49,26 +53,50 @@ export default function AdminLayout() {
     const menuItems = [
         {
             key: "dashboard_menu",
-            defaultLabel: "Dashboard",
+            defaultLabel: "Genel Özet",
             path: "/admin",
             icon: LayoutDashboard,
             end: true,
         },
         {
+            key: "system_metrics_menu",
+            defaultLabel: "Sistem Metrikleri",
+            path: "/admin/metrics",
+            icon: Activity,
+        },
+        {
+            key: "analytics_menu",
+            defaultLabel: "Analitik",
+            path: "/admin/analytics",
+            icon: BarChart3,
+        },
+        {
+            key: "forecaster_menu",
+            defaultLabel: "AI Tahmin & Risk",
+            path: "/admin/forecaster",
+            icon: Brain,
+        },
+        {
+            key: "errors_menu",
+            defaultLabel: "TourVisio Hataları",
+            path: "/admin/errors",
+            icon: AlertTriangle,
+        },
+        {
             key: "reservations_menu",
-            defaultLabel: "Reservations",
+            defaultLabel: "Rezervasyonlar",
             path: "/admin/reservations",
             icon: CalendarCheck,
         },
         {
             key: "users_menu",
-            defaultLabel: "Users",
+            defaultLabel: "Kullanıcılar",
             path: "/admin/users",
             icon: Users,
         },
         {
             key: "chat_logs_menu",
-            defaultLabel: "Chat Logs",
+            defaultLabel: "Sohbet Kayıtları",
             path: "/admin/chats",
             icon: MessageSquare,
         },
