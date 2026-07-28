@@ -7,6 +7,8 @@ import "react-phone-number-input/style.css";
 import ChatSidebar from "../components/ChatSidebar";
 import { PanelLeftOpen } from "lucide-react";
 import { isPhoneNumberTooLong, getPhoneInputMaxLength } from "../utils/phoneLimits";
+import OtpModal from "../components/OtpModal";
+import { CheckCircle2, AlertCircle, ShieldCheck } from "lucide-react";
 import { useTheme } from "../components/ThemeContext";
 
 // Helper to convert "DD.MM.YYYY" to "YYYY-MM-DD" for the backend API
@@ -176,7 +178,15 @@ export default function Profile() {
             gender: '',
             dateOfBirth: '',
             createdAt: null,
+            isEmailVerified: false,
+            isPhoneVerified: false,
         };
+    });
+
+    const [otpModal, setOtpModal] = useState({
+        open: false,
+        type: 'email',
+        target: ''
     });
 
     const [backupData, setBackupData] = useState({});
@@ -208,6 +218,8 @@ export default function Profile() {
                         gender: data.gender || '',
                         dateOfBirth: toDisplayDate(data.dateOfBirth),
                         createdAt: data.createdAt || null,
+                        isEmailVerified: !!data.isEmailVerified,
+                        isPhoneVerified: !!data.isPhoneVerified,
                     };
                     setFormData(updatedUser);
                     const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
@@ -444,10 +456,11 @@ export default function Profile() {
             }
             setIsEditing(false);
         } catch (err) {
-            console.error("Profil güncellenemedi", err);
+            console.error("Profil güncellenemedi:", err?.response?.data || err);
+            const serverMsg = err.response?.data?.message || err.response?.data?.error;
             setErrors((prev) => ({
                 ...prev,
-                firstName: "Failed to update profile. Please try again."
+                firstName: serverMsg || "Failed to update profile. Please try again."
             }));
         }
     };
@@ -636,9 +649,28 @@ export default function Profile() {
 
                                 {/* Email */}
                                 <div className="flex flex-col">
-                                    <span className="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-[4px]">
-                                        {t("email_label")}
-                                    </span>
+                                    <div className="flex items-center justify-between mb-[4px]">
+                                        <span className="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                            {t("email_label")}
+                                        </span>
+                                        {formData.email && (
+                                            formData.isEmailVerified ? (
+                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                                                    <CheckCircle2 size={12} />
+                                                    {t("verified", "Doğrulandı")}
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setOtpModal({ open: true, type: 'email', target: formData.email })}
+                                                    className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer"
+                                                >
+                                                    <AlertCircle size={12} />
+                                                    {t("verifyEmail", "E-postayı Doğrula")}
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
                                     {isEditing ? (
                                         <div>
                                             <input
@@ -664,9 +696,11 @@ export default function Profile() {
 
                                 {/* Phone Number */}
                                 <div className="flex flex-col">
-                                    <span className="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-[4px]">
-                                        {t("phone_label")}
-                                    </span>
+                                    <div className="flex items-center justify-between mb-[4px]">
+                                        <span className="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                            {t("phone_label")}
+                                        </span>
+                                    </div>
                                     {isEditing ? (
                                         <div>
                                             <PhoneInput
@@ -899,6 +933,21 @@ export default function Profile() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {otpModal.open && (
+                <OtpModal
+                    type={otpModal.type}
+                    target={otpModal.target}
+                    onClose={() => setOtpModal({ open: false, type: 'email', target: '' })}
+                    onSuccess={() => {
+                        setFormData((prev) => ({
+                            ...prev,
+                            isEmailVerified: otpModal.type === 'email' ? true : prev.isEmailVerified,
+                            isPhoneVerified: otpModal.type === 'sms' ? true : prev.isPhoneVerified,
+                        }));
+                    }}
+                />
             )}
         </div>
     );

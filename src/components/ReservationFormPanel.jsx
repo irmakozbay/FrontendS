@@ -21,6 +21,7 @@ import PhoneInput, {
 import { validatePhoneNumberLength } from "libphonenumber-js/max";
 import "react-phone-number-input/style.css";
 import api from "../services/api";
+import { useAuth } from "./AuthContext";
 import ReservationPreviewModal from "./ReservationPreviewModal";
 import { HotelConfirmationModal } from "./ConfirmationModal";
 
@@ -143,6 +144,13 @@ export default function ReservationFormPanel({
   chatSessionId,
 }) {
   const { t, i18n } = useTranslation();
+  const auth = useAuth() || {};
+  const { user, isGuest, isAuthenticated } = auth;
+  const isLoggedIn = Boolean(
+    isAuthenticated &&
+      !isGuest &&
+      (localStorage.getItem("token") || sessionStorage.getItem("token"))
+  );
 
   const safeHotel = hotel || {};
 
@@ -154,6 +162,90 @@ export default function ReservationFormPanel({
     useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
+  const [useProfileInfo, setUseProfileInfo] = useState(false);
+
+  const handleToggleUseProfileInfo = async (checked) => {
+    setUseProfileInfo(checked);
+    if (!guests || guests.length === 0) return;
+
+    if (checked) {
+      let profileData = user || {};
+
+      if (isLoggedIn) {
+        try {
+          const res = await api.get("/api/profile");
+          if (res.data) {
+            profileData = { ...profileData, ...res.data };
+          }
+        } catch (err) {
+          console.warn("Profil bilgileri getirilemedi:", err);
+        }
+      }
+
+      const rawDate = profileData.dateOfBirth || profileData.birthDate || "";
+      let formattedBirthDate = "";
+      if (rawDate) {
+        if (/^\d{2}\.\d{2}\.\d{4}$/.test(rawDate)) {
+          const [d, m, y] = rawDate.split(".");
+          formattedBirthDate = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+        } else {
+          const match = /^\d{4}-\d{2}-\d{2}/.exec(rawDate);
+          if (match) formattedBirthDate = match[0];
+        }
+      }
+
+      let genderVal = guests[0]?.gender || "MR";
+      if (profileData.gender) {
+        const gUpper = String(profileData.gender).toUpperCase();
+        if (
+          gUpper.includes("F") ||
+          gUpper.includes("KADIN") ||
+          gUpper.includes("WOMAN") ||
+          gUpper.includes("MS")
+        ) {
+          genderVal = "MS";
+        } else {
+          genderVal = "MR";
+        }
+      }
+
+      const updatedGuests = [...guests];
+      updatedGuests[0] = {
+        ...updatedGuests[0],
+        firstName: profileData.firstName || updatedGuests[0]?.firstName || "",
+        lastName: profileData.lastName || updatedGuests[0]?.lastName || "",
+        email: profileData.email || updatedGuests[0]?.email || "",
+        phone:
+          profileData.phone ||
+          profileData.phoneNumber ||
+          updatedGuests[0]?.phone ||
+          "",
+        identityNumber:
+          profileData.tcNo ||
+          profileData.identityNumber ||
+          updatedGuests[0]?.identityNumber ||
+          "",
+        birthDate: formattedBirthDate || updatedGuests[0]?.birthDate || "",
+        gender: genderVal,
+      };
+
+      setGuests(updatedGuests);
+      setExpandedGuestId(updatedGuests[0]?.id || "adult-0");
+    } else {
+      const updatedGuests = [...guests];
+      updatedGuests[0] = {
+        ...updatedGuests[0],
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        identityNumber: "",
+        birthDate: "",
+        gender: "MR",
+      };
+      setGuests(updatedGuests);
+    }
+  };
 
   useEffect(() => {
     if (typeof setGuests !== "function") return;
@@ -480,6 +572,7 @@ export default function ReservationFormPanel({
       currency: safeHotel?.currency || "TRY",
       chatSessionId: chatSessionId || null,
       imageUrl: safeHotel?.thumbnailFull || safeHotel?.thumbnail || "",
+      lang: i18n?.language || "tr",
       passengers: (guests || []).map((guest, index) => {
         const today = new Date();
         const birthDate = guest.birthDate
@@ -678,6 +771,35 @@ export default function ReservationFormPanel({
                   <h3 className="mb-3 text-sm font-extrabold uppercase tracking-[0.14em] text-slate-800 dark:text-slate-200">
                     {t("res_form_passenger_info", "Konuk Bilgileri")}
                   </h3>
+
+                  <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-900/40 dark:bg-blue-950/30 transition-all shadow-xs">
+                    <label className={`flex items-center gap-3 ${isLoggedIn ? "cursor-pointer" : "cursor-not-allowed opacity-85"}`}>
+                      <input
+                        type="checkbox"
+                        checked={useProfileInfo}
+                        disabled={!isLoggedIn}
+                        onChange={(e) => handleToggleUseProfileInfo(e.target.checked)}
+                        className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                          {t("booking.useMyProfileInfo", t("useMyProfileInfo", "Kayıtlı profil bilgilerimi 1. yolcu/misafir olarak doldur"))}
+                        </span>
+                        {!isLoggedIn && (
+                          <span className="mt-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                            🔒 {t("booking.loginToUseProfile", t("loginToUseProfile", "Kayıtlı bilgilerinizi kullanmak için giriş yapın"))}
+                          </span>
+                        )}
+                      </div>
+                    </label>
+
+                    {isLoggedIn && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 w-fit">
+                        <User size={13} />
+                        {user?.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : (user?.email || "")}
+                      </span>
+                    )}
+                  </div>
 
                   {(guests || []).map(
                     (guest, index) => {
@@ -1060,10 +1182,12 @@ export default function ReservationFormPanel({
                                   </div>
 
                                   <div>
-                                    <label className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
-                                      <Phone size={12} />
-                                      {t("res_form_phone", "Telefon")}
-                                    </label>
+                                    <div className="mb-1.5">
+                                      <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+                                        <Phone size={12} />
+                                        {t("res_form_phone", "Telefon")}
+                                      </label>
+                                    </div>
                                     <PhoneInput
                                       international
                                       limitMaxLength

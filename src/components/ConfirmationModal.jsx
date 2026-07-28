@@ -13,7 +13,7 @@ export default function ConfirmationModal({
   passengers = [],
   userEmail = ""
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (!isOpen && !reservationResult) return null;
 
@@ -30,12 +30,16 @@ export default function ConfirmationModal({
     reservationResult?.userEmail ||
     "e-posta";
 
+  const defaultItemTitle = isFlight
+    ? t("booking.flightSuccessTitle", "Uçuş Bileti")
+    : t("booking.successTitle", "Otel Rezervasyonu");
+
   const itemTitle =
     selectedItem?.airline ||
     selectedItem?.name ||
     bookingDetails?.hotelName ||
     bookingDetails?.title ||
-    (isFlight ? "Uçuş Bileti" : "Otel Rezervasyonu");
+    defaultItemTitle;
 
   const destination = isFlight
     ? bookingDetails?.arrivalCity || selectedItem?.arrivalCity || selectedItem?.destination || "-"
@@ -64,7 +68,8 @@ export default function ConfirmationModal({
       totalPrice,
       currency,
       userEmail: email,
-      extraDetails: reservationResult
+      extraDetails: reservationResult,
+      lang: i18n.language || "tr"
     });
   };
 
@@ -86,11 +91,13 @@ export default function ConfirmationModal({
         </div>
 
         <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-          {isFlight ? "Uçuş Rezervasyonu Başarılı!" : "Otel Rezervasyonu Başarılı!"}
+          {isFlight
+            ? t("booking.flightSuccessTitle", "Uçuş Rezervasyonu Başarılı!")
+            : t("booking.successTitle", "Otel Rezervasyonu Başarılı!")}
         </h3>
 
         <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-          PNR / Rezervasyon Kodu: <span className="font-bold text-blue-600 dark:text-blue-400">{pnr}</span>
+          {t("booking.pnrCode", "PNR / Rezervasyon Kodu:")} <span className="font-bold text-blue-600 dark:text-blue-400">{pnr}</span>
         </p>
 
         {/* 1. E-posta Gönderildi Bildirimi (UI Warning/Alert) */}
@@ -100,9 +107,10 @@ export default function ConfirmationModal({
           </div>
           <div className="min-w-0 flex-1 text-xs md:text-sm text-emerald-900 dark:text-emerald-200">
             <p className="font-semibold leading-relaxed">
-              E-postanız başarıyla gönderildi! Bilet ve rezervasyon detaylarınız{" "}
-              <strong className="underline decoration-emerald-400 font-bold">{email}</strong>{" "}
-              adresine iletilmiştir.
+              {t("booking.emailSuccessNotice", {
+                email,
+                defaultValue: `E-postanız başarıyla gönderildi! Bilet ve rezervasyon detaylarınız ${email} adresine iletilmiştir.`
+              })}
             </p>
           </div>
         </div>
@@ -111,7 +119,7 @@ export default function ConfirmationModal({
         <div className="mb-6 w-full rounded-2xl bg-slate-50 p-4 text-left dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
             {isFlight ? <Plane size={14} /> : <Hotel size={14} />}
-            <span>{isFlight ? "Uçuş Bilgisi" : "Otel Bilgisi"}</span>
+            <span>{isFlight ? t("booking.flightInfo", "UÇUŞ BİLGİSİ") : t("booking.hotelInfo", "OTEL BİLGİSİ")}</span>
           </div>
           <p className="mt-1 text-base font-bold text-slate-800 dark:text-slate-100 truncate">
             {itemTitle}
@@ -133,7 +141,7 @@ export default function ConfirmationModal({
             className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-750 dark:hover:text-white"
           >
             <Download size={18} className="text-blue-600 dark:text-blue-400" />
-            PDF Olarak İndir
+            {t("booking.downloadPdf", "PDF Olarak İndir")}
           </button>
 
           <button

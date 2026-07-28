@@ -22,11 +22,11 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
 
   const formattedPrice = flight.price != null && !isNaN(flight.price)
     ? new Intl.NumberFormat('tr-TR', {
-        style: 'currency',
-        currency: flight.currency || 'TRY',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(flight.price)
+      style: 'currency',
+      currency: flight.currency || 'TRY',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(flight.price)
     : `${flight.price} ${flight.currency || 'TRY'}`;
 
   // Let's create a map for airline colors
@@ -43,21 +43,21 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
       <div className="relative h-56 shrink-0 rounded-t-2xl overflow-hidden bg-white">
         {flight.airline?.toLowerCase()?.includes('ajet') ? (
           <div className="absolute inset-0 bg-white">
-             <img src="/ajet.png" alt="Ajet" className="w-full h-full object-cover" />
+            <img src="/ajet.png" alt="Ajet" className="w-full h-full object-cover" />
           </div>
         ) : flight.airline?.toLowerCase()?.includes('pegasus') ? (
           <div className="absolute inset-0 bg-white">
-             <img src="/pegasus.png" alt="Pegasus" className="w-full h-full object-cover opacity-90" />
+            <img src="/pegasus.png" alt="Pegasus" className="w-full h-full object-cover opacity-90" />
           </div>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-sky-400 flex items-center justify-center">
             <Plane size={64} className="opacity-50 text-white" />
           </div>
         )}
-        
+
         {/* Gradient overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-        
+
         <button
           onClick={onClose}
           className="absolute right-4 top-4 z-10 rounded-full bg-black/40 p-2 text-white hover:bg-black/60 transition-colors cursor-pointer"
@@ -67,13 +67,13 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
 
         <div className="absolute bottom-5 left-6 right-6">
           {!flight.airline?.toLowerCase()?.includes('ajet') && !flight.airline?.toLowerCase()?.includes('pegasus') && (
-             <div className="text-white/90 text-sm font-bold mb-1 tracking-wider uppercase">
-               {flight.airline || t("flight_ticket", "Uçak Bileti")}
-             </div>
+            <div className="text-white/90 text-sm font-bold mb-1 tracking-wider uppercase">
+              {flight.airline || t("flight_ticket", "Uçak Bileti")}
+            </div>
           )}
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white drop-shadow-lg flex items-center gap-3">
-            {bookingDetails?.departureCity || t("reservation_departure", "Gidiş")} 
-            <ArrowRight size={32} className="opacity-80" /> 
+            {bookingDetails?.departureCity || t("reservation_departure", "Gidiş")}
+            <ArrowRight size={32} className="opacity-80" />
             {bookingDetails?.arrivalCity || t("reservation_arrival", "Varış")}
           </h2>
         </div>
@@ -81,7 +81,7 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        
+
         {/* Departure Flight Info */}
         <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
@@ -93,7 +93,7 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
               {flight.transfers || t("reservation_direct", "Direkt Uçuş")}
             </span>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
@@ -118,7 +118,7 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
               </div>
             </div>
           </div>
-          
+
           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex items-center gap-2">
             <Briefcase size={14} className="text-amber-500" />
             <span className="text-sm text-slate-600 dark:text-slate-300">
@@ -139,7 +139,7 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
                 {flight.returnTransfers || flight.transfers || t("reservation_direct", "Direkt Uçuş")}
               </span>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">
@@ -164,7 +164,7 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex items-center gap-2">
               <Briefcase size={14} className="text-amber-500" />
               <span className="text-sm text-slate-600 dark:text-slate-300">
