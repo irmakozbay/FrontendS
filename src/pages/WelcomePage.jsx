@@ -20,6 +20,7 @@ import {
 
 import SannyLogo from '../components/SannyLogo';
 import LanguageSelector from '../components/LanguageSelector';
+import SupportModal from '../components/SupportModal';
 import { useTheme } from '../components/ThemeContext';
 import { useAuth } from '../components/AuthContext';
 
@@ -33,6 +34,7 @@ export default function WelcomePage() {
   const [openFaq, setOpenFaq] = useState(null);
   const [activeSection, setActiveSection] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   const containerRef = useRef(null);
   const activeSectionRef = useRef(activeSection);
@@ -428,7 +430,7 @@ export default function WelcomePage() {
               ))}
             </div>
 
-            {/* Live Support Banner */}
+            {/* Support Banner */}
             <div className="mt-6 p-6 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-md">
@@ -436,14 +438,14 @@ export default function WelcomePage() {
                 </div>
                 <div>
                   <h4 className="text-base font-bold">{t('landing.helpBannerTitle')}</h4>
-                  <p className="text-white/90 text-xs">{t('landing.helpBannerSubtitle')}</p>
+                  <p className="text-white/90 text-xs">{t('welcome.support.subtitle') || t('landing.helpBannerSubtitle')}</p>
                 </div>
               </div>
               <button
-                onClick={handleGuestEntry}
+                onClick={() => setIsSupportModalOpen(true)}
                 className="px-5 py-2.5 rounded-xl bg-white text-[#f07c24] font-bold hover:bg-slate-50 transition-all shadow-md cursor-pointer flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap"
               >
-                <span>{t('landing.liveSupport')}</span>
+                <span>{t('welcome.support.button') || t('landing.liveSupport')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -464,6 +466,11 @@ export default function WelcomePage() {
         </section>
 
       </div>
+
+      <SupportModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
+      />
 
     </div>
   );

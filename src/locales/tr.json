@@ -677,18 +677,18 @@
     "step3Title": "3. Rezerve Et & Takip Et",
     "step3Desc": "Seçimini yap, rezervasyonunu tamamla ve PNR kodunla dilediğin zaman sohbetten durumunu takip et.",
     "faqTitle": "Sıkça Sorulan Sorular",
-    "faqSubtitle": "Aklınıza takılan soruların yanıtları ve canlı destek imkanı.",
+    "faqSubtitle": "Aklınıza takılan soruların yanıtları ve destek seçenekleri.",
     "faqQ1": "Bebek ve çocuk yaş sınırları nasıl kontrol ediliyor?",
     "faqA1": "SANNY rezervasyon sisteminde 0-24 ay (0-2 yaş) bebek yolcu/konuk, 2-12 yaş ise çocuk olarak değerlendirilir. Doğum tarihlerine göre yaş kontrolü otomatik yapılır.",
     "faqQ2": "PNR kodu ile geçmiş rezervasyonlarımı sorgulayabilir miyim?",
     "faqA2": "Evet, sohbet alanına PNR kodunuzu yazarak veya profilinizdeki rezervasyonlarım bölümünden geçmiş uçuş ve otel bilgilerinize anında ulaşabilirsiniz.",
     "faqQ3": "Üye olmadan veya giriş yapmadan sistemi kullanabilir miyim?",
     "faqA3": "Evet! \"Misafir Olarak Devam Et\" seçeneği ile doğrudan sohbet başlatabilir, arama yapabilir ve rezervasyon adımlarına geçebilirsiniz.",
-    "faqQ4": "Sistemde sorun yaşarsam canlı desteğe nasıl bağlanabilirim?",
-    "faqA4": "Sayfanın alt kısmındaki \"Canlı Desteğe Bağlan\" butonunu veya sohbet asistanındaki canlı destek yönlendirmesini kullanabilirsiniz.",
+    "faqQ4": "Sistemde sorun yaşarsam desteğe nasıl ulaşabilirim?",
+    "faqA4": "Sayfanın alt kısmındaki \"Desteğe Ulaşın\" butonuna tıklayarak Hızlı Destek Modalı'ndan yanıt alabilir veya destek ekibimize e-posta gönderebilirsiniz.",
     "helpBannerTitle": "Yardıma mı ihtiyacınız var?",
     "helpBannerSubtitle": "Destek ekibimiz sorularınızı yanıtlamaya hazır.",
-    "liveSupport": "Canlı Desteğe Bağlan",
+    "liveSupport": "Desteğe Ulaşın",
     "footerTagline": "Sohbet ederek seyahat planlamanın en kolay yolu.",
     "allRightsReserved": "Tüm hakları saklıdır."
   },
@@ -758,6 +758,37 @@
       "night": "gece",
       "room": "oda",
       "age": "yaş"
+    }
+  },
+  "welcome": {
+    "support": {
+      "button": "Desteğe Ulaşın",
+      "subtitle": "Aklınıza takılan soruların yanıtları ve destek seçenekleri.",
+      "modalTitle": "Nasıl Yardımcı Olabiliriz?",
+      "quickHelpLabel": "Hızlı Çözümler",
+      "solutionLabel": "Hızlı Çözüm",
+      "quickHelp": {
+        "pnr": {
+          "title": "PNR Kodumu Bulamıyorum",
+          "solution": "PNR kodunuz sohbet geçmişinizde ve onay e-postanızda yer alır. Arama çubuğuna yazarak sorgulayabilirsiniz."
+        },
+        "age": {
+          "title": "Bebek / Çocuk Yaş Sınırları",
+          "solution": "Uçuş tarihinde 0-24 ay arası bebek, 2-12 yaş arası çocuk kategorisindedir."
+        },
+        "cancel": {
+          "title": "Rezervasyon İptali ve Değişiklik",
+          "solution": "İptal ve değişiklik işlemlerinizi sol menüde yer alan 'Geçmiş Rezervasyonlar' ekranından kolayca gerçekleştirebilirsiniz."
+        },
+        "free": {
+          "title": "SANNY'yi kullanmak ve arama yapmak ücretsiz mi?",
+          "solution": "Evet! SANNY kullanımı tamamen ücretsizdir. Yapay zeka asistanımız ile en uygun otel ve uçak bileti seçeneklerini hiçbir gizli ücret veya ek komisyon ödemeden saniyeler içinde arayabilir ve karşılaştırabilirsiniz."
+        }
+      },
+      "unresolvedNotice": "Aradığınız yanıtı bulamadınız mı? Destek ekibimize e-posta gönderin.",
+      "sendEmail": "E-Posta Gönder",
+      "copyEmail": "Adresi Kopyala",
+      "emailCopied": "Kopyalandı!"
     }
   }
 }

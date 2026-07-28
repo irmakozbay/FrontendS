@@ -203,7 +203,13 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 relative font-sans bg-transparent">
       {/* Shared Header Bar Logo on Left */}
-      <SannyLogo />
+      <Link 
+        to="/welcome" 
+        className="fixed top-4 left-4 z-50 group flex items-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+        title={t('auth.backToHome', 'Ana Sayfaya Dön')}
+      >
+        <SannyLogo className="flex items-center gap-2 select-none" />
+      </Link>
 
       {/* Top Right Controls (Theme Toggle + Language Selector) */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
