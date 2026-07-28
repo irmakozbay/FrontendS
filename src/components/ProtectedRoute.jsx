@@ -33,7 +33,7 @@ export default function ProtectedRoute({
     (allowedTypes.includes('guest') && effectiveIsGuest);
 
   if (!isAllowed) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/welcome" replace />;
   }
 
   return <Outlet />;

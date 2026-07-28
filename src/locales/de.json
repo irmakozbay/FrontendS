@@ -1,4 +1,11 @@
 {
+  "verifyEmail": "E-Mail bestätigen",
+  "verifyPhone": "Telefon bestätigen",
+  "otpModalTitle": "Bestätigungscode eingeben",
+  "otpSentTo": "Wir haben einen 6-stelligen Code an {{target}} gesendet.",
+  "resendCode": "Code erneut senden",
+  "verified": "Bestätigt",
+  "invalidOtp": "Ungültiger oder abgelaufener Code.",
   "auth": {
     "googleLogin": "Mit Google anmelden",
     "continueAsGuest": "Als Gast fortfahren",
@@ -142,18 +149,55 @@
   "ops_subtitle": "Sanny Tourismus-Operationen KI-Assistent",
   "hotel_sop": "Hotel",
   "flight_sop": "Flug",
+  "hotelCancelled": "Ihre Hotelbuchung #{pnr} wurde erfolgreich storniert.",
+  "flightCancelled": "Ihr Flugticket #{pnr} wurde erfolgreich storniert.",
+  "cancellation_successful": "Stornierung Erfolgreich",
+  "useMyProfileInfo": "Profilinformationen für den 1. Gast/Passagier verwenden",
+  "loginToUseProfile": "Melden Sie sich an, um gespeicherte Profilinformationen zu nutzen",
+  "booking": {
+    "useMyProfileInfo": "Füllen Sie die Daten des 1. Gastes/Passagiers anhand Ihres Kontoprofils aus",
+    "loginToUseProfile": "Melden Sie sich an, um Ihre gespeicherten Profilinformationen zu verwenden",
+    "successTitle": "Hotelbuchungsbestätigung!",
+    "flightSuccessTitle": "Flugbuchungsbestätigung!",
+    "pnrCode": "PNR / Buchungscode:",
+    "emailSuccessNotice": "Ihre E-Mail wurde erfolgreich gesendet! Ticket- und Reservierungsdetails wurden an {{email}} gesendet.",
+    "hotelInfo": "HOTELINFORMATIONEN",
+    "flightInfo": "FLUGINFORMATIONEN",
+    "downloadPdf": "Als PDF herunterladen",
+    "pdfDocTitleHotel": "Hotelbuchungsbestätigung",
+    "pdfDocTitleFlight": "Flugticketbestätigung",
+    "pdfLocation": "Standort",
+    "pdfRouteLocation": "Abflug- / Ankunftsort",
+    "pdfCheckIn": "Anreisedatum",
+    "pdfCheckOut": "Abreisedatum",
+    "pdfDepartureDate": "Abflugdatum",
+    "pdfReturnDate": "Rückflugdatum",
+    "pdfContactEmail": "Kontakt-E-Mail",
+    "pdfGuestInfo": "Gästeinformationen",
+    "pdfPassengerInfo": "Passagierinformationen",
+    "pdfFullName": "Vollständiger Name",
+    "pdfIdPassportNo": "Ausweis / Pass-Nr.",
+    "pdfType": "Typ",
+    "pdfAdult": "Erwachsener",
+    "pdfChild": "Kind",
+    "pdfPaymentApproved": "Zahlungsstatus: BESTÄTIGT",
+    "pdfTotalAmount": "Gesamtbetrag"
+  },
   "reservation": {
     "title": "Reservierung",
     "amount": "Betrag",
     "viewRelatedChat": "Zugehörigen Chat ansehen",
     "cancelTitle": "Reservierung stornieren",
     "cancelBody": "Möchten Sie die Reservierung {{resNumber}} wirklich stornieren?",
-    "cancelConfirmation": "Sind Sie sicher, dass Sie {{title}} stornieren möchten?"
+    "cancelConfirmation": "Sind Sie sicher, dass Sie {{title}} stornieren möchten?",
+    "hotelCancelled": "Ihre Hotelbuchung #{pnr} wurde erfolgreich storniert.",
+    "flightCancelled": "Ihr Flugticket #{pnr} wurde erfolgreich storniert."
   },
   "common": {
     "edit": "Bearbeiten",
     "cancel": "Stornieren",
-    "keep": "Behalten"
+    "keep": "Behalten",
+    "ok": "Schließen"
   },
   "cancellation_refund": "Stornierung/Rückerstattung",
   "voucher": "Voucher",
@@ -683,18 +727,18 @@
     "step3Title": "3. Buchen & Verfolgen",
     "step3Desc": "Wählen Sie aus, schließen Sie die Buchung ab und verfolgen Sie den Status jederzeit über den Chat mit Ihrem PNR-Code.",
     "faqTitle": "Häufig gestellte Fragen",
-    "faqSubtitle": "Antworten auf häufige Fragen und Zugang zum Live-Support.",
+    "faqSubtitle": "Antworten auf Ihre Fragen und Support-Optionen.",
     "faqQ1": "Wie werden Altersgrenzen für Babys und Kinder geprüft?",
     "faqA1": "Im SANNY-Buchungssystem gelten 0-24 Monate (0-2 Jahre) als Babys und 2-12 Jahre als Kinder. Die Altersprüfung erfolgt automatisch.",
     "faqQ2": "Kann ich mit einem PNR-Code vergangene Reservierungen abfragen?",
     "faqA2": "Ja, geben Sie Ihren PNR-Code im Chat ein oder greifen Sie über den Bereich Reservierungen Ihres Profils auf Ihre Daten zu.",
     "faqQ3": "Kann ich das System ohne Anmeldung nutzen?",
     "faqA3": "Ja! Mit \"Als Gast fortfahren\" können Sie direkt chattet, Suchen durchführen und zur Buchung übergehen.",
-    "faqQ4": "Wie verbinde ich mich bei Problemen mit dem Live-Support?",
-    "faqA4": "Nutzen Sie die Schaltfläche \"Mit Live-Support verbinden\" unten auf der Seite oder den Hinweis im Chat-Assistenten.",
+    "faqQ4": "Wie erhalte ich bei Problemen Support?",
+    "faqA4": "Klicken Sie unten auf die Schaltfläche \"Support erhalten\", um schnelle Antworten im Support-Modal zu finden oder eine E-Mail an uns zu senden.",
     "helpBannerTitle": "Brauchen Sie Hilfe?",
     "helpBannerSubtitle": "Unser Support-Team hilft Ihnen gerne weiter.",
-    "liveSupport": "Mit Live-Support verbinden",
+    "liveSupport": "Support erhalten",
     "footerTagline": "Der einfachste Weg, Reisen durch Gespräche zu planen.",
     "allRightsReserved": "Alle Rechte vorbehalten."
   },
@@ -764,6 +808,37 @@
       "night": "Nacht",
       "room": "Zimmer",
       "age": "Jahre"
+    }
+  },
+  "welcome": {
+    "support": {
+      "button": "Support erhalten",
+      "subtitle": "Antworten auf Ihre Fragen und Support-Optionen.",
+      "modalTitle": "Wie können wir Ihnen helfen?",
+      "quickHelpLabel": "Schnelle Lösungen",
+      "solutionLabel": "Schnelle Lösung",
+      "quickHelp": {
+        "pnr": {
+          "title": "Ich kann meinen PNR-Code nicht finden",
+          "solution": "Ihr PNR-Code befindet sich in Ihrem Chat-Verlauf und in der Bestätigungs-E-Mail. Sie können ihn über die Suchleiste suchen."
+        },
+        "age": {
+          "title": "Altersgrenzen für Babys / Kinder",
+          "solution": "Säuglinge sind am Flugdatum 0-24 Monate alt, Kinder 2-12 Jahre."
+        },
+        "cancel": {
+          "title": "Stornierung & Änderung der Reservierung",
+          "solution": "Stornierungen und Änderungen können Sie einfach über den Bildschirm 'Vergangene Buchungen' im linken Menü vornehmen."
+        },
+        "free": {
+          "title": "Ist die Nutzung von SANNY und die Suche kostenlos?",
+          "solution": "Ja! Die Nutzung von SANNY ist völlig kostenlos. Suchen und vergleichen Sie die besten Hotel- und Flugoptionen in Sekundenschnelle ohne versteckte Gebühren."
+        }
+      },
+      "unresolvedNotice": "Haben Sie nicht die passende Antwort gefunden? Senden Sie eine E-Mail an unser Support-Team.",
+      "sendEmail": "E-Mail senden",
+      "copyEmail": "Adresse kopieren",
+      "emailCopied": "Kopiert!"
     }
   }
 }

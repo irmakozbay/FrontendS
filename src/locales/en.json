@@ -1,4 +1,11 @@
 {
+  "verifyEmail": "Verify Email",
+  "verifyPhone": "Verify Phone",
+  "otpModalTitle": "Enter Verification Code",
+  "otpSentTo": "We sent a 6-digit code to {{target}}.",
+  "resendCode": "Resend Code",
+  "verified": "Verified",
+  "invalidOtp": "Invalid or expired verification code.",
   "auth": {
     "googleLogin": "Sign in with Google",
     "continueAsGuest": "Continue as Guest",
@@ -144,18 +151,55 @@
   "ops_subtitle": "Sanny Tourism Operations AI Assistant",
   "hotel_sop": "Hotel",
   "flight_sop": "Flight",
+  "hotelCancelled": "Your hotel booking #{pnr} has been successfully cancelled.",
+  "flightCancelled": "Your flight ticket #{pnr} has been successfully cancelled.",
+  "cancellation_successful": "Cancellation Successful",
+  "useMyProfileInfo": "Fill 1st guest/passenger details using my account profile",
+  "loginToUseProfile": "Log in to use your saved profile info",
+  "booking": {
+    "useMyProfileInfo": "Fill 1st guest/passenger details using my account profile",
+    "loginToUseProfile": "Log in to use your saved profile info",
+    "successTitle": "Hotel Booking Confirmation!",
+    "flightSuccessTitle": "Flight Booking Confirmation!",
+    "pnrCode": "PNR / Booking Code:",
+    "emailSuccessNotice": "Your email has been sent successfully! Ticket and reservation details have been sent to {{email}}.",
+    "hotelInfo": "HOTEL INFORMATION",
+    "flightInfo": "FLIGHT INFORMATION",
+    "downloadPdf": "Download as PDF",
+    "pdfDocTitleHotel": "Hotel Booking Confirmation",
+    "pdfDocTitleFlight": "Flight Ticket Confirmation",
+    "pdfLocation": "Location",
+    "pdfRouteLocation": "Departure / Arrival Location",
+    "pdfCheckIn": "Check-in Date",
+    "pdfCheckOut": "Check-out Date",
+    "pdfDepartureDate": "Departure Date",
+    "pdfReturnDate": "Return Date",
+    "pdfContactEmail": "Contact Email",
+    "pdfGuestInfo": "Guest Information",
+    "pdfPassengerInfo": "Passenger Information",
+    "pdfFullName": "Full Name",
+    "pdfIdPassportNo": "ID / Passport No",
+    "pdfType": "Type",
+    "pdfAdult": "Adult",
+    "pdfChild": "Child",
+    "pdfPaymentApproved": "Payment Status: APPROVED",
+    "pdfTotalAmount": "Total Amount"
+  },
   "reservation": {
     "title": "Reservation",
     "amount": "Amount",
     "viewRelatedChat": "View Related Chat",
     "cancelTitle": "Cancel Reservation",
     "cancelBody": "Are you sure you want to cancel reservation {{resNumber}}?",
-    "cancelConfirmation": "Are you sure you want to cancel {{title}}?"
+    "cancelConfirmation": "Are you sure you want to cancel {{title}}?",
+    "hotelCancelled": "Your hotel booking #{pnr} has been successfully cancelled.",
+    "flightCancelled": "Your flight ticket #{pnr} has been successfully cancelled."
   },
   "common": {
     "edit": "Edit",
     "cancel": "Cancel",
-    "keep": "Keep"
+    "keep": "Keep",
+    "ok": "OK"
   },
   "cancellation_refund": "Cancellation/Refund",
   "voucher": "Voucher",
@@ -683,18 +727,18 @@
     "step3Title": "3. Book & Track",
     "step3Desc": "Make your choice, complete your booking, and track status anytime via chat with your PNR code.",
     "faqTitle": "Frequently Asked Questions",
-    "faqSubtitle": "Answers to common questions and live support access.",
+    "faqSubtitle": "Answers to your questions and support options.",
     "faqQ1": "How are infant and child age limits validated?",
     "faqA1": "In SANNY booking system, 0-24 months (0-2 years) are considered infants, and 2-12 years as children. Age validation is automated based on birth dates.",
     "faqQ2": "Can I query past reservations with a PNR code?",
     "faqA2": "Yes, type your PNR code into chat or access your flight and hotel details from your profile's reservations section.",
     "faqQ3": "Can I use the system without signing in?",
     "faqA3": "Yes! With \"Continue as Guest\", you can start chatting directly, perform searches, and proceed to booking steps.",
-    "faqQ4": "How can I connect to live support if I face an issue?",
-    "faqA4": "Use the \"Connect to Live Support\" button at the bottom of the page or the live support prompt within the chat assistant.",
+    "faqQ4": "How can I get support if I face an issue?",
+    "faqA4": "Click the \"Get Support\" button at the bottom of the page to access quick help solutions or send an email to our support team.",
     "helpBannerTitle": "Need help?",
     "helpBannerSubtitle": "Our support team is ready to answer your questions.",
-    "liveSupport": "Connect to Live Support",
+    "liveSupport": "Get Support",
     "footerTagline": "The easiest way to plan travel through conversation.",
     "allRightsReserved": "All rights reserved."
   },
@@ -764,6 +808,37 @@
       "night": "night",
       "room": "room",
       "age": "years"
+    }
+  },
+  "welcome": {
+    "support": {
+      "button": "Get Support",
+      "subtitle": "Answers to your questions and support options.",
+      "modalTitle": "How Can We Help You?",
+      "quickHelpLabel": "Quick Solutions",
+      "solutionLabel": "Quick Solution",
+      "quickHelp": {
+        "pnr": {
+          "title": "I Can't Find My PNR Code",
+          "solution": "Your PNR code can be found in your chat history and confirmation email. You can search for it using the search bar."
+        },
+        "age": {
+          "title": "Infant / Child Age Limits",
+          "solution": "Infants are 0-24 months old on the flight date, and children are 2-12 years old."
+        },
+        "cancel": {
+          "title": "Reservation Cancellation & Changes",
+          "solution": "You can easily process cancellations and changes from the 'Past Bookings' screen in the left menu."
+        },
+        "free": {
+          "title": "Is using SANNY and searching completely free?",
+          "solution": "Yes! SANNY is completely free to use. You can search and compare the best hotel and flight options in seconds with zero hidden fees or extra commissions."
+        }
+      },
+      "unresolvedNotice": "Didn't find the answer you were looking for? Send an email to our support team.",
+      "sendEmail": "Send Email",
+      "copyEmail": "Copy Address",
+      "emailCopied": "Copied!"
     }
   }
 }
