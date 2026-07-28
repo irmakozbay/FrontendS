@@ -1032,8 +1032,8 @@ export default function RightSidebar({
         });
 
   return (
-    <aside className="relative z-20 hidden h-full w-[410px] flex-shrink-0 items-center justify-center px-5 py-4 lg:flex">
-      <div className="flex max-h-[calc(100vh-32px)] w-full flex-col overflow-hidden rounded-[26px] border border-white/80 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.16)] dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_18px_55px_rgba(0,0,0,0.35)]">
+    <aside className="relative z-30 hidden h-full min-w-0 w-full justify-center px-5 py-4 lg:flex">
+      <div className="flex h-full max-h-[calc(100vh-32px)] min-h-0 w-full flex-col overflow-hidden rounded-[26px] border border-white/80 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.16)] dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_18px_55px_rgba(0,0,0,0.35)]">
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-5 pt-5">
           <div className="mb-4 flex items-center justify-between">
             <button

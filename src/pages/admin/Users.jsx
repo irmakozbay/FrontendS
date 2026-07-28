@@ -146,70 +146,80 @@ export default function Users() {
                         </div>
                     ) : (
                         Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => {
+                            filteredUsers.map((user, idx) => {
                                 const isActive = user.status === "active";
+                                const avatarGradients = [
+                                    "from-orange-400 to-pink-500",
+                                    "from-blue-400 to-indigo-500",
+                                    "from-emerald-400 to-teal-500",
+                                    "from-violet-400 to-purple-500"
+                                ];
+                                const gradientClass = avatarGradients[idx % avatarGradients.length];
 
                                 return (
                                     <div
                                         key={user.id}
-                                        className="rounded-2xl border border-gray-200 bg-white p-5 transition hover:border-orange-200 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-orange-500/40"
+                                        className="group rounded-2xl border border-gray-200 bg-white p-5 transition-all duration-300 hover:border-orange-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/60 dark:hover:border-orange-500/40"
                                     >
                                         <div className="flex items-start justify-between">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50 text-lg font-bold text-orange-500 dark:bg-orange-950/20">
-                                                {(user.name || "U").charAt(0)}
+                                            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${gradientClass} text-lg font-bold text-white shadow-md transition-transform duration-300 group-hover:scale-105`}>
+                                                {(user.name || "U").charAt(0).toUpperCase()}
                                             </div>
 
                                             <span
                                                 className={`rounded-full px-3 py-1 text-xs font-semibold ${isActive
-                                                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300"
-                                                        : "bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400"
+                                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                                        : "bg-gray-500/10 text-gray-500 dark:text-slate-400"
                                                     }`}
                                             >
                                                 {isActive
-                                                    ? t("users_page.status.active")
+                                                    ? t("users_page.status.active", "Aktif")
                                                     : t(
-                                                        "users_page.status.inactive"
+                                                        "users_page.status.inactive",
+                                                        "İnaktif"
                                                     )}
                                             </span>
                                         </div>
 
-                                        <h2 className="mt-4 font-semibold text-gray-900 dark:text-white">
+                                        <h2 className="mt-4 font-bold text-gray-900 dark:text-white truncate">
                                             {user.name}
                                         </h2>
 
-                                        <div className="mt-2 flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-                                            <Mail size={15} />
-
+                                        <div className="mt-2 flex items-center gap-2 text-sm text-gray-400 dark:text-slate-400 truncate">
+                                            <Mail size={15} className="text-gray-350" />
                                             {user.email}
                                         </div>
 
-                                        <div className="mt-4 space-y-2 rounded-xl border border-slate-100 bg-gray-50 p-3 dark:border-slate-800/40 dark:bg-slate-800/50">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500 dark:text-slate-400">
-                                                    {t("users_page.role_label")}
+                                        <div className="mt-4 space-y-2.5 rounded-xl border border-slate-100 bg-gray-50/50 p-4 dark:border-slate-800/40 dark:bg-slate-950/40">
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-gray-400 dark:text-slate-500">
+                                                    {t("users_page.role_label", "Rol")}
                                                 </span>
 
-                                                <span className="flex items-center gap-1 font-medium text-gray-800 dark:text-slate-200">
-                                                    <Shield size={14} />
+                                                <span className="flex items-center gap-1 font-semibold text-gray-800 dark:text-slate-200">
+                                                    <Shield size={14} className="text-orange-500" />
 
                                                     {user.role === "admin"
                                                         ? t(
-                                                            "users_page.roles.admin"
+                                                            "users_page.roles.admin",
+                                                            "Yönetici"
                                                         )
                                                         : t(
-                                                            "users_page.roles.user"
+                                                            "users_page.roles.user",
+                                                            "Kullanıcı"
                                                         )}
                                                 </span>
                                             </div>
 
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500 dark:text-slate-400">
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-gray-400 dark:text-slate-500">
                                                     {t(
-                                                        "users_page.reservation_label"
+                                                        "users_page.reservation_label",
+                                                        "Rezervasyon"
                                                     )}
                                                 </span>
 
-                                                <span className="font-medium text-gray-800 dark:text-slate-200">
+                                                <span className="rounded bg-orange-50/70 px-2 py-0.5 font-bold text-orange-600 dark:bg-orange-950/20 dark:text-orange-400">
                                                     {user.reservations}
                                                 </span>
                                             </div>
@@ -229,9 +239,9 @@ export default function Users() {
                                                         "users_page.make_active"
                                                     )
                                             }
-                                            className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${isActive
-                                                    ? "bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-900/40"
-                                                    : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-900/40"
+                                            className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-200 ${isActive
+                                                    ? "bg-red-50 text-red-650 hover:bg-red-500 hover:text-white dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-900/60 dark:hover:text-white"
+                                                    : "bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:text-white dark:bg-emerald-950/20 dark:text-emerald-450 dark:hover:bg-emerald-900/60 dark:hover:text-white"
                                                 }`}
                                         >
                                             {isActive ? (
@@ -239,7 +249,8 @@ export default function Users() {
                                                     <UserX size={17} />
 
                                                     {t(
-                                                        "users_page.make_inactive"
+                                                        "users_page.make_inactive",
+                                                        "Hesabı Askıya Al"
                                                     )}
                                                 </>
                                             ) : (
@@ -247,7 +258,8 @@ export default function Users() {
                                                     <UserCheck size={17} />
 
                                                     {t(
-                                                        "users_page.make_active"
+                                                        "users_page.make_active",
+                                                        "Hesabı Aktifleştir"
                                                     )}
                                                 </>
                                             )}

@@ -20,6 +20,10 @@ import Dashboard from "./pages/admin/Dashboard.jsx";
 import Reservations from "./pages/admin/Reservations.jsx";
 import Users from "./pages/admin/Users.jsx";
 import ChatLogs from "./pages/admin/ChatLogs.jsx";
+import SystemMetrics from "./pages/admin/SystemMetrics.jsx";
+import Analytics from "./pages/admin/Analytics.jsx";
+import Forecaster from "./pages/admin/Forecaster.jsx";
+import TourVisioErrors from "./pages/admin/TourVisioErrors.jsx";
 
 import { ThemeProvider } from "./components/ThemeContext.jsx";
 import { AuthProvider, useAuth } from "./components/AuthContext.jsx";
@@ -93,6 +97,10 @@ export default function App() {
                 />
                 <Route path="users" element={<Users />} />
                 <Route path="chats" element={<ChatLogs />} />
+                <Route path="metrics" element={<SystemMetrics />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="forecaster" element={<Forecaster />} />
+                <Route path="errors" element={<TourVisioErrors />} />
               </Route>
 
               {/* KULLANICI & GUEST ROTALARI (ProtectedRoute) */}
