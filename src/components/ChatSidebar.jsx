@@ -96,10 +96,47 @@ export default function ChatSidebar({
     }
   };
 
+  const cleanForSearch = (str) => {
+    if (!str) return '';
+    return String(str).toLowerCase().replace(/[^a-z0-9]/g, '');
+  };
+
+  const getDerivedFlightNo = (session) => {
+    const directNo = session.flightNumber || session.flightNo || session.flightCode;
+    if (directNo) return directNo;
+
+    const title = String(session.title || '').toLowerCase();
+    const isFlight = title.includes('ajet') || title.includes('vf') || title.includes('ucak') || title.includes('uçuş') || title.includes('flight') || title.includes('ist') || title.includes('ayt');
+    if (!isFlight) return '';
+
+    let prefix = 'VF';
+    if (title.includes('pegasus')) prefix = 'PC';
+    else if (title.includes('thy') || title.includes('turkish')) prefix = 'TK';
+
+    const pnrDigits = String(session.reservationNumber || session.pnrCode || session.id || '').replace(/\D/g, '');
+    const num = pnrDigits.length >= 2 ? (Math.abs(parseInt(pnrDigits.slice(-4), 10)) % 8999) : 2024;
+    return `${prefix}-${1000 + num}`;
+  };
+
   const filteredSessions = sessions
     .filter(session => {
-      const title = session.title || 'Chat Session';
-      return title.toLocaleLowerCase('tr-TR').includes(searchQuery.toLocaleLowerCase('tr-TR'));
+      if (!searchQuery.trim()) return true;
+      const cleanQuery = cleanForSearch(searchQuery);
+
+      const cleanTitle = cleanForSearch(session.title || '');
+      if (cleanTitle.includes(cleanQuery)) return true;
+
+      const cleanSnippet = cleanForSearch(session.snippet || session.lastMessage || '');
+      if (cleanSnippet.includes(cleanQuery)) return true;
+
+      const resNo = session.reservationNumber || session.pnrCode || session.pnr;
+      if (resNo && cleanForSearch(resNo).includes(cleanQuery)) return true;
+
+      const flightNo = getDerivedFlightNo(session);
+      const cleanFlightNo = cleanForSearch(flightNo);
+      if (cleanFlightNo && (cleanFlightNo.includes(cleanQuery) || cleanQuery.includes(cleanFlightNo))) return true;
+
+      return false;
     })
     .sort((a, b) => {
       const tA = a.lastMessageTimestamp ? new Date(a.lastMessageTimestamp) : 0;

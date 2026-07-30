@@ -287,14 +287,14 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 font-sans w-full relative">
       {/* Header Banner */}
-      <div className="relative min-h-[220px] p-6 shrink-0 overflow-hidden bg-gradient-to-br from-[#0B192C] via-[#0F172A] to-[#1E293B] flex flex-col justify-between">
+      <div className="relative min-h-[220px] p-6 shrink-0 overflow-hidden bg-slate-50 dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 flex flex-col justify-between">
         {/* Subtle Ambient Light Glows */}
-        <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
 
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-20 rounded-full bg-white/10 backdrop-blur-md p-2 text-white hover:bg-white/20 transition-colors cursor-pointer border border-white/10"
+          className="absolute right-4 top-4 z-20 rounded-full bg-white dark:bg-slate-800 p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer border border-slate-200/80 dark:border-slate-700 shadow-xs"
         >
           <X size={20} />
         </button>
@@ -303,19 +303,18 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
         <div className="relative z-10 flex items-center justify-between pt-1">
           <AirlineLogo
             airline={flight.airline}
-            className="h-10 sm:h-12 w-auto object-contain max-w-[220px]"
-            theme="dark"
+            className="h-9 sm:h-10 w-auto object-contain max-w-[200px] rounded-lg"
           />
         </div>
 
         {/* Glassmorphism Title Area */}
-        <div className="relative z-10 mt-6 backdrop-blur-md bg-[#0F172A]/70 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl shadow-black/30">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+        <div className="relative z-10 mt-6 backdrop-blur-md bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-lg shadow-slate-200/40 dark:shadow-black/30">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
             <span>{bookingDetails?.departureCity || t("reservation_departure", "Gidiş")}</span>
-            <ArrowRight size={26} className="text-blue-400 shrink-0" />
+            <ArrowRight size={26} className="text-blue-600 dark:text-blue-400 shrink-0" />
             <span>{bookingDetails?.arrivalCity || t("reservation_arrival", "Varış")}</span>
           </h2>
-          <div className="mt-1.5 text-xs font-semibold text-amber-400 uppercase tracking-wide flex items-center gap-2">
+          <div className="mt-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide flex items-center gap-2">
             <span>{layoverInfo.label}</span>
           </div>
         </div>

@@ -205,36 +205,53 @@ export function generateReservationPdf({
   doc.text(sanitizeText(pnr), 145, 23);
 
   let currentY = 45;
+  const boxHeight = isFlight ? 50 : 54;
 
   // Reservation Details Card Box
   doc.setDrawColor(226, 232, 240); // slate-200
   doc.setFillColor(248, 250, 252); // slate-50
-  doc.roundedRect(15, currentY, 180, 42, 3, 3, "FD");
+  doc.roundedRect(15, currentY, 180, boxHeight, 3, 3, "FD");
 
   doc.setTextColor(15, 23, 42); // slate-900
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text(sanitizeText(isFlight ? `${t.flightPrefix} ${itemTitle}` : `${t.hotelPrefix} ${itemTitle}`), 20, currentY + 10);
+  doc.text(sanitizeText(isFlight ? `${t.flightPrefix} ${itemTitle}` : `${t.hotelPrefix} ${itemTitle}`), 20, currentY + 9);
 
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105); // slate-600
 
   if (isFlight) {
-    doc.text(sanitizeText(`${t.routeLocation} ${destination || '-'}`), 20, currentY + 18);
-    doc.text(sanitizeText(`${t.departureDate} ${formatDate(startDate)}`), 20, currentY + 26);
-    if (endDate) {
-      doc.text(sanitizeText(`${t.returnDate} ${formatDate(endDate)}`), 110, currentY + 26);
+    const flightNo = extraDetails.flightNumber || extraDetails.flightNo || "TK-2412";
+    const ticketClass = extraDetails.ticketClass || extraDetails.flightClass || "Economy";
+    const baggage = extraDetails.baggageAllowance || extraDetails.baggage || "20 kg Bagaj";
+    const depTime = extraDetails.departureTime || "14:30";
+    const arrTime = extraDetails.arrivalTime || "16:15";
+
+    doc.text(sanitizeText(`Ucus No: ${flightNo}`), 20, currentY + 17);
+    doc.text(sanitizeText(`Sinif / Bagaj: ${ticketClass} | ${baggage}`), 110, currentY + 17);
+    doc.text(sanitizeText(`${t.routeLocation} ${destination || '-'}`), 20, currentY + 25);
+    doc.text(sanitizeText(`${t.departureDate} ${formatDate(startDate)} (${depTime})`), 20, currentY + 33);
+    if (endDate || arrTime) {
+      doc.text(sanitizeText(`Varis Saati: ${arrTime}`), 110, currentY + 33);
     }
+    doc.text(sanitizeText(`${t.contactEmail} ${userEmail || '-'}`), 20, currentY + 41);
   } else {
-    doc.text(sanitizeText(`${t.location} ${destination || '-'}`), 20, currentY + 18);
-    doc.text(sanitizeText(`${t.checkIn} ${formatDate(startDate)}`), 20, currentY + 26);
-    doc.text(sanitizeText(`${t.checkOut} ${formatDate(endDate)}`), 110, currentY + 26);
+    const roomType = extraDetails.roomType || "Standard Oda";
+    const boardType = extraDetails.boardType || "Her Sey Dahil";
+    const checkInTime = extraDetails.checkInTime || "14:00";
+    const checkOutTime = extraDetails.checkOutTime || "12:00";
+    const nights = extraDetails.nights || (startDate && endDate ? Math.max(1, Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))) : 1);
+
+    doc.text(sanitizeText(`Oda & Pansiyon: ${roomType} / ${boardType}`), 20, currentY + 17);
+    doc.text(sanitizeText(`Toplam Gece: ${nights} Gece`), 125, currentY + 17);
+    doc.text(sanitizeText(`${t.location} ${destination || '-'}`), 20, currentY + 25);
+    doc.text(sanitizeText(`${t.checkIn} ${formatDate(startDate)} (${checkInTime})`), 20, currentY + 33);
+    doc.text(sanitizeText(`${t.checkOut} ${formatDate(endDate || startDate)} (${checkOutTime})`), 110, currentY + 33);
+    doc.text(sanitizeText(`${t.contactEmail} ${userEmail || '-'}`), 20, currentY + 42);
   }
 
-  doc.text(sanitizeText(`${t.contactEmail} ${userEmail || '-'}`), 20, currentY + 34);
-
-  currentY += 50;
+  currentY += boxHeight + 8;
 
   // Passenger / Guest Details Section
   doc.setTextColor(15, 23, 42);

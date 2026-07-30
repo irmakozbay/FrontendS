@@ -64,6 +64,48 @@ export default function SearchChats() {
     fetchSessions(debouncedQuery);
   }, [debouncedQuery]);
 
+  const cleanForSearch = (str) => {
+    if (!str) return '';
+    return String(str).toLowerCase().replace(/[^a-z0-9]/g, '');
+  };
+
+  const getDerivedFlightNo = (session) => {
+    const directNo = session.flightNumber || session.flightNo || session.flightCode;
+    if (directNo) return directNo;
+
+    const title = String(session.title || '').toLowerCase();
+    const isFlight = title.includes('ajet') || title.includes('vf') || title.includes('ucak') || title.includes('uçuş') || title.includes('flight') || title.includes('ist') || title.includes('ayt');
+    if (!isFlight) return '';
+
+    let prefix = 'VF';
+    if (title.includes('pegasus')) prefix = 'PC';
+    else if (title.includes('thy') || title.includes('turkish')) prefix = 'TK';
+
+    const pnrDigits = String(session.reservationNumber || session.pnrCode || session.id || '').replace(/\D/g, '');
+    const num = pnrDigits.length >= 2 ? (Math.abs(parseInt(pnrDigits.slice(-4), 10)) % 8999) : 2024;
+    return `${prefix}-${1000 + num}`;
+  };
+
+  const filteredSessions = sessions.filter(session => {
+    if (!debouncedQuery.trim()) return true;
+    const cleanQuery = cleanForSearch(debouncedQuery);
+
+    const cleanTitle = cleanForSearch(session.title || '');
+    if (cleanTitle.includes(cleanQuery)) return true;
+
+    const cleanSnippet = cleanForSearch(session.snippet || session.lastMessage || '');
+    if (cleanSnippet.includes(cleanQuery)) return true;
+
+    const resNo = session.reservationNumber || session.pnrCode || session.pnr;
+    if (resNo && cleanForSearch(resNo).includes(cleanQuery)) return true;
+
+    const flightNo = getDerivedFlightNo(session);
+    const cleanFlightNo = cleanForSearch(flightNo);
+    if (cleanFlightNo && (cleanFlightNo.includes(cleanQuery) || cleanQuery.includes(cleanFlightNo))) return true;
+
+    return false;
+  });
+
   const getChatCategory = (session) => {
     const title = (session?.title || '').toLowerCase();
     const snippet = (session?.snippet || '').toLowerCase();
@@ -208,8 +250,8 @@ export default function SearchChats() {
 
           {/* Results List */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
-            {sessions.length > 0 ? (
-              sessions.map((session) => {
+            {filteredSessions.length > 0 ? (
+              filteredSessions.map((session) => {
                 const category = getChatCategory(session);
                 return (
                   <div 
@@ -249,19 +291,13 @@ export default function SearchChats() {
                   </div>
                 );
               })
-
             ) : (
-              <div className="p-8 text-center text-text-secondary dark:text-slate-400 text-sm font-medium">
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <Loader2 size={18} className="animate-spin text-primary" />
-                    <span>Loading...</span>
-                  </div>
-                ) : debouncedQuery ? (
-                  t('search_chats.no_results', 'No chat sessions found matching "{{query}}"', { query: debouncedQuery })
-                ) : (
-                  t('search_chats.no_results', 'No chat sessions found matching "{{query}}"', { query: "" }).replace(': ""', '').replace('""', '') || "No chat sessions available"
-                )}
+              <div className="p-12 text-center text-slate-400 dark:text-slate-500">
+                <p className="text-sm">
+                  {debouncedQuery
+                    ? t('search_chats.no_results_query', 'Aranan ifadeye uygun sohbet bulunamadı: "{{query}}"', { query: debouncedQuery })
+                    : t('search_chats.no_results', 'No chat sessions found matching your search.')}
+                </p>
               </div>
             )}
           </div>
