@@ -617,11 +617,14 @@ export default function ReservationPage() {
             return;
         }
 
-        navigate(
-            sessionId
-                ? `/chat?sessionId=${sessionId}`
-                : "/chat"
-        );
+        const targetUrl = sessionId ? `/chat?sessionId=${sessionId}` : "/chat";
+        navigate(targetUrl, {
+            state: {
+                selectedHotel: selectedItem && !isFlight ? selectedItem : null,
+                selectedFlight: selectedItem && isFlight ? selectedItem : null,
+                restorePanel: true,
+            },
+        });
     };
 
     const handlePassengerChange = (
@@ -815,14 +818,26 @@ export default function ReservationPage() {
                 <div className="z-20 flex flex-1 items-start justify-center overflow-y-auto px-4 py-8 md:py-12">
                     <div className="mt-4 w-full max-w-[672px] md:mt-6">
                         <div className="rounded-[20px] border border-slate-200 bg-white/95 p-8 shadow-xl dark:border-slate-800 dark:bg-slate-900/95 md:p-10">
-                            <h1 className="mb-6 text-[28px] font-bold leading-tight text-slate-900 dark:text-white">
-                                {isEditMode
-                                    ? t(
-                                        "reservation_edit_title",
-                                        "Rezervasyon Düzenle"
-                                    )
-                                    : t("reservation_title")}
-                            </h1>
+                            <div className="mb-6 flex items-center justify-between gap-4 border-b border-slate-100 pb-4 dark:border-slate-800">
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleBack}
+                                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
+                                        title={t("reservation_back", { defaultValue: "Geri Dön" })}
+                                    >
+                                        <ArrowLeft size={18} />
+                                    </button>
+                                    <h1 className="text-2xl font-bold leading-tight text-slate-900 dark:text-white md:text-[28px]">
+                                        {isEditMode
+                                            ? t(
+                                                "reservation_edit_title",
+                                                "Rezervasyon Düzenle"
+                                            )
+                                            : t("reservation_title")}
+                                    </h1>
+                                </div>
+                            </div>
 
                             {!activeItem ? (
                                 <div className="py-8 text-center">

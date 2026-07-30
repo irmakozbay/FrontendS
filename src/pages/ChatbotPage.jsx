@@ -403,6 +403,20 @@ export default function Index() {
                 setHasValidSearch(false);
                 setIsRightSidebarOpen(false);
               }
+
+              // Rezervasyon sayfasından (ReservationPage) geri dönüldüğünde seçili öte/uçuş ve detay panelini koru
+              if (location.state?.selectedHotel) {
+                setSelectedHotel(location.state.selectedHotel);
+                if (location.state.restorePanel) {
+                  setActivePanel('hotelDetail');
+                }
+              }
+              if (location.state?.selectedFlight) {
+                setSelectedFlight(location.state.selectedFlight);
+                if (location.state.restorePanel) {
+                  setActivePanel('flightDetail');
+                }
+              }
             }
           } catch (criteriaErr) {
             console.error("Failed to load session criteria", sessionId, criteriaErr);
