@@ -86,11 +86,6 @@ export default function ChatSidebar({
     fetchSessions();
   }, [location.key]);
 
-  useEffect(() => {
-    const interval = setInterval(fetchSessions, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
   const formatTimestamp = (ts) => {
     if (!ts) return '';
     try {
