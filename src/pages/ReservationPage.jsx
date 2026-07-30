@@ -865,17 +865,31 @@ export default function ReservationPage() {
                                     </div>
 
                                     <p className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
-                                        {isEditMode
-                                            ? "Rezervasyon başarıyla güncellendi."
-                                            : t(
-                                                "reservation_confirm_success",
-                                                {
-                                                    number:
-                                                        reservationResult.pnrCode ||
+                                        {isEditMode ? (
+                                            "Rezervasyon başarıyla güncellendi."
+                                        ) : (
+                                            <>
+                                                {t("reservation_confirm_success", { number: "" }).replace("{{number}}", "").trim()}{" "}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const pnr =
+                                                            reservationResult.pnrCode ||
+                                                            reservationResult.reservationNumber ||
+                                                            reservationResult.id;
+                                                        navigate("/past-reservations", {
+                                                            state: { highlightPnr: pnr },
+                                                        });
+                                                    }}
+                                                    className="inline-flex items-center gap-1 font-bold text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors cursor-pointer"
+                                                    title="Geçmiş rezervasyon detayını görüntüle"
+                                                >
+                                                    {reservationResult.pnrCode ||
                                                         reservationResult.reservationNumber ||
-                                                        reservationResult.id,
-                                                }
-                                            )}
+                                                        reservationResult.id}
+                                                </button>
+                                            </>
+                                        )}
                                     </p>
 
                                     {/* E-posta Gönderildi Bildirimi (UI Warning/Alert) */}
