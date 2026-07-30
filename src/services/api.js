@@ -50,10 +50,15 @@ api.interceptors.request.use(
   }
 );
 
-// Response Interceptor: Globally handle 401 Unauthorized
+// Response Interceptor: Globally handle 401 Unauthorized and 403 Forbidden Restrictions
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response && error.response.status === 403 && error.response.data?.code === 'ACCOUNT_RESTRICTED') {
+      localStorage.setItem('accountRestricted', 'true');
+      window.dispatchEvent(new Event('accountRestricted'));
+    }
+
     if (error.response && error.response.status === 401) {
       const url = error.config?.url || '';
       const isGuestSession = localStorage.getItem('isGuest') === 'true' || sessionStorage.getItem('isGuest') === 'true';

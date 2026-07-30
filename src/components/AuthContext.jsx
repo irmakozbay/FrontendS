@@ -46,6 +46,8 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('guestToken');
     localStorage.removeItem('temporaryGuestSession');
     sessionStorage.removeItem('temporaryGuestSession');
+    localStorage.removeItem('accountRestricted');
+    sessionStorage.removeItem('accountRestricted');
 
     // Clean up both stores first
     localStorage.removeItem('token');

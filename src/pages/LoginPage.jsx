@@ -68,7 +68,11 @@ export default function LoginPage() {
             navigate('/chat');
           } catch (err) {
             console.error('Google backend login error:', err);
-            setSocialError(err.response?.data?.message || err.message || t('social_login_error', 'Sosyal giriş sırasında bir hata oluştu'));
+            setSocialError(
+              err.response?.data?.code === 'ACCOUNT_RESTRICTED'
+                ? (err.response?.data?.message || "Hesabınız kısıtlanmıştır.")
+                : (err.response?.data?.message || err.message || t('social_login_error', 'Sosyal giriş sırasında bir hata oluştu'))
+            );
           } finally {
             setSocialLoading(false);
           }
@@ -138,7 +142,13 @@ export default function LoginPage() {
       login(data.user, data.token, rememberMe);
       navigate('/chat');
     } catch (err) {
-      if (err.response && err.response.status === 401) {
+      if (err.response && err.response.data && err.response.data.code === 'ACCOUNT_RESTRICTED') {
+        setFieldErrors({
+          email: err.response.data.message || "Hesabınız yönetici tarafından kısıtlanmıştır.",
+          password: "",
+          admin: ''
+        });
+      } else if (err.response && err.response.status === 401) {
         setFieldErrors({
           email: "Invalid email or password",
           password: "Invalid email or password",
@@ -201,6 +211,8 @@ export default function LoginPage() {
     } catch (err) {
       if (err.message === 'cancelled') {
         setSocialError(t('social_login_cancelled', 'Giriş iptal edildi'));
+      } else if (err.response?.data?.code === 'ACCOUNT_RESTRICTED') {
+        setSocialError(err.response.data.message || "Hesabınız kısıtlanmıştır.");
       } else {
         setSocialError(t('social_login_error', 'Sosyal giriş sırasında bir hata oluştu'));
       }

@@ -16,7 +16,8 @@ import {
   Hotel,
   Plane,
   Sparkles,
-  LogIn
+  LogIn,
+  AlertTriangle
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../components/ThemeContext";
@@ -162,6 +163,17 @@ export default function Index() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isGuest, user } = useAuth();
+  
+  const [accountRestricted, setAccountRestricted] = useState(() => localStorage.getItem('accountRestricted') === 'true');
+
+  useEffect(() => {
+    const handler = () => {
+      setAccountRestricted(true);
+    };
+    window.addEventListener('accountRestricted', handler);
+    return () => window.removeEventListener('accountRestricted', handler);
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isChatActive, setIsChatActive] = useState(false);
@@ -1174,6 +1186,37 @@ export default function Index() {
                 }}
               />
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Hesabınız Kısıtlanmıştır Ekranı */}
+      {accountRestricted && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in">
+          <div className="w-full max-w-md rounded-3xl border border-rose-500/20 bg-white p-8 text-center shadow-2xl dark:bg-slate-900 animate-scale-up">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500">
+              <AlertTriangle size={32} className="animate-bounce" />
+            </div>
+            <h3 className="mt-6 text-xl font-bold text-gray-900 dark:text-white">
+              Hesabınız Kısıtlanmıştır
+            </h3>
+            <p className="mt-3 text-sm text-gray-500 dark:text-slate-400 leading-relaxed">
+              Hesabınız yönetici tarafından kısıtlanmıştır. İşlemlerinize devam edebilmek için lütfen destek ekibiyle iletişime geçin.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('accountRestricted');
+                localStorage.removeItem('token');
+                sessionStorage.removeItem('token');
+                localStorage.removeItem('user');
+                sessionStorage.removeItem('user');
+                window.location.href = '/login';
+              }}
+              className="mt-8 w-full rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-500/20 transition-all hover:scale-[1.02] hover:shadow-rose-500/30"
+            >
+              Çıkış Yap
+            </button>
           </div>
         </div>
       )}
