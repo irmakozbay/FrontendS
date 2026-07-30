@@ -68,7 +68,6 @@ export default function LoginPage() {
           try {
             setSocialLoading(true);
             setSocialError('');
-            console.log("Google ID Token Başarıyla Alındı, backend'e gönderiliyor...");
             const data = await handleOAuthLogin('google', credential, rememberMeRef.current);
             if (data && data.twoFactorRequired) {
               setIsTwoFactorMode(true);

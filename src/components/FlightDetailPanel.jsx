@@ -271,10 +271,6 @@ function FlightSegment({ title, departureCity, arrivalCity, departureTime, arriv
 export default function FlightDetailPanel({ flight, bookingDetails, onClose, onProceed }) {
   const { t } = useTranslation();
 
-  if (flight) {
-    console.log("AKTARMALI UÇUŞ DETAYI:", JSON.stringify(flight, null, 2));
-  }
-
   if (!flight) return null;
 
   const formattedPrice = flight.price != null && !isNaN(flight.price)

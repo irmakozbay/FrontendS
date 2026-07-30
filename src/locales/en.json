@@ -1,4 +1,35 @@
 {
+  "welcome": {
+    "support": {
+      "title": "Need help?",
+      "subtitle": "Our support team and AI assistant are ready to help you 24/7.",
+      "button": "Connect to Live Support",
+      "modalTitle": "Live Support & Help Center",
+      "quickHelpLabel": "Quick Solutions",
+      "solutionLabel": "Solution",
+      "unresolvedNotice": "Didn't find the answer you were looking for? You can contact our support team directly by sending an email.",
+      "sendEmail": "Send Email",
+      "emailCopied": "Copied!",
+      "quickHelp": {
+        "pnr": {
+          "title": "Where to Find Your PNR Code?",
+          "solution": "You can use the 6-digit code shown on your screen after booking confirmation and available under 'My Bookings' in your profile."
+        },
+        "age": {
+          "title": "Infant & Child Age Limits",
+          "solution": "Infants are 0-2 years (0-24 months) and children are 2-12 years. Pricing is automatically calculated based on date of birth."
+        },
+        "cancel": {
+          "title": "Booking Cancellation & Refund Terms",
+          "solution": "You can view your past or active bookings under the 'My Bookings' tab and submit a cancellation request."
+        },
+        "free": {
+          "title": "Is Using Sanny AI Free?",
+          "solution": "Sanny AI assistant and reservation search services are completely free of charge."
+        }
+      }
+    }
+  },
   "auth": {
     "googleLogin": "Sign in with Google",
     "continueAsGuest": "Continue as Guest",

@@ -1,4 +1,35 @@
 {
+  "welcome": {
+    "support": {
+      "title": "Yardıma mı ihtiyacınız var?",
+      "subtitle": "Destek ekibimiz ve yapay zeka asistanımız size 7/24 yardımcı olmaya hazır.",
+      "button": "Canlı Desteğe Bağlan",
+      "modalTitle": "Canlı Destek & Yardım Merkezi",
+      "quickHelpLabel": "Hızlı Çözümler",
+      "solutionLabel": "Çözüm",
+      "unresolvedNotice": "Aradığınız yanıtı bulamadınız mı? Destek ekibimize e-posta göndererek doğrudan iletişime geçebilirsiniz.",
+      "sendEmail": "E-posta Gönder",
+      "emailCopied": "Kopyalandı!",
+      "quickHelp": {
+        "pnr": {
+          "title": "PNR Kodu Nereden Bulunur?",
+          "solution": "Rezervasyon onayından sonra ekranınızda gösterilen ve profilinizin 'Rezervasyonlarım' sekmesinde yer alan 6 haneli kodu kullanabilirsiniz."
+        },
+        "age": {
+          "title": "Bebek ve Çocuk Yaş Sınırları",
+          "solution": "0-2 yaş bebek (0-24 ay), 2-12 yaş ise çocuk kuralına tabidir. Doğum tarihinize göre fiyatlandırma otomatik hesaplanır."
+        },
+        "cancel": {
+          "title": "Rezervasyon İptal & İade Şartları",
+          "solution": "Geçmiş veya aktif rezervasyonlarınızı 'Rezervasyonlarım' sekmesinden görüntüleyebilir ve iptal talebinde bulunabilirsiniz."
+        },
+        "free": {
+          "title": "Sanny AI Kullanımı Ücretli mi?",
+          "solution": "Sanny AI yapay zeka asistanı ve rezervasyon arama servisleri tamamen ücretsizdir."
+        }
+      }
+    }
+  },
   "auth": {
     "googleLogin": "Google ile Giriş Yap",
     "continueAsGuest": "Misafir Olarak Devam Et",

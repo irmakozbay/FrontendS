@@ -468,7 +468,6 @@ export default function Profile() {
 
     // Gerçek çıkış işlemini yapan fonksiyon
     const handleConfirmLogOut = () => {
-        console.log("Logging out permanently...");
         localStorage.removeItem("token");
         sessionStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -482,7 +481,6 @@ export default function Profile() {
     // Gerçek silme işlemini yapan fonksiyon
     const handleConfirmDelete = async () => {
         try {
-            console.log("Deleting account permanently...");
             await api.delete('/api/profile');
             localStorage.clear();
             sessionStorage.clear();

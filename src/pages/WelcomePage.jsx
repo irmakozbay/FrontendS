@@ -441,15 +441,15 @@ export default function WelcomePage() {
                   <Headphones className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold">{t('landing.helpBannerTitle')}</h4>
-                  <p className="text-white/90 text-xs">{t('welcome.support.subtitle') || t('landing.helpBannerSubtitle')}</p>
+                  <h4 className="text-base font-bold">{t('welcome.support.title')}</h4>
+                  <p className="text-white/90 text-xs">{t('welcome.support.subtitle')}</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsSupportModalOpen(true)}
                 className="px-5 py-2.5 rounded-xl bg-white text-[#f07c24] font-bold hover:bg-slate-50 transition-all shadow-md cursor-pointer flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap"
               >
-                <span>{t('welcome.support.button') || t('landing.liveSupport')}</span>
+                <span>{t('welcome.support.button')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
