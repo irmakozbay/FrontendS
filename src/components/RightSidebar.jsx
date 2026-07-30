@@ -552,12 +552,11 @@ export default function RightSidebar({
   };
 
   const handlePrevious = () => {
+    // Sol ok yalnızca rezervasyon adımları arasında geri gider.
+    // İlk adımdayken paneli kapatmaz.
     if (currentStep > 1) {
       setCurrentStep((previousStep) => previousStep - 1);
-      return;
     }
-
-    setIsRightSidebarOpen(false);
   };
 
   const handleNext = () => {
@@ -795,9 +794,8 @@ export default function RightSidebar({
 
     return (
       <div
-        className={`rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden transition-all ${
-          isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
-        }`}
+        className={`rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden transition-all ${isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
+          }`}
       >
         <div className="relative h-32 bg-slate-100 dark:bg-slate-800">
           {result.thumbnail ? (
@@ -873,9 +871,8 @@ export default function RightSidebar({
 
     return (
       <div
-        className={`rounded-2xl border bg-white dark:bg-slate-900 p-3.5 transition-all ${
-          isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
-        }`}
+        className={`rounded-2xl border bg-white dark:bg-slate-900 p-3.5 transition-all ${isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
+          }`}
       >
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-bold text-slate-900 dark:text-white">{result.airline}</span>
@@ -1179,14 +1176,16 @@ export default function RightSidebar({
         });
 
   return (
-    <aside className="relative z-30 hidden h-full min-w-0 w-full justify-center px-5 py-4 lg:flex">
-      <div className="flex h-full max-h-[calc(100vh-32px)] min-h-0 w-full flex-col overflow-hidden rounded-[26px] border border-white/80 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.16)] dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_18px_55px_rgba(0,0,0,0.35)]">
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-5 pt-5">
+    <aside className="relative z-30 hidden h-full w-[420px] min-w-[420px] max-w-[420px] flex-none overflow-hidden border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:flex">
+      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-white dark:bg-slate-900">
+        {/* Üst bölüm sabit kalır; panel kaydırıldığında kaybolmaz. */}
+        <div className="flex-shrink-0 border-b border-slate-100 bg-white px-6 pb-4 pt-5 dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-4 flex items-center justify-between">
             <button
               type="button"
               onClick={handlePrevious}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[#FF8A00] transition hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-500/10"
+              disabled={currentStep === 1}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[#FF8A00] transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-35 dark:text-orange-400 dark:hover:bg-orange-500/10"
               title={t("rightSidebar.previous", {
                 defaultValue: "Önceki",
               })}
@@ -1218,7 +1217,7 @@ export default function RightSidebar({
             </span>
           </div>
 
-          <div className="mb-6 h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+          <div className="mb-5 h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
             <div
               className="h-full rounded-full bg-[#FF8A00] transition-all duration-300 dark:bg-orange-500"
               style={{
@@ -1232,7 +1231,10 @@ export default function RightSidebar({
             setCurrentStep={setCurrentStep}
             t={t}
           />
+        </div>
 
+        {/* Sadece adım içeriği kaydırılır. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           {currentStep === 1 &&
             (isHotel
               ? renderHotelSearchStep()
@@ -1245,7 +1247,7 @@ export default function RightSidebar({
             renderReviewStep()}
         </div>
 
-        <div className="border-t border-slate-100 bg-white px-6 py-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex-shrink-0 border-t border-slate-100 bg-white px-6 py-5 dark:border-slate-800 dark:bg-slate-900">
           <button
             type="button"
             onClick={handleNext}

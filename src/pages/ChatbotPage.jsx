@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import {
@@ -41,9 +41,9 @@ function formatPrice(price) {
   return Math.round(num).toLocaleString("tr-TR");
 }
 
-// TourVisio aramasında çocuklar yetişkin sayısına eklenerek gönderilir (TourVisio'da
-// ayrı bir çocuk kavramı yok), ama kullanıcıya burada gerçek yetişkin/çocuk ayrımı
-// gösterilir.
+// TourVisio aramasÄ±nda Ã§ocuklar yetiÅŸkin sayÄ±sÄ±na eklenerek gÃ¶nderilir (TourVisio'da
+// ayrÄ± bir Ã§ocuk kavramÄ± yok), ama kullanÄ±cÄ±ya burada gerÃ§ek yetiÅŸkin/Ã§ocuk ayrÄ±mÄ±
+// gÃ¶sterilir.
 function formatGuestCount(adultCount, childCount, passengerCount, t, infantCount) {
   if (adultCount) {
     const parts = [`${adultCount} ${t("unit_adult")}`];
@@ -61,8 +61,8 @@ function formatGuestCount(adultCount, childCount, passengerCount, t, infantCount
   return null;
 }
 
-// TourVisio GetProductInfo yanıtını HotelDetailPanel'in beklediği düz alanlara çevirir
-// (fotoğraf galerisi, açıklama metni, olanaklar/temalar isim listeleri).
+// TourVisio GetProductInfo yanÄ±tÄ±nÄ± HotelDetailPanel'in beklediÄŸi dÃ¼z alanlara Ã§evirir
+// (fotoÄŸraf galerisi, aÃ§Ä±klama metni, olanaklar/temalar isim listeleri).
 function mapProductInfoToHotelDetail(productInfo) {
   const hotel = productInfo?.body?.hotel;
   if (!hotel) return {};
@@ -85,10 +85,10 @@ function mapProductInfoToHotelDetail(productInfo) {
     description = texts.join("\n\n");
   }
 
-  // TourVisio her olanağı "highlighted" (otelin öne çıkardığı) olarak
-  // işaretleyebiliyor — önceden bu bilgi atılıp düz bir isim listesine
-  // indirgeniyordu. Artık obje olarak taşınıyor ki panelde öne çıkanlar
-  // ayrı gösterilebilsin.
+  // TourVisio her olanaÄŸÄ± "highlighted" (otelin Ã¶ne Ã§Ä±kardÄ±ÄŸÄ±) olarak
+  // iÅŸaretleyebiliyor â€” Ã¶nceden bu bilgi atÄ±lÄ±p dÃ¼z bir isim listesine
+  // indirgeniyordu. ArtÄ±k obje olarak taÅŸÄ±nÄ±yor ki panelde Ã¶ne Ã§Ä±kanlar
+  // ayrÄ± gÃ¶sterilebilsin.
   const facilitiesByName = new Map();
   if (firstSeason?.facilityCategories) {
     firstSeason.facilityCategories.forEach(cat => {
@@ -109,9 +109,9 @@ function mapProductInfoToHotelDetail(productInfo) {
   };
 }
 
-// Bot cevabını karakter karakter "yazılıyormuş" gibi gösterir. Otel/uçak
-// kartları (msg.results) buna dahil değil — onlar zaten anında görünüyor,
-// sadece metin cevabı yavaşça yazılır.
+// Bot cevabÄ±nÄ± karakter karakter "yazÄ±lÄ±yormuÅŸ" gibi gÃ¶sterir. Otel/uÃ§ak
+// kartlarÄ± (msg.results) buna dahil deÄŸil â€” onlar zaten anÄ±nda gÃ¶rÃ¼nÃ¼yor,
+// sadece metin cevabÄ± yavaÅŸÃ§a yazÄ±lÄ±r.
 const markdownComponents = {
   table: ({ node, ...props }) => (
     <div className="my-2 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
@@ -199,14 +199,14 @@ export default function Index() {
     }
   };
 
-  // --- Seçilen Otel / Uçuş Objesi ---
+  // --- SeÃ§ilen Otel / UÃ§uÅŸ Objesi ---
   const [selectedHotel, setSelectedHotel] = useState(null);
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [hotelDetailLoading, setHotelDetailLoading] = useState(false);
 
-  // Sağ paneldeki ("Sizin için bulundu") otel kartlarından seçim yapıldığında
-  // çağrılır — sohbet içindeki kart tıklamasıyla aynı davranışı (detay panelini
-  // açma + TourVisio'dan tam bilgi çekme) tetikler.
+  // SaÄŸ paneldeki ("Sizin iÃ§in bulundu") otel kartlarÄ±ndan seÃ§im yapÄ±ldÄ±ÄŸÄ±nda
+  // Ã§aÄŸrÄ±lÄ±r â€” sohbet iÃ§indeki kart tÄ±klamasÄ±yla aynÄ± davranÄ±ÅŸÄ± (detay panelini
+  // aÃ§ma + TourVisio'dan tam bilgi Ã§ekme) tetikler.
   const handleSelectHotelFromPanel = async (result) => {
     const formattedPrice = `${formatPrice(result.price)} ${result.currency || 'TRY'}`;
     setSelectedHotel(result);
@@ -231,7 +231,7 @@ export default function Index() {
           prev && prev.hotelId === result.hotelId ? { ...prev, ...mappedDetail } : prev
         );
       } catch (err) {
-        console.log("Otel detayları yüklenemedi:", err);
+        console.log("Otel detaylarÄ± yÃ¼klenemedi:", err);
       } finally {
         setHotelDetailLoading(false);
       }
@@ -260,11 +260,11 @@ export default function Index() {
   const [reservationGuests, setReservationGuests] = useState(null);
   const [reservationTermsAccepted, setReservationTermsAccepted] = useState(false);
 
-  // --- Rezervasyon Önizleme State'leri ---
+  // --- Rezervasyon Ã–nizleme State'leri ---
   const [bookingDetails, setBookingDetails] = useState({
-    city: "",           // Otel için: Nerede (Konum)
-    checkIn: "",        // Otel için Giriş / Uçak için Gidiş Tarihi
-    checkOut: "",       // Sadece Otel için Çıkış Tarihi
+    city: "",           // Otel iÃ§in: Nerede (Konum)
+    checkIn: "",        // Otel iÃ§in GiriÅŸ / UÃ§ak iÃ§in GidiÅŸ Tarihi
+    checkOut: "",       // Sadece Otel iÃ§in Ã‡Ä±kÄ±ÅŸ Tarihi
     guests: "",
     adultCount: 1,
     childCount: 0,
@@ -274,10 +274,10 @@ export default function Index() {
     passengerCount: 1,
     hotelName: "",
     price: "",
-    departureCity: "",  // Uçak için: Kalkış Noktası
-    arrivalCity: "",    // Uçak için: Varış Noktası
-    airline: "",        // Uçak için: Havayolu
-    returnDate: ""       // Uçak için: Dönüş Tarihi (sadece gidiş-dönüşte dolu)
+    departureCity: "",  // UÃ§ak iÃ§in: KalkÄ±ÅŸ NoktasÄ±
+    arrivalCity: "",    // UÃ§ak iÃ§in: VarÄ±ÅŸ NoktasÄ±
+    airline: "",        // UÃ§ak iÃ§in: Havayolu
+    returnDate: ""       // UÃ§ak iÃ§in: DÃ¶nÃ¼ÅŸ Tarihi (sadece gidiÅŸ-dÃ¶nÃ¼ÅŸte dolu)
   });
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -306,15 +306,15 @@ export default function Index() {
     : null;
   const username = profileFullNameForGreeting || (email ? (email.includes('@') ? email.split('@')[0] : email) : "User");
 
-  // --- HTML5 Video Autoplay Engeli Çözümü & Tema Değişimi ---
+  // --- HTML5 Video Autoplay Engeli Ã‡Ã¶zÃ¼mÃ¼ & Tema DeÄŸiÅŸimi ---
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
-      videoRef.current.play().catch(err => console.log("Video oynatılamadı:", err));
+      videoRef.current.play().catch(err => console.log("Video oynatÄ±lamadÄ±:", err));
     }
   }, [theme]);
 
-  // --- Oturum Geçmişini ve bookingMeta Durumunu Yükleme ---
+  // --- Oturum GeÃ§miÅŸini ve bookingMeta Durumunu YÃ¼kleme ---
   useEffect(() => {
     setIsChatCompleted(false);
     if (sessionId) {
@@ -349,15 +349,15 @@ export default function Index() {
           setMessages(history);
           setIsChatActive(history.length > 0);
 
-          // Arama tipini, en güncel sonuç içeren mesajdaki verinin şekline göre belirle
-          // (bookingMeta hiç yazılmamış eski sohbetlerde bile doğru çalışır)
+          // Arama tipini, en gÃ¼ncel sonuÃ§ iÃ§eren mesajdaki verinin ÅŸekline gÃ¶re belirle
+          // (bookingMeta hiÃ§ yazÄ±lmamÄ±ÅŸ eski sohbetlerde bile doÄŸru Ã§alÄ±ÅŸÄ±r)
           const lastResultMessage = [...response.data].reverse().find(msg => msg.results && msg.results.length > 0);
           if (lastResultMessage) {
             const isFlight = lastResultMessage.results[0].airline !== undefined;
             setSearchType(isFlight ? "flight" : "hotel");
           }
 
-          // Geçmiş mesajlar içinde en güncel bookingMeta'yı bulup sağ tarafa doldur
+          // GeÃ§miÅŸ mesajlar iÃ§inde en gÃ¼ncel bookingMeta'yÄ± bulup saÄŸ tarafa doldur
           const lastMetaMessage = [...response.data].reverse().find(msg => msg.bookingMeta);
           if (lastMetaMessage && lastMetaMessage.bookingMeta) {
             setBookingDetails(prev => ({ ...prev, ...lastMetaMessage.bookingMeta }));
@@ -366,19 +366,19 @@ export default function Index() {
             }
           }
 
-          // Bu oturum için backend'de toplanmış kriterleri (kalkış/varış/yolcu/tarih)
-          // ayrıca çek — mesaj geçmişinde bu bilgiler saklanmıyor, oturumun kendi
-          // kriter kaydından (search_criteria_json) geliyor.
+          // Bu oturum iÃ§in backend'de toplanmÄ±ÅŸ kriterleri (kalkÄ±ÅŸ/varÄ±ÅŸ/yolcu/tarih)
+          // ayrÄ±ca Ã§ek â€” mesaj geÃ§miÅŸinde bu bilgiler saklanmÄ±yor, oturumun kendi
+          // kriter kaydÄ±ndan (search_criteria_json) geliyor.
           try {
             const criteriaResponse = await api.get(`/api/chat/sessions/${sessionId}/criteria`);
             const c = criteriaResponse.data;
             if (c) {
-              // Backend'den gelen kriter (c) her zaman TAM ve GÜNCEL bir anlık
-              // görüntüdür (bkz. ChatCriteriaSummary.from) — hiçbir zaman kısmi
-              // değildir. Bu yüzden burada `|| prev.X` gibi bir "eskiyi koru"
-              // yedeği KULLANMIYORUZ: aksi hâlde backend bir alanı gerçekten
-              // sıfırladığında (ör. reddedilen bir arama geri alındığında) panel
-              // hâlâ eski/"hayalet" değeri göstermeye devam ederdi.
+              // Backend'den gelen kriter (c) her zaman TAM ve GÃœNCEL bir anlÄ±k
+              // gÃ¶rÃ¼ntÃ¼dÃ¼r (bkz. ChatCriteriaSummary.from) â€” hiÃ§bir zaman kÄ±smi
+              // deÄŸildir. Bu yÃ¼zden burada `|| prev.X` gibi bir "eskiyi koru"
+              // yedeÄŸi KULLANMIYORUZ: aksi hÃ¢lde backend bir alanÄ± gerÃ§ekten
+              // sÄ±fÄ±rladÄ±ÄŸÄ±nda (Ã¶r. reddedilen bir arama geri alÄ±ndÄ±ÄŸÄ±nda) panel
+              // hÃ¢lÃ¢ eski/"hayalet" deÄŸeri gÃ¶stermeye devam ederdi.
               setBookingDetails(prev => ({
                 ...prev,
                 city: c.locationOrHotelName || "",
@@ -444,7 +444,7 @@ export default function Index() {
     return "greeting_night";
   };
 
-  // --- Yeni Mesaj Gönderme ve bookingMeta Güncelleme ---
+  // --- Yeni Mesaj GÃ¶nderme ve bookingMeta GÃ¼ncelleme ---
   const handleSend = async () => {
     if (!searchQuery.trim()) return;
 
@@ -471,9 +471,9 @@ export default function Index() {
       console.error(e);
     }
 
-    // Ayarlar sayfasındaki "tercih edilen para birimi" seçimi — önceden burada
-    // hep sabit "TRY" gönderiliyordu, kullanıcının seçtiği tercih hiç dikkate
-    // alınmıyordu.
+    // Ayarlar sayfasÄ±ndaki "tercih edilen para birimi" seÃ§imi â€” Ã¶nceden burada
+    // hep sabit "TRY" gÃ¶nderiliyordu, kullanÄ±cÄ±nÄ±n seÃ§tiÄŸi tercih hiÃ§ dikkate
+    // alÄ±nmÄ±yordu.
     const CURRENCY_MAP = {
       try: { symbol: "TRY", name: "Turkish Lira" },
       usd: { symbol: "USD", name: "US Dollar" },
@@ -514,7 +514,7 @@ export default function Index() {
         chatStatus: data.chatStatus,
         selectedItem: data.selectedItem,
         bookingMeta: data.bookingMeta || null,
-        animate: true // yeni gelen cevap yazıla yazıla görünsün; geçmiş mesajlar animasyonsuz yüklenir
+        animate: true // yeni gelen cevap yazÄ±la yazÄ±la gÃ¶rÃ¼nsÃ¼n; geÃ§miÅŸ mesajlar animasyonsuz yÃ¼klenir
       };
 
       if (data.sessionId && !searchParams.get('sessionId')) {
@@ -523,7 +523,7 @@ export default function Index() {
 
       setMessages(prev => [...prev, botMsg]);
 
-      // 1. Arama Tipini Gelen "searchType" Değerine Göre Güncelle
+      // 1. Arama Tipini Gelen "searchType" DeÄŸerine GÃ¶re GÃ¼ncelle
       if (data.searchType) {
         if (data.searchType.includes("HOTEL")) {
           setSearchType("hotel");
@@ -532,26 +532,26 @@ export default function Index() {
         }
       }
 
-      // 2. Kullanıcının Kendi Yazdığı Mesajdan (Sorgudan) Tarih ve Konuk Bilgilerini Ayıkla (Yedek Plan)
+      // 2. KullanÄ±cÄ±nÄ±n Kendi YazdÄ±ÄŸÄ± Mesajdan (Sorgudan) Tarih ve Konuk Bilgilerini AyÄ±kla (Yedek Plan)
       let extractedFromQuery = {};
       const lowerQuery = query.toLocaleLowerCase('tr-TR');
 
-      // Konuk Sayısı Ayıklama
-      const guestMatch = lowerQuery.match(/(\d+)\s*(kişi|kisi|yetişkin|yetiskin|guest|adult)/i);
+      // Konuk SayÄ±sÄ± AyÄ±klama
+      const guestMatch = lowerQuery.match(/(\d+)\s*(kiÅŸi|kisi|yetiÅŸkin|yetiskin|guest|adult)/i);
       if (guestMatch) {
         extractedFromQuery.guests = `${guestMatch[1]} ${t("unit_person")}`;
       }
 
-      // Sayısal Tarih Formatı Ayıklama (Örn: 17.07.2026-19.07.2026 veya 17.07-19.07)
-      const numericRangeRegex = /(\d{1,2})[\./-](\d{1,2})(?:[\./-](\d{2,4}))?\s*[-–—]\s*(\d{1,2})[\./-](\d{1,2})(?:[\./-](\d{2,4}))/;
+      // SayÄ±sal Tarih FormatÄ± AyÄ±klama (Ã–rn: 17.07.2026-19.07.2026 veya 17.07-19.07)
+      const numericRangeRegex = /(\d{1,2})[\./-](\d{1,2})(?:[\./-](\d{2,4}))?\s*[-â€“â€”]\s*(\d{1,2})[\./-](\d{1,2})(?:[\./-](\d{2,4}))/;
       const rangeMatch = lowerQuery.match(numericRangeRegex);
       if (rangeMatch) {
         const currentYear = new Date().getFullYear();
         extractedFromQuery.checkIn = `${rangeMatch[1].padStart(2, '0')}.${rangeMatch[2].padStart(2, '0')}.${rangeMatch[3] || currentYear}`;
         extractedFromQuery.checkOut = `${rangeMatch[4].padStart(2, '0')}.${rangeMatch[5].padStart(2, '0')}.${rangeMatch[6] || rangeMatch[3] || currentYear}`;
       } else {
-        // Metinsel Tarih Ayıklama (Örn: 17 temmuz - 19 temmuz)
-        const ayIsimleri = "ocak|şubat|mart|nisan|mayıs|haziran|temmuz|ağustos|eylül|ekim|kasım|aralık|january|february|march|april|may|june|july|august|september|october|november|december";
+        // Metinsel Tarih AyÄ±klama (Ã–rn: 17 temmuz - 19 temmuz)
+        const ayIsimleri = "ocak|ÅŸubat|mart|nisan|mayÄ±s|haziran|temmuz|aÄŸustos|eylÃ¼l|ekim|kasÄ±m|aralÄ±k|january|february|march|april|may|june|july|august|september|october|november|december";
         const singleDateRegex = new RegExp(`(\\d{1,2})\\s*(${ayIsimleri})`, "gi");
         let matches = [];
         let m;
@@ -566,15 +566,15 @@ export default function Index() {
         }
       }
 
-      // 3. Backend'in çözdüğü arama kriterlerinden (varsa) sağ paneli doldur.
-      // Metinden regex ile tahmin etmek kırılgan; backend zaten SearchCriteria'yı
-      // çözüyor, onu doğrudan kullanmak çok daha güvenilir (kalkış/varış/yolcu
-      // sayısı gibi alanlar artık kullanıcı bunları söyler söylemez dolar).
+      // 3. Backend'in Ã§Ã¶zdÃ¼ÄŸÃ¼ arama kriterlerinden (varsa) saÄŸ paneli doldur.
+      // Metinden regex ile tahmin etmek kÄ±rÄ±lgan; backend zaten SearchCriteria'yÄ±
+      // Ã§Ã¶zÃ¼yor, onu doÄŸrudan kullanmak Ã§ok daha gÃ¼venilir (kalkÄ±ÅŸ/varÄ±ÅŸ/yolcu
+      // sayÄ±sÄ± gibi alanlar artÄ±k kullanÄ±cÄ± bunlarÄ± sÃ¶yler sÃ¶ylemez dolar).
       if (data.criteria) {
         const c = data.criteria;
-        // Aynı gerekçe: c backend'in o anki TAM kriter anlık görüntüsüdür, `|| prev.X`
-        // yedeği burada da eski/"hayalet" değerlerin panelde takılı kalmasına yol açardı
-        // (ör. reddedilip geri alınan bir arama sonrası eski konuk sayısının görünmesi).
+        // AynÄ± gerekÃ§e: c backend'in o anki TAM kriter anlÄ±k gÃ¶rÃ¼ntÃ¼sÃ¼dÃ¼r, `|| prev.X`
+        // yedeÄŸi burada da eski/"hayalet" deÄŸerlerin panelde takÄ±lÄ± kalmasÄ±na yol aÃ§ardÄ±
+        // (Ã¶r. reddedilip geri alÄ±nan bir arama sonrasÄ± eski konuk sayÄ±sÄ±nÄ±n gÃ¶rÃ¼nmesi).
         setBookingDetails(prev => ({
           ...prev,
           city: c.locationOrHotelName || "",
@@ -596,8 +596,8 @@ export default function Index() {
           minStars: c.minStars || null
         });
       } else {
-        // Backend kriteri dönmediyse (ör. kapsam dışı mesaj) en azından kullanıcının
-        // sorgusundaki verileri güncelle
+        // Backend kriteri dÃ¶nmediyse (Ã¶r. kapsam dÄ±ÅŸÄ± mesaj) en azÄ±ndan kullanÄ±cÄ±nÄ±n
+        // sorgusundaki verileri gÃ¼ncelle
         setBookingDetails(prev => ({
           ...prev,
           checkIn: extractedFromQuery.checkIn || prev.checkIn,
@@ -606,8 +606,8 @@ export default function Index() {
         }));
       }
 
-      // 4. Sonuç listesindeki ilk (en iyi) öğeden otel adı / uçuş fiyatı için bir
-      // varsayılan doldur — kullanıcı bir kart seçtiğinde bu değerler o kartla değişir.
+      // 4. SonuÃ§ listesindeki ilk (en iyi) Ã¶ÄŸeden otel adÄ± / uÃ§uÅŸ fiyatÄ± iÃ§in bir
+      // varsayÄ±lan doldur â€” kullanÄ±cÄ± bir kart seÃ§tiÄŸinde bu deÄŸerler o kartla deÄŸiÅŸir.
       if (data.results && data.results.length > 0) {
         const firstItem = data.results[0];
         const isFlight = firstItem.airline !== undefined;
@@ -630,7 +630,7 @@ export default function Index() {
       }
 
       if (data.sessionId && data.sessionId !== sessionId) {
-        // Misafir oturumlarında sessionId URL'ye yazılmaz (geçmiş kaydedilmez)
+        // Misafir oturumlarÄ±nda sessionId URL'ye yazÄ±lmaz (geÃ§miÅŸ kaydedilmez)
         if (!isGuest) {
           setSearchParams({ sessionId: data.sessionId });
         }
@@ -677,7 +677,7 @@ export default function Index() {
         setIsListening(false);
         return;
       } catch (err) {
-        console.log("Oturum durdurulamadı:", err);
+        console.log("Oturum durdurulamadÄ±:", err);
       }
     }
 
@@ -686,7 +686,7 @@ export default function Index() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
       if (!SpeechRecognition) {
-        alert("Tarayıcınız ses tanıma özelliğini desteklemiyor.");
+        alert("TarayÄ±cÄ±nÄ±z ses tanÄ±ma Ã¶zelliÄŸini desteklemiyor.");
         stream.getTracks().forEach(track => track.stop());
         return;
       }
@@ -703,9 +703,9 @@ export default function Index() {
       };
 
       recognition.onerror = (event) => {
-        console.error("Speech API Hatası:", event.error);
+        console.error("Speech API HatasÄ±:", event.error);
         if (event.error !== 'aborted') {
-          alert(`Tarayıcı Ses Hatası: ${event.error}`);
+          alert(`TarayÄ±cÄ± Ses HatasÄ±: ${event.error}`);
         }
         setIsListening(false);
       };
@@ -731,7 +731,7 @@ export default function Index() {
       recognition.start();
 
     } catch (err) {
-      console.error("Donanım hatası:", err);
+      console.error("DonanÄ±m hatasÄ±:", err);
       setIsListening(false);
     }
   };
@@ -756,25 +756,25 @@ export default function Index() {
       {/* Katman 2 (z-10): Overlay Mask */}
       <div className="fixed inset-0 z-10 pointer-events-none bg-white/10 dark:bg-black/30" />
 
-      {/* Misafir Bannerı (z-50): fixed, her zaman en üstte — layout wrapper mt-[33px] ile telafi ediyor */}
+      {/* Misafir BannerÄ± (z-50): fixed, her zaman en Ã¼stte â€” layout wrapper mt-[33px] ile telafi ediyor */}
       {isGuest && (
         <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 px-4 py-2 bg-amber-50/95 dark:bg-amber-950/90 backdrop-blur-sm border-b border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs font-medium shadow-sm">
           <LogIn size={13} className="flex-shrink-0" />
           <span>
-            {t('guest.bannerText', 'Misafir olarak oturum açtınız. Sohbet geçmişinizi kaydetmek için')}{' '}
+            {t('guest.bannerText', 'Misafir olarak oturum aÃ§tÄ±nÄ±z. Sohbet geÃ§miÅŸinizi kaydetmek iÃ§in')}{' '}
           </span>
           <button
             onClick={() => navigate('/login')}
             className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-200 transition-colors cursor-pointer"
           >
-            {t('guest.loginLink', 'Giriş Yap')}
+            {t('guest.loginLink', 'GiriÅŸ Yap')}
           </button>
           <span>{t('guest.or', 'veya')}</span>
           <button
             onClick={() => navigate('/signup')}
             className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-200 transition-colors cursor-pointer"
           >
-            {t('guest.registerLink', 'Kayıt Ol')}
+            {t('guest.registerLink', 'KayÄ±t Ol')}
           </button>
         </div>
       )}
@@ -795,7 +795,7 @@ export default function Index() {
         }}
       />
 
-      {/* Katman 3 (z-20): Ana İçerik Alanı */}
+      {/* Katman 3 (z-20): Ana Ä°Ã§erik AlanÄ± */}
       <div className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden bg-transparent z-20">
         {!isSidebarOpen && (
           <button
@@ -810,7 +810,7 @@ export default function Index() {
         {!isRightSidebarOpen && isChatActive && (
           <button
             onClick={() => setIsRightSidebarOpen(true)}
-            className="absolute top-4 right-4 z-30 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all duration-200 focus:outline-none cursor-pointer flex items-center justify-center"
+            className="absolute top-4 right-2 z-30 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all duration-200 focus:outline-none cursor-pointer flex items-center justify-center"
             title="Expand Details Panel"
           >
             <PanelRightOpen size={18} />
@@ -818,21 +818,21 @@ export default function Index() {
         )}
 
         <div
-          className="relative z-20 grid h-full min-w-0 flex-1 overflow-hidden"
+          className="relative z-20 grid h-full min-w-0 flex-1 gap-0 overflow-hidden"
           style={{
             gridTemplateColumns:
               isChatActive && isRightSidebarOpen
-                ? "minmax(0, 1fr) 410px"
+                ? "minmax(0, calc(100% - 420px)) 420px"
                 : "minmax(0, 1fr)",
           }}
         >
 
           {/* CHAT ALANI */}
-          <div className="h-full min-w-0 w-full overflow-hidden transition-all duration-300 ease-in-out">
-            <div className="flex h-full min-w-0 flex-col items-center overflow-y-auto px-4 py-8 relative">
+          <div className="h-full min-h-0 min-w-0 overflow-hidden transition-all duration-300 ease-in-out">
+            <div className="relative flex h-full min-w-0 flex-col items-center overflow-y-auto px-4 py-8">
 
               {!isChatActive ? (
-                // ==================== 1. KARŞILAMA EKRANI VE ORTAKDAKİ INPUT ====================
+                // ==================== 1. KARÅžILAMA EKRANI VE ORTAKDAKÄ° INPUT ====================
                 <div className="w-full max-w-[850px] my-auto animate-fade-in flex flex-col items-center relative z-20">
                   <div className="mb-8 text-center flex flex-col items-center">
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-2 select-none text-center md:text-left">
@@ -850,7 +850,7 @@ export default function Index() {
                     </p>
                   </div>
 
-                  {/* Ortadaki Arama Çubuğu */}
+                  {/* Ortadaki Arama Ã‡ubuÄŸu */}
                   <div
                     className="w-full rounded-2xl shadow-xl border mb-6 max-w-[700px] transition-all duration-300 relative z-30"
                     style={{
@@ -890,7 +890,7 @@ export default function Index() {
                           </>
                         ) : (
                           <div className="flex items-center justify-between w-full px-2 animate-fade-in">
-                            <span className="text-xl text-slate-400 font-light select-none cursor-not-allowed opacity-50">＋</span>
+                            <span className="text-xl text-slate-400 font-light select-none cursor-not-allowed opacity-50">ï¼‹</span>
                             <div className="flex items-center gap-[3px] h-6 flex-1 justify-center max-w-[60%]">
                               {[...Array(24)].map((_, i) => (
                                 <div
@@ -926,7 +926,7 @@ export default function Index() {
                     </div>
                   </div>
 
-                  {/* Örnek Soru Çipleri */}
+                  {/* Ã–rnek Soru Ã‡ipleri */}
                   <div className="w-full max-w-[700px] flex flex-col items-center gap-2">
                     <span className="text-[11px] text-[#1E232C]/60 dark:text-slate-400 font-semibold uppercase tracking-wider">
                       {t("try_asking")}
@@ -949,8 +949,8 @@ export default function Index() {
                   </div>
                 </div>
               ) : (
-                // ==================== 2. AKTİF SOHBET LAYOUT'U ====================
-                <div className="mx-auto flex h-full w-full max-w-[850px] min-w-0 flex-1 flex-col justify-between overflow-hidden relative">
+                // ==================== 2. AKTÄ°F SOHBET LAYOUT'U ====================
+                <div className="relative mx-auto flex h-full w-full max-w-[980px] min-w-0 flex-1 flex-col justify-between overflow-hidden">
                   <div className="flex-1 overflow-y-auto p-2 space-y-4 pb-28 w-full">
                     {messages.map((msg) => (
                       <div key={msg.id} className={`flex items-start gap-3 w-full ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
@@ -1012,7 +1012,7 @@ export default function Index() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Alt Sabit Sohbet Giriş Alanı */}
+                  {/* Alt Sabit Sohbet GiriÅŸ AlanÄ± */}
                   <div className="w-full p-4 bg-transparent z-30 mt-auto">
                     <div
                       className="rounded-2xl shadow-xl border w-full transition-all duration-300 relative z-30"
@@ -1066,8 +1066,8 @@ export default function Index() {
             </div>
           </div>
 
-          {/* ==================== 3. AKTİF REZERVASYON ÖNİZLEME PANELİ ==================== */}
-          {/* Kullanıcı bir otel/uçuş seçene kadar bu panel boş detaylarla gösterilebilir; ayrıca elle kapatılabilir */}
+          {/* ==================== 3. AKTÄ°F REZERVASYON Ã–NÄ°ZLEME PANELÄ° ==================== */}
+          {/* KullanÄ±cÄ± bir otel/uÃ§uÅŸ seÃ§ene kadar bu panel boÅŸ detaylarla gÃ¶sterilebilir; ayrÄ±ca elle kapatÄ±labilir */}
           {isChatActive && isRightSidebarOpen && (
             <RightSidebar
               isRightSidebarOpen={isRightSidebarOpen}
@@ -1087,10 +1087,10 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Overlay Backdrop & Centered Modal — root seviyesinde (ChatSidebar'ın kardeşi) render
-          edilir, çünkü "Ana İçerik Alanı" (z-20) kendi stacking context'ini oluşturuyor;
-          modal onun İÇİNDE kalsaydı, içindeki z-[100] hiçbir zaman root'taki ChatSidebar'ın
-          z-30'unu geçemezdi (sol sidebar her zaman modalın önünde görünürdü). */}
+      {/* Overlay Backdrop & Centered Modal â€” root seviyesinde (ChatSidebar'Ä±n kardeÅŸi) render
+          edilir, Ã§Ã¼nkÃ¼ "Ana Ä°Ã§erik AlanÄ±" (z-20) kendi stacking context'ini oluÅŸturuyor;
+          modal onun Ä°Ã‡Ä°NDE kalsaydÄ±, iÃ§indeki z-[100] hiÃ§bir zaman root'taki ChatSidebar'Ä±n
+          z-30'unu geÃ§emezdi (sol sidebar her zaman modalÄ±n Ã¶nÃ¼nde gÃ¶rÃ¼nÃ¼rdÃ¼). */}
       {activePanel && (
         <div
           className="fixed inset-0 bg-black/40 z-[100] transition-opacity flex items-center justify-center p-4 sm:p-6"
