@@ -18,6 +18,7 @@ import {
   Star,
   Heart,
   SlidersHorizontal,
+  Sparkles,
 } from "lucide-react";
 import { AirlineLogo } from "../utils/airlineLogos";
 
@@ -68,6 +69,22 @@ function calculateNightCount(checkIn, checkOut) {
   );
 
   return nightCount > 0 ? nightCount : null;
+}
+
+function extractTimeOnly(dateTimeStr) {
+  if (!dateTimeStr) return "";
+  if (dateTimeStr.includes("T")) {
+    const timePart = dateTimeStr.split("T")[1];
+    return timePart ? timePart.substring(0, 5) : "";
+  }
+  return dateTimeStr;
+}
+
+function formatPrice(val) {
+  if (val === undefined || val === null) return "";
+  const num = Number(val);
+  if (Number.isNaN(num)) return val;
+  return Math.round(num).toLocaleString("tr-TR");
 }
 
 function formatPriceValue(price, currency) {
@@ -339,18 +356,12 @@ function Stepper({ currentStep, setCurrentStep, t }) {
   const steps = [
     {
       id: 1,
-      label: t("rightSidebar.steps.search", {
-        defaultValue: "Ara",
-      }),
-    },
-    {
-      id: 2,
       label: t("rightSidebar.steps.select", {
         defaultValue: "Seç",
       }),
     },
     {
-      id: 3,
+      id: 2,
       label: t("rightSidebar.steps.review", {
         defaultValue: "İncele",
       }),
@@ -372,7 +383,7 @@ function Stepper({ currentStep, setCurrentStep, t }) {
               <button
                 type="button"
                 onClick={() => setCurrentStep(step.id)}
-                className="flex flex-col items-center"
+                className="flex flex-col items-center cursor-pointer"
               >
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold transition-all ${active
@@ -426,15 +437,6 @@ export default function RightSidebar({
   const [currentStep, setCurrentStep] = useState(1);
   const [resultSort, setResultSort] = useState("price_asc");
   const [favoriteIds, setFavoriteIds] = useState(() => new Set());
-
-  // Yeni bir sonuç listesi geldiğinde ("Sizin için bulundu"), kullanıcıyı
-  // otomatik olarak seçim adımına götürür — PusulAI referansındaki gibi
-  // sonuçlar geldiği an sağ panelde görünür, elle "İleri" tıklamak gerekmez.
-  useEffect(() => {
-    if (searchResults.length > 0) {
-      setCurrentStep(2);
-    }
-  }, [searchResults]);
 
   const toggleFavorite = (id) => {
     setFavoriteIds(prev => {
@@ -553,15 +555,13 @@ export default function RightSidebar({
   };
 
   const handlePrevious = () => {
-    // Sol ok yalnızca rezervasyon adımları arasında geri gider.
-    // İlk adımdayken paneli kapatmaz.
     if (currentStep > 1) {
       setCurrentStep((previousStep) => previousStep - 1);
     }
   };
 
   const handleNext = () => {
-    if (currentStep < 3) {
+    if (currentStep < 2) {
       setCurrentStep((previousStep) => previousStep + 1);
       return;
     }
@@ -577,206 +577,6 @@ export default function RightSidebar({
       },
     });
   };
-
-  const renderHotelSearchStep = () => (
-    <div>
-      <h2 className="mb-2 text-sm font-bold text-slate-900 dark:text-slate-100">
-        {t("rightSidebar.searchCriteria", {
-          defaultValue: "Arama Kriterleri",
-        })}
-      </h2>
-
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-        {t("rightSidebar.hotelReservation", {
-          defaultValue: "Otel rezervasyonu",
-        })}
-      </p>
-
-      <DetailRow
-        icon={Hotel}
-        label={t("rightSidebar.searchedHotel", {
-          defaultValue: "Aranan otel",
-        })}
-        value={hotelName}
-        placeholder={t("rightSidebar.hotelNotSelected", {
-          defaultValue: "Henüz otel seçilmedi",
-        })}
-      />
-
-      <DetailRow
-        icon={MapPin}
-        label={t("rightSidebar.destination", {
-          defaultValue: "Destinasyon",
-        })}
-        value={destination}
-        placeholder={t(
-          "rightSidebar.destinationMissing",
-          {
-            defaultValue: "Destinasyon belirtilmedi",
-          }
-        )}
-      />
-
-      <DetailRow
-        icon={Calendar}
-        label={t("rightSidebar.stayDates", {
-          defaultValue: "Konaklama tarihleri",
-        })}
-        value={
-          bookingDetails.checkIn &&
-            bookingDetails.checkOut
-            ? `${formatDate(
-              bookingDetails.checkIn,
-              language
-            )} / ${formatDate(
-              bookingDetails.checkOut,
-              language
-            )}`
-            : ""
-        }
-        placeholder={t("rightSidebar.datesMissing", {
-          defaultValue: "Tarihler belirtilmedi",
-        })}
-      />
-
-      <DetailRow
-        icon={Moon}
-        label={t("rightSidebar.nightCount", {
-          defaultValue: "Gece sayısı",
-        })}
-        value={
-          nightCount
-            ? `${nightCount} ${t(
-              "rightSidebar.units.night",
-              {
-                defaultValue: "gece",
-              }
-            )}`
-            : ""
-        }
-        placeholder={t(
-          "rightSidebar.nightCountMissing",
-          {
-            defaultValue: "Gece sayısı hesaplanmadı",
-          }
-        )}
-      />
-
-      <GuestSelector
-        adultCount={adultCount}
-        setAdultCount={setAdultCount}
-        childCount={childCount}
-        setChildCount={setChildCount}
-        childAges={childAges}
-        setChildAges={setChildAges}
-        infantCount={infantCount}
-        t={t}
-      />
-
-      <DetailRow
-        icon={Bed}
-        label={t("rightSidebar.roomCount", {
-          defaultValue: "Oda sayısı",
-        })}
-        value={`${roomCount} ${t(
-          "rightSidebar.units.room",
-          {
-            defaultValue: "oda",
-          }
-        )}`}
-      />
-    </div>
-  );
-
-  const renderFlightSearchStep = () => (
-    <div>
-      <h2 className="mb-2 text-sm font-bold text-slate-900 dark:text-slate-100">
-        {t("rightSidebar.searchCriteria", {
-          defaultValue: "Arama Kriterleri",
-        })}
-      </h2>
-
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-        {t("rightSidebar.flightReservation", {
-          defaultValue: "Uçuş rezervasyonu",
-        })}
-      </p>
-
-      <DetailRow
-        icon={Plane}
-        label={t("rightSidebar.airline", {
-          defaultValue: "Havayolu",
-        })}
-        value={airlineName}
-        placeholder={t("rightSidebar.flightNotSelected", {
-          defaultValue: "Henüz uçuş seçilmedi",
-        })}
-      />
-
-      <DetailRow
-        icon={MapPin}
-        label={t("rightSidebar.departure", {
-          defaultValue: "Kalkış noktası",
-        })}
-        value={bookingDetails.departureCity}
-        placeholder={t(
-          "rightSidebar.departureMissing",
-          {
-            defaultValue: "Kalkış noktası belirtilmedi",
-          }
-        )}
-      />
-
-      <DetailRow
-        icon={MapPin}
-        label={t("rightSidebar.arrival", {
-          defaultValue: "Varış noktası",
-        })}
-        value={bookingDetails.arrivalCity}
-        placeholder={t("rightSidebar.arrivalMissing", {
-          defaultValue: "Varış noktası belirtilmedi",
-        })}
-      />
-
-      <DetailRow
-        icon={Calendar}
-        label={t("rightSidebar.departureDate", {
-          defaultValue: "Gidiş tarihi",
-        })}
-        value={formatDate(
-          bookingDetails.checkIn,
-          language
-        )}
-        placeholder={t(
-          "rightSidebar.departureDateMissing",
-          {
-            defaultValue: "Gidiş tarihi belirtilmedi",
-          }
-        )}
-      />
-
-      {bookingDetails.returnDate && (
-        <DetailRow
-          icon={Calendar}
-          label={t("rightSidebar.returnDate", {
-            defaultValue: "Dönüş tarihi",
-          })}
-          value={formatDate(
-            bookingDetails.returnDate,
-            language
-          )}
-        />
-      )}
-
-      <DetailRow
-        icon={Users}
-        label={t("rightSidebar.passengers", {
-          defaultValue: "Yolcular",
-        })}
-        value={guestText}
-      />
-    </div>
-  );
 
   const nightCountForResults = calculateNightCount(bookingDetails.checkIn, bookingDetails.checkOut);
 
@@ -795,117 +595,173 @@ export default function RightSidebar({
 
     return (
       <div
-        className={`rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden transition-all ${isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
+        className={`group relative rounded-2xl border bg-white p-4 transition-all duration-200 hover:shadow-lg dark:bg-slate-800 ${isSelected
+          ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20 dark:border-orange-500 dark:ring-orange-500/20"
+          : "border-slate-200 dark:border-slate-700"
           }`}
       >
-        <div className="relative h-32 bg-slate-100 dark:bg-slate-800">
-          {result.thumbnail ? (
-            <img src={result.thumbnail} alt={result.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-3xl">🏨</div>
+        <div className="relative mb-3.5 h-44 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-700">
+          <img
+            src={result.thumbnailUrl || result.photo || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"}
+            alt={result.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80";
+            }}
+          />
+          {result.boardType && (
+            <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md">
+              {result.boardType}
+            </span>
           )}
           <button
-            onClick={(e) => { e.stopPropagation(); toggleFavorite(id); }}
-            className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 dark:bg-slate-900/80 shadow-sm"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(id);
+            }}
+            className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md transition hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-900"
           >
-            <Heart size={14} className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-400"} />
+            <Heart
+              size={16}
+              className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-600 dark:text-slate-300"}
+            />
           </button>
-          {result.available !== false && (
-            <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wide">
-              {t("rightSidebar.available", { defaultValue: "Müsait" })}
-            </span>
+        </div>
+
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white line-clamp-1">
+            {result.name}
+          </h3>
+          {result.stars > 0 && (
+            <div className="flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+              <Star size={12} className="fill-amber-400 text-amber-400" />
+              <span>{result.stars}</span>
+            </div>
           )}
         </div>
 
-        <div className="p-3.5">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate mb-1">{result.name}</h3>
-
-          <div className="flex items-center gap-2 mb-1.5">
-            {result.stars > 0 && (
-              <span className="flex items-center gap-0.5">
-                {Array.from({ length: result.stars }).map((_, i) => (
-                  <Star key={i} size={11} className="fill-amber-500 text-amber-500" />
-                ))}
-              </span>
-            )}
-            {locationText && (
-              <span className="flex items-center gap-0.5 text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                <MapPin size={11} />
-                {locationText}
-              </span>
-            )}
+        {locationText && (
+          <div className="mb-3 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+            <MapPin size={14} className="text-slate-400 shrink-0" />
+            <span className="truncate">{locationText}</span>
           </div>
+        )}
 
-          {(result.boardType || result.pensionType) && (
-            <span className="inline-block px-2 py-0.5 mb-2 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-300 uppercase">
-              {result.boardType || result.pensionType}
-            </span>
-          )}
-
-          <div className="flex items-end justify-between mt-1">
-            <div>
-              <div className="text-base font-extrabold text-[#FF8A00] dark:text-orange-400">
-                {formatPriceValue(result.price, result.currency)}
-              </div>
-              {nightCountForResults && (
-                <div className="text-[10px] text-slate-400 dark:text-slate-500">
-                  {nightCountForResults} {t("unit_night", { defaultValue: "gece" })} {t("rightSidebar.total", { defaultValue: "toplamı" })}
-                </div>
-              )}
+        <div className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-700/60">
+          <div>
+            <div className="text-[11px] text-slate-400 dark:text-slate-500">
+              {nightCountForResults ? `${nightCountForResults} ${t("rightSidebar.units.night", { defaultValue: "gece" })} ${t("rightSidebar.total", { defaultValue: "toplam" })}` : t("rightSidebar.totalStay", { defaultValue: "Toplam Konaklama" })}
             </div>
-            <button
-              onClick={() => onSelectHotel && onSelectHotel(result)}
-              className="px-3.5 py-1.5 rounded-lg bg-[#FF8A00] hover:bg-[#E87900] text-white text-xs font-bold transition-colors"
-            >
-              {t("rightSidebar.viewDetails", { defaultValue: "İncele" })}
-            </button>
+            <div className="text-lg font-extrabold text-[#FF8A00] dark:text-orange-400">
+              {formatPrice(result.price)} {result.currency || "TRY"}
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => onSelectHotel && onSelectHotel(result)}
+            className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${isSelected
+              ? "bg-[#FF8A00] text-white dark:bg-orange-500"
+              : "bg-slate-100 text-slate-700 hover:bg-[#FF8A00] hover:text-white dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-orange-500"
+              }`}
+          >
+            {isSelected ? t("rightSidebar.selected", { defaultValue: "Seçildi" }) : t("rightSidebar.selectHotel", { defaultValue: "Otel Seç" })}
+          </button>
         </div>
       </div>
     );
   };
 
   const FlightResultCard = ({ result, idx }) => {
-    const id = result.offerId || idx;
-    const isFav = favoriteIds.has(id);
-    const isSelected = selectedFlight && selectedFlight.offerId === result.offerId;
-
+    const isSelected = selectedFlight && (selectedFlight.airline === result.airline && selectedFlight.departureTime === result.departureTime);
     return (
       <div
-        className={`rounded-2xl border bg-white dark:bg-slate-900 p-3.5 transition-all ${isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
+        className={`group relative rounded-2xl border bg-white p-4 transition-all duration-200 hover:shadow-lg dark:bg-slate-800 ${isSelected
+          ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20 dark:border-orange-500 dark:ring-orange-500/20"
+          : "border-slate-200 dark:border-slate-700"
           }`}
       >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <AirlineLogo airline={result.airlineCode || result.airline} className="h-7 w-auto object-contain" />
-            <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-              {result.airlineName || result.airline}
-            </span>
-          </div>
-          <button onClick={() => toggleFavorite(id)} className="p-1 shrink-0">
-            <Heart size={14} className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-400"} />
-          </button>
-        </div>
-        <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-          <Plane size={12} />
-          {result.transfers || t("reservation_direct", { defaultValue: "Direkt Uçuş" })}
-        </div>
-        <div className="flex items-end justify-between">
-          <div>
-            <div className="text-base font-extrabold text-[#FF8A00] dark:text-orange-400">
-              {formatPriceValue(result.price, result.currency)}
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 font-bold text-xs">
+              <Plane size={18} />
             </div>
-            {result.unitPrice && (
-              <div className="text-[10px] text-slate-400 dark:text-slate-500">
-                ({t("rightSidebar.perPerson", { defaultValue: "Kişi Başı" })}: {formatPriceValue(result.unitPrice, result.currency)})
+            <div>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">{result.airline}</h4>
+              <span className="text-[11px] text-slate-400 dark:text-slate-500">{result.transfers || t("rightSidebar.directFlight", { defaultValue: "Direkt Uçuş" })}</span>
+            </div>
+          </div>
+          {result.baggage && (
+            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              {result.baggage}
+            </span>
+          )}
+        </div>
+
+        <div className="mb-3 flex items-center justify-between rounded-xl bg-slate-50 p-3 dark:bg-slate-900/60">
+          <div className="text-center">
+            <div className="text-base font-bold text-slate-900 dark:text-white">
+              {extractTimeOnly(result.departureTime) || result.departureTime || "--:--"}
+            </div>
+            <div className="text-[11px] text-slate-400">{bookingDetails.departureCity || t("rightSidebar.departure", { defaultValue: "Kalkış" })}</div>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] font-medium text-slate-400">{t("rightSidebar.oneWay", { defaultValue: "Tek Yön" })}</span>
+            <div className="relative flex w-20 items-center justify-center">
+              <div className="h-[2px] w-full bg-slate-200 dark:bg-slate-700"></div>
+              <Plane size={12} className="absolute text-[#FF8A00] dark:text-orange-400 rotate-90" />
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-base font-bold text-slate-900 dark:text-white">
+              {extractTimeOnly(result.arrivalTime) || result.arrivalTime || "--:--"}
+            </div>
+            <div className="text-[11px] text-slate-400">{bookingDetails.arrivalCity || t("rightSidebar.arrival", { defaultValue: "Varış" })}</div>
+          </div>
+        </div>
+
+        {/* Gidiş-Dönüş ise Dönüş Uçuşu Bilgisi */}
+        {result.returnAirline && (
+          <div className="mb-3 flex items-center justify-between rounded-xl bg-slate-50 p-3 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800">
+            <div className="text-center">
+              <div className="text-base font-bold text-slate-900 dark:text-white">
+                {extractTimeOnly(result.returnDepartureTime) || result.returnDepartureTime || "--:--"}
               </div>
-            )}
+              <div className="text-[11px] text-slate-400">{bookingDetails.arrivalCity || t("rightSidebar.returnDeparture", { defaultValue: "Dönüş Kalkış" })}</div>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-[10px] font-medium text-slate-400">{t("rightSidebar.returnFlight", { defaultValue: "Dönüş Uçuşu" })}</span>
+              <div className="relative flex w-20 items-center justify-center">
+                <div className="h-[2px] w-full bg-slate-200 dark:bg-slate-700"></div>
+                <Plane size={12} className="absolute text-[#FF8A00] dark:text-orange-400 -rotate-90" />
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-base font-bold text-slate-900 dark:text-white">
+                {extractTimeOnly(result.returnArrivalTime) || result.returnArrivalTime || "--:--"}
+              </div>
+              <div className="text-[11px] text-slate-400">{bookingDetails.departureCity || t("rightSidebar.returnArrival", { defaultValue: "Dönüş Varış" })}</div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-700/60">
+          <div>
+            <div className="text-[11px] text-slate-400">{t("rightSidebar.perPersonPrice", { defaultValue: "Kişi başı" })}</div>
+            <div className="text-lg font-extrabold text-[#FF8A00] dark:text-orange-400">
+              {formatPrice(result.price)} {result.currency || "TRY"}
+            </div>
           </div>
           <button
+            type="button"
             onClick={() => onSelectFlight && onSelectFlight(result)}
-            className="px-3.5 py-1.5 rounded-lg bg-[#FF8A00] hover:bg-[#E87900] text-white text-xs font-bold transition-colors"
+            className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${isSelected
+              ? "bg-[#FF8A00] text-white dark:bg-orange-500"
+              : "bg-slate-100 text-slate-700 hover:bg-[#FF8A00] hover:text-white dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-orange-500"
+              }`}
           >
-            {t("rightSidebar.viewDetails", { defaultValue: "İncele" })}
+            {isSelected ? t("rightSidebar.selected", { defaultValue: "Seçildi" }) : t("rightSidebar.selectFlight", { defaultValue: "Uçuş Seç" })}
           </button>
         </div>
       </div>
@@ -914,73 +770,44 @@ export default function RightSidebar({
 
   const renderSelectionStep = () => (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-          {t("rightSidebar.foundForYou", { defaultValue: "Sizin için bulundu" })}
-        </h2>
-        {searchResults.length > 0 && (
-          <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
-            {searchResults.length} {isHotel ? t("rightSidebar.hotelCount", { defaultValue: "otel" }) : t("rightSidebar.flightCount", { defaultValue: "uçuş" })}
-          </span>
-        )}
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            {isHotel ? t("rightSidebar.foundHotels", { defaultValue: "Bulunan Oteller" }) : t("rightSidebar.foundFlights", { defaultValue: "Bulunan Uçuşlar" })}
+          </h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            {searchResults.length} {t("rightSidebar.optionsFound", { defaultValue: "seçenek listeleniyor" })}
+          </p>
+        </div>
+        <select
+          value={resultSort}
+          onChange={(e) => setResultSort(e.target.value)}
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm focus:border-[#FF8A00] focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+        >
+          <option value="price_asc">{t("rightSidebar.sortPriceAsc", { defaultValue: "Fiyat: Düşükten Yükseğe" })}</option>
+          <option value="price_desc">{t("rightSidebar.sortPriceDesc", { defaultValue: "Fiyat: Yüksekten Düşüğe" })}</option>
+          {isHotel && <option value="stars_desc">{t("rightSidebar.sortStarsDesc", { defaultValue: "Yıldız: Yüksekten Düşüğe" })}</option>}
+        </select>
       </div>
 
-      {searchResults.length > 0 ? (
-        <>
-          <div className="flex items-center gap-2 mb-3">
-            <SlidersHorizontal size={13} className="text-slate-400 flex-shrink-0" />
-            <select
-              value={resultSort}
-              onChange={(e) => setResultSort(e.target.value)}
-              className="flex-1 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500/30"
-            >
-              <option value="price_asc">{t("sort_price_asc", { defaultValue: "Fiyat: Ucuzdan Pahalıya" })}</option>
-              <option value="price_desc">{t("sort_price_desc", { defaultValue: "Fiyat: Pahalıdan Ucuza" })}</option>
-              {isHotel && <option value="stars_desc">{t("sort_stars_desc", { defaultValue: "Yıldız: Yüksekten Düşüğe" })}</option>}
-            </select>
-          </div>
-
-          <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1 -mr-1">
-            {sortedSearchResults.map((result, idx) =>
-              isHotel
-                ? <HotelResultCard key={result.hotelId || idx} result={result} idx={idx} />
-                : <FlightResultCard key={result.offerId || idx} result={result} idx={idx} />
-            )}
-          </div>
-        </>
+      {searchResults.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center dark:border-slate-800">
+          <Sparkles className="mb-3 h-8 w-8 text-slate-300 dark:text-slate-600 animate-pulse" />
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            {t("rightSidebar.noResultsYet", { defaultValue: "Arama sonuçları henüz hazır değil." })}
+          </p>
+          <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+            {t("rightSidebar.noResultsHint", { defaultValue: "Sohbet ekranında aramanızı belirtebilirsiniz." })}
+          </p>
+        </div>
       ) : (
-        <div className="rounded-2xl border border-orange-100 bg-orange-50/60 p-4 dark:border-orange-500/20 dark:bg-orange-500/10">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#FF8A00] shadow-sm dark:bg-slate-800 dark:text-orange-400">
-              {isHotel ? <Hotel size={22} /> : <Plane size={22} />}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                {isHotel
-                  ? t("rightSidebar.selectedHotel", { defaultValue: "Seçilen otel" })
-                  : t("rightSidebar.selectedAirline", { defaultValue: "Seçilen havayolu" })}
-              </p>
-              <div className="flex items-center gap-2 truncate">
-                {!isHotel && airlineName && (
-                  <AirlineLogo airline={airlineName} className="h-6 w-auto object-contain shrink-0" />
-                )}
-                <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
-                  {isHotel
-                    ? hotelName || t("rightSidebar.selectHotelFromChat", { defaultValue: "Sohbet alanından bir otel seç" })
-                    : airlineName || t("rightSidebar.selectFlightFromChat", { defaultValue: "Sohbet alanından bir uçuş seç" })}
-                </p>
-              </div>
-            </div>
-          </div>
-          {bookingDetails.price && (
-            <div className="mt-4 flex items-center justify-between border-t border-orange-100 pt-3 dark:border-orange-500/20">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {t("rightSidebar.totalAmount", { defaultValue: "Toplam tutar" })}
-              </span>
-              <span className="text-base font-extrabold text-[#FF8A00] dark:text-orange-400">
-                {bookingDetails.price}
-              </span>
-            </div>
+        <div className="space-y-3">
+          {sortedSearchResults.map((result, idx) =>
+            isHotel ? (
+              <HotelResultCard key={result.hotelId || idx} result={result} idx={idx} />
+            ) : (
+              <FlightResultCard key={result.airline + idx} result={result} idx={idx} />
+            )
           )}
         </div>
       )}
@@ -995,10 +822,14 @@ export default function RightSidebar({
         })}
       </h2>
 
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-        {t("rightSidebar.checkInformation", {
-          defaultValue: "Bilgilerini kontrol et",
-        })}
+      <p className="mb-4 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+        {isHotel
+          ? t("rightSidebar.hotelDetails", {
+            defaultValue: "Otel detayları",
+          })
+          : t("rightSidebar.flightDetails", {
+            defaultValue: "Uçuş detayları",
+          })}
       </p>
 
       {isHotel ? (
@@ -1009,43 +840,78 @@ export default function RightSidebar({
               defaultValue: "Seçilen otel",
             })}
             value={hotelName}
+            placeholder={t("rightSidebar.hotelNotSelected", {
+              defaultValue: "Otel henüz seçilmedi",
+            })}
+          />
+
+          <DetailRow
+            icon={MapPin}
+            label={t("rightSidebar.location", {
+              defaultValue: "Konum",
+            })}
+            value={destination}
             placeholder={t(
-              "rightSidebar.hotelNotSelected",
+              "rightSidebar.locationMissing",
               {
-                defaultValue: "Otel seçilmedi",
+                defaultValue: "Konum bilgisi eksik",
               }
             )}
           />
 
           <DetailRow
-            icon={MapPin}
-            label={t("rightSidebar.destination", {
-              defaultValue: "Destinasyon",
+            icon={Calendar}
+            label={t("rightSidebar.checkInDate", {
+              defaultValue: "Giriş tarihi",
             })}
-            value={destination}
+            value={formatDate(
+              bookingDetails.checkIn,
+              language
+            )}
+            placeholder={t(
+              "rightSidebar.checkInDateMissing",
+              {
+                defaultValue: "Giriş tarihi belirtilmedi",
+              }
+            )}
           />
 
           <DetailRow
             icon={Calendar}
-            label={t("rightSidebar.stayDates", {
-              defaultValue: "Konaklama tarihleri",
+            label={t("rightSidebar.checkOutDate", {
+              defaultValue: "Çıkış tarihi",
+            })}
+            value={formatDate(
+              bookingDetails.checkOut,
+              language
+            )}
+            placeholder={t(
+              "rightSidebar.checkOutDateMissing",
+              {
+                defaultValue: "Çıkış tarihi belirtilmedi",
+              }
+            )}
+          />
+
+          <DetailRow
+            icon={Moon}
+            label={t("rightSidebar.nightCount", {
+              defaultValue: "Gece sayısı",
             })}
             value={
-              bookingDetails.checkIn &&
-                bookingDetails.checkOut
-                ? `${formatDate(
-                  bookingDetails.checkIn,
-                  language
-                )} / ${formatDate(
-                  bookingDetails.checkOut,
-                  language
+              nightCount
+                ? `${nightCount} ${t(
+                  "rightSidebar.units.night",
+                  {
+                    defaultValue: "gece",
+                  }
                 )}`
                 : ""
             }
             placeholder={t(
-              "rightSidebar.informationPending",
+              "rightSidebar.nightCountMissing",
               {
-                defaultValue: "Bilgi bekleniyor",
+                defaultValue: "Gece sayısı hesaplanmadı",
               }
             )}
           />
@@ -1053,30 +919,10 @@ export default function RightSidebar({
           <DetailRow
             icon={Users}
             label={t("rightSidebar.guests", {
-              defaultValue: "Misafirler",
+              defaultValue: "Konuklar",
             })}
             value={guestText}
           />
-
-          {childCount > 0 && (
-            <DetailRow
-              icon={Baby}
-              label={t("rightSidebar.childAges", {
-                defaultValue: "Çocuk yaşları",
-              })}
-              value={childAges
-                .map((age, index) =>
-                  age === ""
-                    ? `${index + 1}. ${t("rightSidebar.ageMissing", {
-                      defaultValue: "yaş seçilmedi",
-                    })}`
-                    : `${age} ${t("rightSidebar.units.age", {
-                      defaultValue: "yaş",
-                    })}`
-                )
-                .join(", ")}
-            />
-          )}
 
           <DetailRow
             icon={Bed}
@@ -1099,29 +945,35 @@ export default function RightSidebar({
               defaultValue: "Havayolu",
             })}
             value={airlineName}
+            placeholder={t("rightSidebar.airlineMissing", {
+              defaultValue: "Havayolu seçilmedi",
+            })}
+          />
+
+          <DetailRow
+            icon={MapPin}
+            label={t("rightSidebar.departureCity", {
+              defaultValue: "Kalkış şehri",
+            })}
+            value={bookingDetails.departureCity}
             placeholder={t(
-              "rightSidebar.flightNotSelected",
+              "rightSidebar.departureCityMissing",
               {
-                defaultValue: "Uçuş seçilmedi",
+                defaultValue: "Kalkış şehri belirtilmedi",
               }
             )}
           />
 
           <DetailRow
             icon={MapPin}
-            label={t("rightSidebar.route", {
-              defaultValue: "Rota",
+            label={t("rightSidebar.arrivalCity", {
+              defaultValue: "Varış şehri",
             })}
-            value={
-              bookingDetails.departureCity &&
-                bookingDetails.arrivalCity
-                ? `${bookingDetails.departureCity} → ${bookingDetails.arrivalCity}`
-                : ""
-            }
+            value={bookingDetails.arrivalCity}
             placeholder={t(
-              "rightSidebar.routeMissing",
+              "rightSidebar.arrivalCityMissing",
               {
-                defaultValue: "Rota belirtilmedi",
+                defaultValue: "Varış şehri belirtilmedi",
               }
             )}
           />
@@ -1134,6 +986,12 @@ export default function RightSidebar({
             value={formatDate(
               bookingDetails.checkIn,
               language
+            )}
+            placeholder={t(
+              "rightSidebar.departureDateMissing",
+              {
+                defaultValue: "Gidiş tarihi belirtilmedi",
+              }
             )}
           />
 
@@ -1178,43 +1036,23 @@ export default function RightSidebar({
 
   const buttonText =
     currentStep === 1
-      ? isHotel
-        ? t("rightSidebar.buttons.searchHotel", {
-          defaultValue: "Otel Ara",
-        })
-        : t("rightSidebar.buttons.searchFlight", {
-          defaultValue: "Uçuş Ara",
-        })
-      : currentStep === 2
-        ? t("rightSidebar.buttons.continue", {
-          defaultValue: "Devam Et",
-        })
-        : t("rightSidebar.buttons.makeReservation", {
-          defaultValue: "Rezervasyon Yap",
-        });
+      ? t("rightSidebar.buttons.continue", {
+        defaultValue: "Devam Et",
+      })
+      : t("rightSidebar.buttons.makeReservation", {
+        defaultValue: "Rezervasyon Yap",
+      });
 
   return (
     <aside className="relative z-30 hidden h-full w-[420px] min-w-[420px] max-w-[420px] flex-none overflow-hidden border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:flex">
       <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-white dark:bg-slate-900">
         {/* Üst bölüm sabit kalır; panel kaydırıldığında kaybolmaz. */}
         <div className="flex-shrink-0 border-b border-slate-100 bg-white px-6 pb-4 pt-5 dark:border-slate-800 dark:bg-slate-900">
-          <div className="mb-4 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[#FF8A00] transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-35 dark:text-orange-400 dark:hover:bg-orange-500/10"
-              title={t("rightSidebar.previous", {
-                defaultValue: "Önceki",
-              })}
-            >
-              <ChevronLeft size={17} />
-            </button>
-
+          <div className="mb-4 flex items-center justify-end">
             <button
               type="button"
               onClick={() => setIsRightSidebarOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
               title={t("rightSidebar.closePanel", {
                 defaultValue: "Paneli kapat",
               })}
@@ -1231,7 +1069,7 @@ export default function RightSidebar({
             </h1>
 
             <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-[#FF8A00] dark:bg-orange-500/10 dark:text-orange-400">
-              {currentStep}/3
+              {currentStep}/2
             </span>
           </div>
 
@@ -1239,7 +1077,7 @@ export default function RightSidebar({
             <div
               className="h-full rounded-full bg-[#FF8A00] transition-all duration-300 dark:bg-orange-500"
               style={{
-                width: `${(currentStep / 3) * 100}%`,
+                width: `${(currentStep / 2) * 100}%`,
               }}
             />
           </div>
@@ -1254,14 +1092,9 @@ export default function RightSidebar({
         {/* Sadece adım içeriği kaydırılır. */}
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
           {currentStep === 1 &&
-            (isHotel
-              ? renderHotelSearchStep()
-              : renderFlightSearchStep())}
-
-          {currentStep === 2 &&
             renderSelectionStep()}
 
-          {currentStep === 3 &&
+          {currentStep === 2 &&
             renderReviewStep()}
         </div>
 
@@ -1269,7 +1102,7 @@ export default function RightSidebar({
           <button
             type="button"
             onClick={handleNext}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF8A00] px-4 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(255,138,0,0.28)] transition hover:bg-[#E87900] active:scale-[0.99] dark:bg-orange-500 dark:hover:bg-orange-600"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF8A00] px-4 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(255,138,0,0.28)] transition hover:bg-[#E87900] active:scale-[0.99] dark:bg-orange-500 dark:hover:bg-orange-600 cursor-pointer"
           >
             {buttonText}
             <ChevronRight size={16} />
