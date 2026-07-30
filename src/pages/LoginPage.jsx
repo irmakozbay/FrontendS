@@ -289,14 +289,14 @@ export default function LoginPage() {
       <div className="fixed inset-0 z-10 pointer-events-none bg-slate-900/20 dark:bg-slate-950/70" />
 
       {/* Katman 3 (z-20): Form Container */}
-      <div className="relative z-20 w-full max-w-[500px] bg-white/40 backdrop-blur-md border border-white/30 dark:bg-slate-900/50 dark:border-slate-800/40 rounded-[40px] shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-8 md:p-10 animate-fade-in my-8">
+      <div className="relative z-20 w-full max-w-[520px] bg-white/40 backdrop-blur-md border border-white/30 dark:bg-slate-900/50 dark:border-slate-800/40 rounded-[32px] shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-5 md:p-6 animate-fade-in my-4">
 
         {/* BAŞLIK */}
-        <div className="text-center mb-6">
-          <h1 className="text-[32px] md:text-[36px] font-bold tracking-tight text-slate-900 dark:text-white mb-2 font-display transition-all">
+        <div className="text-center mb-4">
+          <h1 className="text-[26px] md:text-[28px] font-bold tracking-tight text-slate-900 dark:text-white mb-1 font-display transition-all">
             {isAdminMode ? t('admin_login_title', 'Yönetici Girişi') : t('welcome_title')}
           </h1>
-          <p className="text-[15px] md:text-[16px] text-slate-600 dark:text-slate-300">
+          <p className="text-[13px] md:text-[14px] text-slate-600 dark:text-slate-300">
             {isAdminMode
               ? t('admin_login_subtitle', 'Lütfen devam etmek için admin şifresini giriniz.')
               : renderSubtitle(t('welcome_subtitle'))}
@@ -305,14 +305,14 @@ export default function LoginPage() {
 
         {/* ADMIN GİRİŞ FORMU */}
         {isAdminMode ? (
-          <form onSubmit={handleAdminSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <label htmlFor="adminPassword" className="text-[15px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-4">
+          <form onSubmit={handleAdminSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="adminPassword" className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-3">
                 {t('admin_password_label', 'Admin Şifresi')}
               </label>
               <div className="relative flex items-center">
-                <div className="absolute left-5 text-slate-400 dark:text-slate-500 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div className="absolute left-4 text-slate-400 dark:text-slate-500 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
@@ -323,12 +323,12 @@ export default function LoginPage() {
                   value={adminPassword}
                   onChange={(e) => handleInputChange('admin', e.target.value, setAdminPassword)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-12 pr-14 py-4 text-[16px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
+                  className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-11 pr-12 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
                 />
                 <button
                   type="button"
                   onClick={() => setShowAdminPassword(!showAdminPassword)}
-                  className="absolute right-5 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors duration-200"
+                  className="absolute right-4 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors duration-200"
                 >
                   {showAdminPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -346,14 +346,14 @@ export default function LoginPage() {
                 </button>
               </div>
               {fieldErrors.admin && (
-                <p className="text-[14px] text-red-500 pl-4 mt-1">{fieldErrors.admin}</p>
+                <p className="text-[12px] text-red-500 pl-3 mt-0.5">{fieldErrors.admin}</p>
               )}
             </div>
 
             {/* Admin Giriş Butonu */}
             <button
               type="submit"
-              className="max-w-[220px] w-full mx-auto block bg-primary hover:bg-primary-dark active:scale-95 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-primary/30 font-sans tracking-wide mt-2 text-[18px]"
+              className="max-w-[220px] w-full mx-auto block bg-primary hover:bg-primary-dark active:scale-95 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-md hover:shadow-primary/30 font-sans tracking-wide mt-1 text-[16px]"
             >
               {t('login_button_admin', 'Giriş Yap')}
             </button>
@@ -373,15 +373,15 @@ export default function LoginPage() {
           </form>
         ) : (
           /* NORMAL KULLANICI GİRİŞ FORMU */
-          <form onSubmit={handleUserSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-4">
+          <form onSubmit={handleUserSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-2.5">
             {/* Email */}
-            <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-[15px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="email" className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-3">
                 {t('email_label')}
               </label>
               <div className="relative flex items-center">
-                <div className="absolute left-5 text-slate-400 dark:text-slate-500 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div className="absolute left-4 text-slate-400 dark:text-slate-500 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect width="20" height="16" x="2" y="4" rx="2" />
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                   </svg>
@@ -394,22 +394,22 @@ export default function LoginPage() {
                   onBlur={(e) => handleBlur('email', e.target.value)}
                   placeholder={t('email_placeholder')}
                   maxLength={100}
-                  className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-12 pr-6 py-4 text-[16px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
+                  className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-11 pr-5 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
                 />
               </div>
               {fieldErrors.email && (
-                <p className="text-[14px] text-red-500 pl-4 mt-1">{fieldErrors.email}</p>
+                <p className="text-[12px] text-red-500 pl-3 mt-0.5">{fieldErrors.email}</p>
               )}
             </div>
 
             {/* Şifre */}
-            <div className="flex flex-col gap-2">
-              <label htmlFor="password" className="text-[15px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="password" className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-3">
                 {t('password_label')}
               </label>
               <div className="relative flex items-center">
-                <div className="absolute left-5 text-slate-400 dark:text-slate-500 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <div className="absolute left-4 text-slate-400 dark:text-slate-500 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
@@ -422,12 +422,12 @@ export default function LoginPage() {
                   onBlur={(e) => handleBlur('password', e.target.value)}
                   placeholder={t('password_placeholder')}
                   maxLength={30}
-                  className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-12 pr-14 py-4 text-[16px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
+                  className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-11 pr-12 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-5 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors duration-200"
+                  className="absolute right-4 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors duration-200"
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -445,13 +445,13 @@ export default function LoginPage() {
                 </button>
               </div>
               {fieldErrors.password && (
-                <p className="text-[14px] text-red-500 pl-4 mt-1">{fieldErrors.password}</p>
+                <p className="text-[12px] text-red-500 pl-3 mt-0.5">{fieldErrors.password}</p>
               )}
             </div>
 
             {/* Hatırla & Şifremi Unuttum */}
-            <div className="flex items-center justify-between px-2">
-              <label className="flex items-center text-[15px] text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+            <div className="flex items-center justify-between px-1">
+              <label className="flex items-center text-[13px] text-slate-700 dark:text-slate-300 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={rememberMe}
@@ -462,7 +462,7 @@ export default function LoginPage() {
               </label>
               <Link
                 to="/forgot-password"
-                className="text-[15px] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:underline transition-colors duration-200 font-medium"
+                className="text-[13px] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:underline transition-colors duration-200 font-medium"
               >
                 {t('forgot_password')}
               </Link>
@@ -471,13 +471,13 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="max-w-[220px] w-full mx-auto block bg-primary hover:bg-primary-dark active:scale-95 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-md hover:shadow-primary/30 font-sans tracking-wide mt-4 text-[18px]"
+              className="max-w-[220px] w-full mx-auto block bg-primary hover:bg-primary-dark active:scale-95 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-md hover:shadow-primary/30 font-sans tracking-wide mt-1 text-[16px]"
             >
               {t('login_button')}
             </button>
 
             {/* ────────────────── SOSYAL GİRİŞ BÖLÜMÜ (SADECE GOOGLE) ────────────────── */}
-            <div className="flex flex-col gap-4 mt-2">
+            <div className="flex flex-col gap-2 mt-1">
               {/* VEYA Ayırıcı */}
               <div className="flex items-center justify-center gap-3 px-4">
                 <span className="h-[1px] flex-1 bg-slate-300/60 dark:bg-slate-600/60"></span>
@@ -519,8 +519,8 @@ export default function LoginPage() {
 
         {/* ALT ALAN (Kayıt ol & Admin olarak giriş yap) */}
         {!isAdminMode && (
-          <div className="mt-6 text-center flex flex-col gap-3">
-            <p className="text-[16px] text-slate-600 dark:text-slate-300">
+          <div className="mt-4 text-center flex flex-col gap-2">
+            <p className="text-[14px] text-slate-600 dark:text-slate-300">
               {t('no_account')}{' '}
               <Link
                 to="/signup"
@@ -544,9 +544,9 @@ export default function LoginPage() {
                 continueAsGuest();
                 navigate('/chat');
               }}
-              className="w-full py-3 px-4 rounded-xl border border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-all flex items-center justify-center gap-2 shadow-sm"
+              className="w-full py-2.5 px-4 rounded-xl border border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-100/60 dark:hover:bg-blue-900/40 transition-all flex items-center justify-center gap-2 shadow-sm text-[14px]"
             >
-              <UserIcon size={18} />
+              <UserIcon size={16} />
               {t('auth.continueAsGuest', 'Misafir Olarak Devam Et')}
             </button>
 
@@ -557,7 +557,7 @@ export default function LoginPage() {
                 setIsAdminMode(true);
                 setFieldErrors({ email: '', password: '', admin: '' });
               }}
-              className="text-[15px] text-[#f07c24] dark:text-amber-400 hover:text-[#f07c24]/80 dark:hover:text-amber-300 font-bold transition-all duration-200 hover:underline tracking-wide self-center"
+              className="text-[13px] text-[#f07c24] dark:text-amber-400 hover:text-[#f07c24]/80 dark:hover:text-amber-300 font-bold transition-all duration-200 hover:underline tracking-wide self-center"
             >
               {t('admin_login_link', 'Admin olarak giriş yap')}
             </button>
