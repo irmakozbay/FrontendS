@@ -697,6 +697,7 @@
   },
   "rightSidebar": {
     "title": "Rezervasyon Özeti",
+    "perPerson": "Kişi Başı",
     "previous": "Önceki",
     "closePanel": "Paneli kapat",
     "searchCriteria": "Arama Kriterleri",

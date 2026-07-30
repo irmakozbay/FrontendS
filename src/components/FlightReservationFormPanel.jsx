@@ -17,6 +17,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { AirlineLogo } from "../utils/airlineLogos";
 import PhoneInput, {
   isValidPhoneNumber,
 } from "react-phone-number-input";
@@ -1190,12 +1191,12 @@ export default function FlightReservationFormPanel({
                                 </div>
 
                                 <div>
-                                    <div className="mb-1.5">
-                                      <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
-                                        <Phone size={12} />
-                                        {t("res_form_phone", "Telefon")}
-                                      </label>
-                                    </div>
+                                  <div className="mb-1.5">
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400">
+                                      <Phone size={12} />
+                                      {t("res_form_phone", "Telefon")}
+                                    </label>
+                                  </div>
                                   <PhoneInput
                                     international
                                     limitMaxLength
