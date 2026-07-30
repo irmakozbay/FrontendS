@@ -16,6 +16,9 @@
     "loginTitle": "Log In / Sign Up"
   },
   "baggage_not_included": "Baggage not included",
+  "useMyProfileInfo": "Fill with my saved profile info",
+  "useMyProfileInfoDesc": "Transfers name, gender, birth date, email, and phone from your account profile to passenger 1.",
+  "loginToUseProfile": "Log in to use your saved information",
   "reservation_title": "Reservation Confirmation",
   "reservation_edit_title": "Edit Reservation",
   "reservation_no_item": "No item selected",

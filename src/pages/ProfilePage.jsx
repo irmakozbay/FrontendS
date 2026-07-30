@@ -10,6 +10,7 @@ import { isPhoneNumberTooLong, getPhoneInputMaxLength } from "../utils/phoneLimi
 import OtpModal from "../components/OtpModal";
 import { CheckCircle2, AlertCircle, ShieldCheck } from "lucide-react";
 import { useTheme } from "../components/ThemeContext";
+import { handleFormKeyDown } from "../utils/formNavigation";
 
 // Helper to convert "DD.MM.YYYY" to "YYYY-MM-DD" for the backend API
 const toISODate = (ddmmyyyy) => {
@@ -534,7 +535,7 @@ export default function Profile() {
                 <div className="flex-1 overflow-y-auto px-[16px] py-[32px] md:py-[48px] flex justify-center items-start z-20">
                     <div className="w-full max-w-[672px] mt-[16px] md:mt-[24px]">
                         {/* Main Profile Info Card */}
-                        <div className="bg-white/95 dark:bg-slate-900/95 rounded-[20px] shadow-xl p-[32px] md:p-[40px] border border-slate-200 dark:border-slate-800">
+                        <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} onKeyDown={handleFormKeyDown} className="bg-white/95 dark:bg-slate-900/95 rounded-[20px] shadow-xl p-[32px] md:p-[40px] border border-slate-200 dark:border-slate-800">
                             {/* Header Section */}
                             <div className="flex items-center justify-between mb-[32px]">
                                 <div className="flex items-center gap-[16px]">
@@ -578,6 +579,7 @@ export default function Profile() {
                                             {t("profile_cancel")}
                                         </button>
                                         <button
+                                            type="submit"
                                             onClick={handleSave}
                                             className="px-[16px] py-[8px] bg-[#219ebc] hover:bg-[#1a7f98] text-white font-semibold rounded-[12px] transition-all duration-200 text-[14px] focus:outline-none cursor-pointer"
                                         >
@@ -838,7 +840,7 @@ export default function Profile() {
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </form>
 
                         {/* Account Actions Card */}
                         <div className="bg-white/95 dark:bg-slate-900/95 rounded-[20px] shadow-xl p-[24px] md:p-[32px] border border-slate-200 dark:border-slate-800 mt-[24px]">

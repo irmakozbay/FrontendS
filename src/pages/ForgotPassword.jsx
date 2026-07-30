@@ -6,6 +6,7 @@ import SannyLogo from '../components/SannyLogo';
 import LanguageSelector from '../components/LanguageSelector';
 import api from '../services/api';
 import { useTheme } from '../components/ThemeContext';
+import { handleFormKeyDown } from '../utils/formNavigation';
 
 export default function ForgotPasswordPage() {
     const { t } = useTranslation();
@@ -117,7 +118,7 @@ export default function ForgotPasswordPage() {
                         </Link>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                    <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-6">
                         {/* E-posta Giriş Alanı */}
                         <div className="flex flex-col gap-2">
                             <label htmlFor="email" className="text-[15px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-4">

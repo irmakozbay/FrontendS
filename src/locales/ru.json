@@ -16,6 +16,9 @@
     "loginTitle": "Войти / Регистрация"
   },
   "baggage_not_included": "Багаж не включен",
+  "useMyProfileInfo": "Заполнить сохраненными данными",
+  "useMyProfileInfoDesc": "Переносит имя, пол, дату рождения, email и телефон из вашего профиля для Пассажира 1.",
+  "loginToUseProfile": "Войдите в систему, чтобы использовать сохраненные данные",
   "reservation_title": "Подтверждение бронирования",
   "reservation_edit_title": "Редактировать бронирование",
   "reservation_no_item": "Ничего не выбрано",

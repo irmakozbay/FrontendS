@@ -23,6 +23,7 @@ import "react-phone-number-input/style.css";
 import api from "../services/api";
 import { useAuth } from "./AuthContext";
 import ReservationPreviewModal from "./ReservationPreviewModal";
+import { handleFormKeyDown } from "../utils/formNavigation";
 import { HotelConfirmationModal } from "./ConfirmationModal";
 
 function toDateOnly(value) {
@@ -182,30 +183,77 @@ export default function ReservationFormPanel({
         }
       }
 
-      const rawDate = profileData.dateOfBirth || profileData.birthDate || "";
+      // 1. Birth Date Mapping
+      const rawDate = profileData.dateOfBirth || profileData.birthDate || profileData.birthdate || "";
       let formattedBirthDate = "";
       if (rawDate) {
-        if (/^\d{2}\.\d{2}\.\d{4}$/.test(rawDate)) {
-          const [d, m, y] = rawDate.split(".");
-          formattedBirthDate = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-        } else {
-          const match = /^\d{4}-\d{2}-\d{2}/.exec(rawDate);
-          if (match) formattedBirthDate = match[0];
+        if (typeof rawDate === "string") {
+          const trimmed = rawDate.trim();
+          if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+            formattedBirthDate = trimmed.slice(0, 10);
+          } else if (/^\d{2}\.\d{2}\.\d{4}$/.test(trimmed)) {
+            const [d, m, y] = trimmed.split(".");
+            formattedBirthDate = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+          } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+            const [m, d, y] = trimmed.split("/");
+            formattedBirthDate = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+          }
+        }
+        if (!formattedBirthDate) {
+          const dateObj = new Date(rawDate);
+          if (!isNaN(dateObj.getTime())) {
+            formattedBirthDate = dateObj.toISOString().slice(0, 10);
+          }
         }
       }
 
-      let genderVal = guests[0]?.gender || "MR";
-      if (profileData.gender) {
-        const gUpper = String(profileData.gender).toUpperCase();
+      // 2. Gender Mapping
+      let genderVal = "MR";
+      const rawGender = profileData.gender || user?.gender || "";
+      if (rawGender) {
+        const gUpper = String(rawGender).trim().toUpperCase();
         if (
           gUpper.includes("F") ||
           gUpper.includes("KADIN") ||
           gUpper.includes("WOMAN") ||
+          gUpper.includes("FEMALE") ||
+          gUpper.includes("MRS") ||
           gUpper.includes("MS")
         ) {
-          genderVal = "MS";
+          genderVal = "MRS";
         } else {
           genderVal = "MR";
+        }
+      }
+
+      // 3. Nationality / Country Mapping
+      const rawNat = profileData.nationality || profileData.country || profileData.countryCode || profileData.citizenship || "TR";
+      let natVal = "TR";
+      if (rawNat) {
+        const str = String(rawNat).trim().toUpperCase();
+        const validCodes = ["TR", "DE", "GB", "US", "FR", "NL", "IT", "ES", "AU", "CA", "OTHER"];
+        if (validCodes.includes(str)) {
+          natVal = str;
+        } else if (str.includes("TÜRK") || str.includes("TURK")) {
+          natVal = "TR";
+        } else if (str.includes("GERMAN") || str.includes("ALMAN")) {
+          natVal = "DE";
+        } else if (str.includes("KINGDOM") || str.includes("INGIL") || str.includes("İNGİL") || str.includes("BRITISH")) {
+          natVal = "GB";
+        } else if (str.includes("STATE") || str.includes("AMERI") || str.includes("USA")) {
+          natVal = "US";
+        } else if (str.includes("FRAN")) {
+          natVal = "FR";
+        } else if (str.includes("HOLL") || str.includes("NETHER")) {
+          natVal = "NL";
+        } else if (str.includes("ITAL") || str.includes("İTAL")) {
+          natVal = "IT";
+        } else if (str.includes("SPAIN") || str.includes("İSPAN") || str.includes("ISPAN")) {
+          natVal = "ES";
+        } else if (str.includes("AUST") || str.includes("AVUST")) {
+          natVal = "AU";
+        } else if (str.includes("CANAD") || str.includes("KANAD")) {
+          natVal = "CA";
         }
       }
 
@@ -223,10 +271,12 @@ export default function ReservationFormPanel({
         identityNumber:
           profileData.tcNo ||
           profileData.identityNumber ||
+          profileData.passportNo ||
           updatedGuests[0]?.identityNumber ||
           "",
         birthDate: formattedBirthDate || updatedGuests[0]?.birthDate || "",
         gender: genderVal,
+        nationality: natVal,
       };
 
       setGuests(updatedGuests);
@@ -242,6 +292,7 @@ export default function ReservationFormPanel({
         identityNumber: "",
         birthDate: "",
         gender: "MR",
+        nationality: "TR",
       };
       setGuests(updatedGuests);
     }
@@ -765,6 +816,7 @@ export default function ReservationFormPanel({
               <form
                 id="reservation-form"
                 onSubmit={handleOpenPreview}
+                onKeyDown={handleFormKeyDown}
                 className="space-y-7"
               >
                 <div className="space-y-5">
@@ -772,34 +824,37 @@ export default function ReservationFormPanel({
                     {t("res_form_passenger_info", "Konuk Bilgileri")}
                   </h3>
 
-                  <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-900/40 dark:bg-blue-950/30 transition-all shadow-xs">
-                    <label className={`flex items-center gap-3 ${isLoggedIn ? "cursor-pointer" : "cursor-not-allowed opacity-85"}`}>
-                      <input
-                        type="checkbox"
-                        checked={useProfileInfo}
-                        disabled={!isLoggedIn}
-                        onChange={(e) => handleToggleUseProfileInfo(e.target.checked)}
-                        className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                          {t("booking.useMyProfileInfo", t("useMyProfileInfo", "Kayıtlı profil bilgilerimi 1. yolcu/misafir olarak doldur"))}
-                        </span>
-                        {!isLoggedIn && (
-                          <span className="mt-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                            🔒 {t("booking.loginToUseProfile", t("loginToUseProfile", "Kayıtlı bilgilerinizi kullanmak için giriş yapın"))}
+                  {isLoggedIn && (
+                    <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/80 to-indigo-50/40 p-4 dark:border-blue-900/40 dark:from-blue-950/40 dark:to-slate-900/40 transition-all shadow-xs">
+                      <label className="flex items-center gap-3 cursor-pointer select-none">
+                        <div className="relative inline-flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={useProfileInfo}
+                            onChange={(e) => handleToggleUseProfileInfo(e.target.checked)}
+                            className="peer sr-only"
+                          />
+                          <div className="h-6 w-11 rounded-full bg-slate-300 peer-checked:bg-blue-600 transition-colors duration-200 ease-in-out dark:bg-slate-700 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-200 peer-checked:after:translate-x-full peer-checked:after:border-white shadow-inner" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                            <User size={15} className="text-blue-600 dark:text-blue-400" />
+                            {t("useMyProfileInfo", "Kayıtlı bilgilerimle doldur")}
                           </span>
-                        )}
-                      </div>
-                    </label>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
+                            {t("useMyProfileInfoDesc", "Hesap profilinizdeki ad, soyad, e-posta ve telefon bilgilerini 1. yolcu alanına aktarır.")}
+                          </span>
+                        </div>
+                      </label>
 
-                    {isLoggedIn && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 w-fit">
-                        <User size={13} />
-                        {user?.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : (user?.email || "")}
-                      </span>
-                    )}
-                  </div>
+                      {user && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 w-fit">
+                          <CheckCircle2 size={13} />
+                          {user?.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : (user?.email || "")}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {(guests || []).map(
                     (guest, index) => {
