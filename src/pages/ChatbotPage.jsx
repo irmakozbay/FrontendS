@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import {
@@ -114,21 +114,24 @@ function mapProductInfoToHotelDetail(productInfo) {
 // sadece metin cevabÄ± yavaÅŸÃ§a yazÄ±lÄ±r.
 const markdownComponents = {
   table: ({ node, ...props }) => (
-    <div className="my-2 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
-      <table className="w-full text-xs border-collapse" {...props} />
+    <div className="my-3 overflow-x-auto rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+      <table className="w-full text-xs border-collapse text-left" {...props} />
     </div>
   ),
-  thead: ({ node, ...props }) => <thead className="bg-slate-100 dark:bg-slate-800" {...props} />,
+  thead: ({ node, ...props }) => <thead className="bg-orange-50/80 dark:bg-orange-500/10 border-b border-orange-100 dark:border-orange-500/20" {...props} />,
   th: ({ node, ...props }) => (
-    <th className="px-3 py-2 text-left font-bold text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700" {...props} />
+    <th className="px-3.5 py-2.5 font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap" {...props} />
   ),
   td: ({ node, ...props }) => (
-    <td className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300" {...props} />
+    <td className="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800/60 text-slate-700 dark:text-slate-300" {...props} />
+  ),
+  tr: ({ node, ...props }) => (
+    <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors last:children:border-b-0" {...props} />
   ),
   p: ({ node, ...props }) => <p className="mb-1 last:mb-0" {...props} />,
   ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-1" {...props} />,
   ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-1" {...props} />,
-  strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
+  strong: ({ node, ...props }) => <strong className="font-bold text-slate-900 dark:text-white" {...props} />,
 };
 
 function TypewriterText({ text, animate, markdown }) {
@@ -254,7 +257,8 @@ export default function Index() {
 
   // --- Slide-in Panel State ---
   const [activePanel, setActivePanel] = useState(null); // 'hotelDetail' | 'reservation' | null
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [hasValidSearch, setHasValidSearch] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
 
   // --- Reservation Form Preserved State ---
   const [reservationGuests, setReservationGuests] = useState(null);
@@ -357,7 +361,7 @@ export default function Index() {
             setSearchType(isFlight ? "flight" : "hotel");
           }
 
-          // GeÃ§miÅŸ mesajlar iÃ§inde en gÃ¼ncel bookingMeta'yÄ± bulup saÄŸ tarafa doldur
+          // Geçmiş mesajlar içinde en güncel bookingMeta'yı bulup sağ tarafa doldur
           const lastMetaMessage = [...response.data].reverse().find(msg => msg.bookingMeta);
           if (lastMetaMessage && lastMetaMessage.bookingMeta) {
             setBookingDetails(prev => ({ ...prev, ...lastMetaMessage.bookingMeta }));
@@ -366,19 +370,10 @@ export default function Index() {
             }
           }
 
-          // Bu oturum iÃ§in backend'de toplanmÄ±ÅŸ kriterleri (kalkÄ±ÅŸ/varÄ±ÅŸ/yolcu/tarih)
-          // ayrÄ±ca Ã§ek â€” mesaj geÃ§miÅŸinde bu bilgiler saklanmÄ±yor, oturumun kendi
-          // kriter kaydÄ±ndan (search_criteria_json) geliyor.
           try {
             const criteriaResponse = await api.get(`/api/chat/sessions/${sessionId}/criteria`);
             const c = criteriaResponse.data;
             if (c) {
-              // Backend'den gelen kriter (c) her zaman TAM ve GÃœNCEL bir anlÄ±k
-              // gÃ¶rÃ¼ntÃ¼dÃ¼r (bkz. ChatCriteriaSummary.from) â€” hiÃ§bir zaman kÄ±smi
-              // deÄŸildir. Bu yÃ¼zden burada `|| prev.X` gibi bir "eskiyi koru"
-              // yedeÄŸi KULLANMIYORUZ: aksi hÃ¢lde backend bir alanÄ± gerÃ§ekten
-              // sÄ±fÄ±rladÄ±ÄŸÄ±nda (Ã¶r. reddedilen bir arama geri alÄ±ndÄ±ÄŸÄ±nda) panel
-              // hÃ¢lÃ¢ eski/"hayalet" deÄŸeri gÃ¶stermeye devam ederdi.
               setBookingDetails(prev => ({
                 ...prev,
                 city: c.locationOrHotelName || "",
@@ -399,6 +394,15 @@ export default function Index() {
                 maxPrice: c.maxPrice || null,
                 minStars: c.minStars || null
               });
+
+              const hasResultsInHistory = Boolean(lastResultMessage && lastResultMessage.results && lastResultMessage.results.length > 0);
+              if (hasResultsInHistory) {
+                setHasValidSearch(true);
+                setIsRightSidebarOpen(true);
+              } else {
+                setHasValidSearch(false);
+                setIsRightSidebarOpen(false);
+              }
             }
           } catch (criteriaErr) {
             console.error("Failed to load session criteria", sessionId, criteriaErr);
@@ -413,6 +417,8 @@ export default function Index() {
     } else {
       setMessages([]);
       setIsChatActive(false);
+      setHasValidSearch(false);
+      setIsRightSidebarOpen(false);
       setSearchType("hotel");
       setBookingDetails({ city: "", departureCity: "", arrivalCity: "", checkIn: "", checkOut: "", guests: "", adultCount: 1, childCount: 0, childAges: [], infantCount: 0, infantAges: [], passengerCount: 1, hotelName: "", airline: "", price: "", returnDate: "" });
       setSelectedHotel(null);
@@ -523,7 +529,14 @@ export default function Index() {
 
       setMessages(prev => [...prev, botMsg]);
 
-      // 1. Arama Tipini Gelen "searchType" DeÄŸerine GÃ¶re GÃ¼ncelle
+      // 1. Arama Tipini Güncelle ve YALNIZCA GERÇEK SONUÇLAR (results) GELDİĞİNDE Sağ Paneli Aç
+      const isSearchIntent = Boolean(data.searchType && (data.searchType.includes("HOTEL") || data.searchType.includes("FLIGHT")));
+      const hasResults = Boolean(data.results && data.results.length > 0);
+      if (hasResults) {
+        setHasValidSearch(true);
+        setIsRightSidebarOpen(true);
+      }
+      
       if (data.searchType) {
         if (data.searchType.includes("HOTEL")) {
           setSearchType("hotel");
@@ -532,26 +545,26 @@ export default function Index() {
         }
       }
 
-      // 2. KullanÄ±cÄ±nÄ±n Kendi YazdÄ±ÄŸÄ± Mesajdan (Sorgudan) Tarih ve Konuk Bilgilerini AyÄ±kla (Yedek Plan)
+      // 2. Kullanıcının Kendi Yazdığı Mesajdan (Sorgudan) Tarih ve Konuk Bilgilerini Ayıkla (Yedek Plan)
       let extractedFromQuery = {};
       const lowerQuery = query.toLocaleLowerCase('tr-TR');
 
-      // Konuk SayÄ±sÄ± AyÄ±klama
-      const guestMatch = lowerQuery.match(/(\d+)\s*(kiÅŸi|kisi|yetiÅŸkin|yetiskin|guest|adult)/i);
+      // Konuk Sayısı Ayıklama
+      const guestMatch = lowerQuery.match(/(\d+)\s*(kişi|kisi|yetişkin|yetiskin|guest|adult)/i);
       if (guestMatch) {
         extractedFromQuery.guests = `${guestMatch[1]} ${t("unit_person")}`;
       }
 
-      // SayÄ±sal Tarih FormatÄ± AyÄ±klama (Ã–rn: 17.07.2026-19.07.2026 veya 17.07-19.07)
-      const numericRangeRegex = /(\d{1,2})[\./-](\d{1,2})(?:[\./-](\d{2,4}))?\s*[-â€“â€”]\s*(\d{1,2})[\./-](\d{1,2})(?:[\./-](\d{2,4}))/;
+      // Sayısal Tarih Formatı Ayıklama (Örn: 17.07.2026-19.07.2026 veya 17.07-19.07)
+      const numericRangeRegex = /(\d{1,2})[\./-](\d{1,2})(?:[\./-](\d{2,4}))?\s*[-–—]\s*(\d{1,2})[\./-](\d{1,2})(?:[\./-](\d{2,4}))/;
       const rangeMatch = lowerQuery.match(numericRangeRegex);
       if (rangeMatch) {
         const currentYear = new Date().getFullYear();
         extractedFromQuery.checkIn = `${rangeMatch[1].padStart(2, '0')}.${rangeMatch[2].padStart(2, '0')}.${rangeMatch[3] || currentYear}`;
         extractedFromQuery.checkOut = `${rangeMatch[4].padStart(2, '0')}.${rangeMatch[5].padStart(2, '0')}.${rangeMatch[6] || rangeMatch[3] || currentYear}`;
       } else {
-        // Metinsel Tarih AyÄ±klama (Ã–rn: 17 temmuz - 19 temmuz)
-        const ayIsimleri = "ocak|ÅŸubat|mart|nisan|mayÄ±s|haziran|temmuz|aÄŸustos|eylÃ¼l|ekim|kasÄ±m|aralÄ±k|january|february|march|april|may|june|july|august|september|october|november|december";
+        // Metinsel Tarih Ayıklama (Örn: 17 temmuz - 19 temmuz)
+        const ayIsimleri = "ocak|şubat|mart|nisan|mayıs|haziran|temmuz|ağustos|eylül|ekim|kasım|aralık|january|february|march|april|may|june|july|august|september|october|november|december";
         const singleDateRegex = new RegExp(`(\\d{1,2})\\s*(${ayIsimleri})`, "gi");
         let matches = [];
         let m;
@@ -566,15 +579,10 @@ export default function Index() {
         }
       }
 
-      // 3. Backend'in Ã§Ã¶zdÃ¼ÄŸÃ¼ arama kriterlerinden (varsa) saÄŸ paneli doldur.
-      // Metinden regex ile tahmin etmek kÄ±rÄ±lgan; backend zaten SearchCriteria'yÄ±
-      // Ã§Ã¶zÃ¼yor, onu doÄŸrudan kullanmak Ã§ok daha gÃ¼venilir (kalkÄ±ÅŸ/varÄ±ÅŸ/yolcu
-      // sayÄ±sÄ± gibi alanlar artÄ±k kullanÄ±cÄ± bunlarÄ± sÃ¶yler sÃ¶ylemez dolar).
-      if (data.criteria) {
+      // 3. Sadece GEÇERLİ seyahat aramalarında (HOTEL_SEARCH / FLIGHT_SEARCH) sağ paneli güncelle.
+      // Kapsam dışı veya anlamsız mesajlarda sağ paneldeki son geçerli veriler korunur.
+      if (isSearchIntent && data.criteria) {
         const c = data.criteria;
-        // AynÄ± gerekÃ§e: c backend'in o anki TAM kriter anlÄ±k gÃ¶rÃ¼ntÃ¼sÃ¼dÃ¼r, `|| prev.X`
-        // yedeÄŸi burada da eski/"hayalet" deÄŸerlerin panelde takÄ±lÄ± kalmasÄ±na yol aÃ§ardÄ±
-        // (Ã¶r. reddedilip geri alÄ±nan bir arama sonrasÄ± eski konuk sayÄ±sÄ±nÄ±n gÃ¶rÃ¼nmesi).
         setBookingDetails(prev => ({
           ...prev,
           city: c.locationOrHotelName || "",
@@ -595,15 +603,6 @@ export default function Index() {
           maxPrice: c.maxPrice || null,
           minStars: c.minStars || null
         });
-      } else {
-        // Backend kriteri dÃ¶nmediyse (Ã¶r. kapsam dÄ±ÅŸÄ± mesaj) en azÄ±ndan kullanÄ±cÄ±nÄ±n
-        // sorgusundaki verileri gÃ¼ncelle
-        setBookingDetails(prev => ({
-          ...prev,
-          checkIn: extractedFromQuery.checkIn || prev.checkIn,
-          checkOut: extractedFromQuery.checkOut || prev.checkOut,
-          guests: extractedFromQuery.guests || prev.guests
-        }));
       }
 
       // 4. SonuÃ§ listesindeki ilk (en iyi) Ã¶ÄŸeden otel adÄ± / uÃ§uÅŸ fiyatÄ± iÃ§in bir
@@ -807,7 +806,7 @@ export default function Index() {
           </button>
         )}
 
-        {!isRightSidebarOpen && isChatActive && (
+        {!isRightSidebarOpen && isChatActive && hasValidSearch && (
           <button
             onClick={() => setIsRightSidebarOpen(true)}
             className="absolute top-4 right-2 z-30 p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all duration-200 focus:outline-none cursor-pointer flex items-center justify-center"
@@ -821,7 +820,7 @@ export default function Index() {
           className="relative z-20 grid h-full min-w-0 flex-1 gap-0 overflow-hidden"
           style={{
             gridTemplateColumns:
-              isChatActive && isRightSidebarOpen
+              isChatActive && hasValidSearch && isRightSidebarOpen
                 ? "minmax(0, calc(100% - 420px)) 420px"
                 : "minmax(0, 1fr)",
           }}
@@ -1066,9 +1065,8 @@ export default function Index() {
             </div>
           </div>
 
-          {/* ==================== 3. AKTÄ°F REZERVASYON Ã–NÄ°ZLEME PANELÄ° ==================== */}
-          {/* KullanÄ±cÄ± bir otel/uÃ§uÅŸ seÃ§ene kadar bu panel boÅŸ detaylarla gÃ¶sterilebilir; ayrÄ±ca elle kapatÄ±labilir */}
-          {isChatActive && isRightSidebarOpen && (
+          {/* ==================== 3. AKTİF REZERVASYON ÖNİZLEME PANELİ ==================== */}
+          {isChatActive && hasValidSearch && isRightSidebarOpen && (
             <RightSidebar
               isRightSidebarOpen={isRightSidebarOpen}
               setIsRightSidebarOpen={setIsRightSidebarOpen}

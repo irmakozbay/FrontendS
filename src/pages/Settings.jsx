@@ -257,6 +257,28 @@ export default function Settings() {
     const [saveMessageType, setSaveMessageType] = useState("success");
     const [showSessions, setShowSessions] = useState(false);
 
+    useEffect(() => {
+        async function fetchProfile() {
+            try {
+                const response = await api.get("/api/profile");
+                if (response.data) {
+                    const is2fa = response.data.isTwoFactorEnabled === true;
+                    updateSection("security", "twoFactorEnabled", is2fa);
+                    setSavedSettings(prev => ({
+                        ...prev,
+                        security: {
+                            ...prev.security,
+                            twoFactorEnabled: is2fa
+                        }
+                    }));
+                }
+            } catch (err) {
+                console.error("Failed to fetch profile in Settings:", err);
+            }
+        }
+        fetchProfile();
+    }, []);
+
     const videoRef = useRef(null);
 
     const tr = (key, fallback) => t(key, { defaultValue: fallback });
@@ -393,6 +415,10 @@ export default function Settings() {
         try {
             if (newPassword.trim()) {
                 await api.post("/api/profile/change-password", { password: newPassword });
+            }
+
+            if (settings.security.twoFactorEnabled !== savedSettings.security.twoFactorEnabled) {
+                await api.put("/api/profile/two-factor", { enabled: settings.security.twoFactorEnabled });
             }
 
             const settingsToSave = JSON.parse(JSON.stringify(settings));
