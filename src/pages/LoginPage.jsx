@@ -8,6 +8,7 @@ import api from '../services/api';
 import { useTheme } from '../components/ThemeContext';
 import { useAuth } from '../components/AuthContext';
 import { initGoogleAuth, handleOAuthLogin } from '../services/socialAuth';
+import { handleFormKeyDown } from '../utils/formNavigation';
 
 export default function LoginPage() {
   const { t, i18n } = useTranslation();
@@ -292,7 +293,7 @@ export default function LoginPage() {
 
         {/* ADMIN GİRİŞ FORMU */}
         {isAdminMode ? (
-          <form onSubmit={handleAdminSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleAdminSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <label htmlFor="adminPassword" className="text-[15px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-4">
                 {t('admin_password_label', 'Admin Şifresi')}
@@ -360,7 +361,7 @@ export default function LoginPage() {
           </form>
         ) : (
           /* NORMAL KULLANICI GİRİŞ FORMU */
-          <form onSubmit={handleUserSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleUserSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-4">
             {/* Email */}
             <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-[15px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-4">

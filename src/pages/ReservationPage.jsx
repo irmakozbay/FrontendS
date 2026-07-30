@@ -24,6 +24,8 @@ import "react-phone-number-input/style.css";
 
 import ChatSidebar from "../components/ChatSidebar";
 import api from "../services/api";
+import { useAuth } from "../components/AuthContext";
+import { handleFormKeyDown } from "../utils/formNavigation";
 import { useTheme } from "../components/ThemeContext";
 
 function formatPrice(price) {
@@ -160,11 +162,146 @@ export default function ReservationPage() {
 
     const [isSidebarOpen, setIsSidebarOpen] =
         useState(true);
+    const auth = useAuth() || {};
+    const { user, isGuest, isAuthenticated } = auth;
+    const isLoggedIn = Boolean(
+        isAuthenticated &&
+        !isGuest &&
+        (localStorage.getItem("token") || sessionStorage.getItem("token"))
+    );
     const [passengers, setPassengers] = useState([]);
-    const [expandedGuestId, setExpandedGuestId] =
-        useState("adult-0");
-    const [isSubmitting, setIsSubmitting] =
-        useState(false);
+    const [expandedGuestId, setExpandedGuestId] = useState("adult-0");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [useProfileInfo, setUseProfileInfo] = useState(false);
+
+    const handleToggleUseProfileInfo = async (checked) => {
+        setUseProfileInfo(checked);
+        if (!passengers || passengers.length === 0) return;
+
+        if (checked) {
+            let profileData = user || {};
+
+            if (isLoggedIn) {
+                try {
+                    const res = await api.get("/api/profile");
+                    if (res.data) {
+                        profileData = { ...profileData, ...res.data };
+                    }
+                } catch (err) {
+                    console.warn("Profil bilgileri getirilemedi:", err);
+                }
+            }
+
+            // 1. Birth Date Mapping
+            const rawDate = profileData.dateOfBirth || profileData.birthDate || profileData.birthdate || "";
+            let formattedBirthDate = "";
+            if (rawDate) {
+                if (typeof rawDate === "string") {
+                    const trimmed = rawDate.trim();
+                    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+                        formattedBirthDate = trimmed.slice(0, 10);
+                    } else if (/^\d{2}\.\d{2}\.\d{4}$/.test(trimmed)) {
+                        const [d, m, y] = trimmed.split(".");
+                        formattedBirthDate = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+                    } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+                        const [m, d, y] = trimmed.split("/");
+                        formattedBirthDate = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+                    }
+                }
+                if (!formattedBirthDate) {
+                    const dateObj = new Date(rawDate);
+                    if (!isNaN(dateObj.getTime())) {
+                        formattedBirthDate = dateObj.toISOString().slice(0, 10);
+                    }
+                }
+            }
+
+            // 2. Gender Mapping
+            let genderVal = "MR";
+            const rawGender = profileData.gender || user?.gender || "";
+            if (rawGender) {
+                const gUpper = String(rawGender).trim().toUpperCase();
+                if (
+                    gUpper.includes("F") ||
+                    gUpper.includes("KADIN") ||
+                    gUpper.includes("WOMAN") ||
+                    gUpper.includes("FEMALE") ||
+                    gUpper.includes("MRS") ||
+                    gUpper.includes("MS")
+                ) {
+                    genderVal = "MRS";
+                } else {
+                    genderVal = "MR";
+                }
+            }
+
+            // 3. Nationality / Country Mapping
+            const rawNat = profileData.nationality || profileData.country || profileData.countryCode || profileData.citizenship || "TR";
+            let natVal = "TR";
+            if (rawNat) {
+                const str = String(rawNat).trim().toUpperCase();
+                const validCodes = ["TR", "DE", "GB", "US", "FR", "NL", "IT", "ES", "AU", "CA", "OTHER"];
+                if (validCodes.includes(str)) {
+                    natVal = str;
+                } else if (str.includes("TÜRK") || str.includes("TURK")) {
+                    natVal = "TR";
+                } else if (str.includes("GERMAN") || str.includes("ALMAN")) {
+                    natVal = "DE";
+                } else if (str.includes("KINGDOM") || str.includes("INGIL") || str.includes("İNGİL") || str.includes("BRITISH")) {
+                    natVal = "GB";
+                } else if (str.includes("STATE") || str.includes("AMERI") || str.includes("USA")) {
+                    natVal = "US";
+                } else if (str.includes("FRAN")) {
+                    natVal = "FR";
+                } else if (str.includes("HOLL") || str.includes("NETHER")) {
+                    natVal = "NL";
+                } else if (str.includes("ITAL") || str.includes("İTAL")) {
+                    natVal = "IT";
+                } else if (str.includes("SPAIN") || str.includes("İSPAN") || str.includes("ISPAN")) {
+                    natVal = "ES";
+                } else if (str.includes("AUST") || str.includes("AVUST")) {
+                    natVal = "AU";
+                } else if (str.includes("CANAD") || str.includes("KANAD")) {
+                    natVal = "CA";
+                }
+            }
+
+            setPassengers((previousPassengers) => {
+                if (!previousPassengers || previousPassengers.length === 0) return previousPassengers;
+                const updated = [...previousPassengers];
+                updated[0] = {
+                    ...updated[0],
+                    firstName: profileData.firstName || updated[0]?.firstName || "",
+                    lastName: profileData.lastName || updated[0]?.lastName || "",
+                    email: profileData.email || updated[0]?.email || "",
+                    phone: profileData.phone || profileData.phoneNumber || updated[0]?.phone || "",
+                    identityNumber: profileData.tcNo || profileData.identityNumber || profileData.passportNo || updated[0]?.identityNumber || "",
+                    birthDate: formattedBirthDate || updated[0]?.birthDate || "",
+                    gender: genderVal,
+                    nationality: natVal,
+                };
+                return updated;
+            });
+            setExpandedGuestId(passengers[0]?.id || "adult-0");
+        } else {
+            setPassengers((previousPassengers) => {
+                if (!previousPassengers || previousPassengers.length === 0) return previousPassengers;
+                const updated = [...previousPassengers];
+                updated[0] = {
+                    ...updated[0],
+                    firstName: "",
+                    lastName: "",
+                    email: "",
+                    phone: "",
+                    identityNumber: "",
+                    birthDate: "",
+                    gender: "MR",
+                    nationality: "TR",
+                };
+                return updated;
+            });
+        }
+    };
     const [submitError, setSubmitError] =
         useState("");
     const [reservationResult, setReservationResult] =
@@ -792,6 +929,7 @@ export default function ReservationPage() {
                             ) : (
                                 <form
                                     onSubmit={handleConfirm}
+                                    onKeyDown={handleFormKeyDown}
                                     className="space-y-4"
                                 >
                                     {isFlight ? (
@@ -977,6 +1115,39 @@ export default function ReservationPage() {
                                                 "reservation_passenger_info"
                                             )}
                                         </h2>
+
+                                        {isLoggedIn && (
+                                            <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/80 to-indigo-50/40 p-4 dark:border-blue-900/40 dark:from-blue-950/40 dark:to-slate-900/40 transition-all shadow-xs">
+                                                <label className="flex items-center gap-3 cursor-pointer select-none">
+                                                    <div className="relative inline-flex items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={useProfileInfo}
+                                                            onChange={(e) => handleToggleUseProfileInfo(e.target.checked)}
+                                                            className="peer sr-only"
+                                                        />
+                                                        <div className="h-6 w-11 rounded-full bg-slate-300 peer-checked:bg-blue-600 transition-colors duration-200 ease-in-out dark:bg-slate-700 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-200 peer-checked:after:translate-x-full peer-checked:after:border-white shadow-inner" />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                                            <User size={15} className="text-blue-600 dark:text-blue-400" />
+                                                            {t("useMyProfileInfo", "Kayıtlı bilgilerimle doldur")}
+                                                        </span>
+                                                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                                                            {t("useMyProfileInfoDesc", "Hesap profilinizdeki ad, soyad, e-posta ve telefon bilgilerini 1. yolcu alanına aktarır.")}
+                                                        </span>
+                                                    </div>
+                                                </label>
+
+                                                {user && (
+                                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 w-fit">
+                                                        <CheckCircle2 size={13} />
+                                                        {user?.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : (user?.email || "")}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
                                         {passengers.map((passenger, index) => {
                                             const isExpanded =
                                                 expandedGuestId === passenger.id;

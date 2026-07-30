@@ -57,6 +57,15 @@ export default function OtpModal({
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (index < 5) {
+        inputRefs.current[index + 1]?.focus();
+      } else {
+        if (code.join("").length === 6 && !loading) {
+          handleVerify();
+        }
+      }
     }
   };
 

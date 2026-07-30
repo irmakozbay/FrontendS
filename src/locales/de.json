@@ -16,6 +16,9 @@
     "loginTitle": "Anmelden / Registrieren"
   },
   "baggage_not_included": "Gepäck nicht inbegriffen",
+  "useMyProfileInfo": "Mit gespeicherten Daten ausfüllen",
+  "useMyProfileInfoDesc": "Überträgt Name, Geschlecht, Geburtsdatum, E-Mail und Telefonnummer aus Ihrem Profil auf Passagier 1.",
+  "loginToUseProfile": "Melden Sie sich an, um Ihre gespeicherten Daten zu verwenden",
   "reservation_title": "Reservierungsbestätigung",
   "reservation_edit_title": "Reservierung bearbeiten",
   "reservation_no_item": "Kein Element ausgewählt",

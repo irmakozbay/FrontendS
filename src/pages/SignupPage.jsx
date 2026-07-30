@@ -10,6 +10,7 @@ import api from '../services/api';
 import { isPhoneNumberTooLong, getPhoneInputMaxLength } from '../utils/phoneLimits';
 import { useTheme } from '../components/ThemeContext';
 import { useAuth } from '../components/AuthContext';
+import { handleFormKeyDown } from '../utils/formNavigation';
 
 export default function SignupPage() {
   const { t } = useTranslation();
@@ -254,7 +255,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-3">
           {/* First Name & Last Name Row */}
           <div className="flex gap-3">
             {/* First Name Input */}

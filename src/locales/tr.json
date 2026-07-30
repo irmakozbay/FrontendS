@@ -16,6 +16,9 @@
     "loginTitle": "Giriş Yap / Kayıt Ol"
   },
   "baggage_not_included": "Bagaj dahil değil",
+  "useMyProfileInfo": "Kayıtlı bilgilerimle doldur",
+  "useMyProfileInfoDesc": "Hesap profilinizdeki ad, soyad, cinsiyet, doğum tarihi, e-posta ve telefon bilgilerini 1. yolcu alanına aktarır.",
+  "loginToUseProfile": "Kayıtlı bilgilerinizi kullanmak için giriş yapın",
   "reservation_title": "Rezervasyonlar",
   "reservation_edit_title": "Rezervasyon Düzenle",
   "reservation_no_item": "Hiçbir öğe seçilmedi",

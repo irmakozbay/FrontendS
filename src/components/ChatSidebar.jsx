@@ -267,26 +267,23 @@ export default function ChatSidebar({
         {/* Profil alanı: misafirler için /login yönlendirmesi */}
         <div
           onClick={() => navigate(isGuest ? '/login' : '/profile')}
-          className={`flex items-center gap-2.5 cursor-pointer p-1.5 rounded-lg transition-colors min-w-0 flex-1 ${
-            !isGuest && location.pathname === '/profile'
+          className={`flex items-center gap-2.5 cursor-pointer p-1.5 rounded-lg transition-colors min-w-0 flex-1 ${!isGuest && location.pathname === '/profile'
               ? 'bg-slate-100 dark:bg-slate-800'
               : 'hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
-          }`}
+            }`}
           title={isGuest ? t('guest.loginTitle', 'Giriş Yap / Kayıt Ol') : t('profile_settings', 'View Profile')}
         >
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm flex-shrink-0 select-none ${
-            isGuest
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-sm flex-shrink-0 select-none ${isGuest
               ? 'bg-amber-100 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-400'
               : 'bg-primary/10 dark:bg-blue-500/10 border border-primary/20 dark:border-blue-500/20 text-primary dark:text-blue-400'
-          }`}>
+            }`}>
             {isGuest ? '?' : displayUsername.slice(0, 2).toUpperCase()}
           </div>
           <div className="flex flex-col min-w-0">
-            <span className={`text-xs font-semibold truncate max-w-[80px] ${
-              isGuest
+            <span className={`text-xs font-semibold truncate max-w-[80px] ${isGuest
                 ? 'text-amber-700 dark:text-amber-400'
                 : 'text-text-primary dark:text-slate-200'
-            }`} title={isGuest ? t('guest.guestUserTitle', 'Misafir') : displayUsername}>
+              }`} title={isGuest ? t('guest.guestUserTitle', 'Misafir') : displayUsername}>
               {isGuest ? t('guest.guestUserTitle', 'Misafir') : displayUsername}
             </span>
             {isGuest && (
