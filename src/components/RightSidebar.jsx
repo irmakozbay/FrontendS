@@ -674,7 +674,15 @@ export default function RightSidebar({
   };
 
   const FlightResultCard = ({ result, idx }) => {
-    const isSelected = selectedFlight && (selectedFlight.airline === result.airline && selectedFlight.departureTime === result.departureTime);
+    if (result) {
+      console.log("Flight Payload:", result);
+    }
+    const id = result.offerId || idx;
+    const isFav = favoriteIds.has(id);
+    const isSelected =
+      selectedFlight &&
+      ((selectedFlight.offerId && result.offerId && selectedFlight.offerId === result.offerId) ||
+        (selectedFlight.airline === result.airline && selectedFlight.departureTime === result.departureTime));
     return (
       <div
         className={`group relative rounded-2xl border bg-white p-4 transition-all duration-200 hover:shadow-lg dark:bg-slate-800 ${isSelected

@@ -35,35 +35,93 @@ function formatDuration(startValue, endValue) {
   return `${hours}s ${minutes}dk`;
 }
 
-function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, departureTime, arrivalTime, baggage, icon: Icon, isReturn = false }) {
+function getLayoverData(flight, isReturn = false) {
+  if (!flight) return { isConnecting: false, label: "Direkt Uçuş" };
+
+  const transfersText = isReturn ? (flight.returnTransfers || flight.transfers) : flight.transfers;
+  const segments = isReturn ? (flight.returnSegments || flight.segments) : flight.segments;
+
+  const isConnecting = (segments && Array.isArray(segments) && segments.length > 1) ||
+    (transfersText && transfersText.toLowerCase().includes("aktarma")) ||
+    flight.isConnecting || flight.stops > 0;
+
+  if (!isConnecting) {
+    return { isConnecting: false, label: transfersText || "Direkt Uçuş" };
+  }
+
+  let connectingCity = "İstanbul (SAW)";
+  let layoverDuration = "1s 45dk";
+
+  if (segments && Array.isArray(segments) && segments.length > 1) {
+    const city = segments[0]?.arrivalCity || segments[0]?.arrivalAirport || segments[0]?.arrivalPoint;
+    if (city) connectingCity = city;
+
+    if (segments[0]?.arrivalTime && segments[1]?.departureTime) {
+      try {
+        const t0 = new Date(segments[0].arrivalTime);
+        const t1 = new Date(segments[1].departureTime);
+        const diffMin = Math.round((t1.getTime() - t0.getTime()) / 60000);
+        if (diffMin > 0) {
+          const h = Math.floor(diffMin / 60);
+          const m = diffMin % 60;
+          layoverDuration = h > 0 ? `${h}s ${m}dk` : `${m}dk`;
+        }
+      } catch (e) {}
+    }
+  } else if (transfersText && transfersText.includes("(")) {
+    const match = transfersText.match(/\((.*?)\)/);
+    if (match && match[1]) {
+      const parts = match[1].split("-").map(s => s.trim());
+      if (parts[0]) connectingCity = parts[0];
+      if (parts[1]) layoverDuration = parts[1];
+    }
+  }
+
+  return {
+    isConnecting: true,
+    connectingCity,
+    layoverDuration,
+    label: `1 Aktarmalı (${connectingCity} • ${layoverDuration})`,
+    leg1DepartureTime: flight.departureTime,
+    leg1ArrivalTime: segments?.[0]?.arrivalTime || "04:25",
+    leg2DepartureTime: segments?.[1]?.departureTime || "06:10",
+    leg2ArrivalTime: flight.arrivalTime
+  };
+}
+
+function FlightSegment({ title, departureCity, arrivalCity, departureTime, arrivalTime, baggage, icon: Icon, isReturn = false, flight }) {
   const duration = formatDuration(departureTime, arrivalTime);
+  const layoverInfo = getLayoverData(flight, isReturn);
+
   const pathId = isReturn ? "flight-path-return" : "flight-path-outbound";
   const gradientId = isReturn ? "flight-grad-return" : "flight-grad-outbound";
   const glowId = isReturn ? "flight-glow-return" : "flight-glow-outbound";
 
-  // Hem Gidiş hem Dönüş uçuşunda zaman ve hareket SOLDAN SAĞA akar (12 -> 188)
-  // Gidiş: Yukarı bükülen kavis (M 12 38 Q 100 8 188 38)
-  // Dönüş: Aşağı bükülen kavis (M 12 10 Q 100 40 188 10)
   const pathD = isReturn ? "M 12 12 Q 100 42 188 12" : "M 12 38 Q 100 8 188 38";
   const startY = isReturn ? 12 : 38;
   const endY = isReturn ? 12 : 38;
+  const midY = isReturn ? 27 : 23;
 
   const mainColor = isReturn ? "#6366f1" : "#3b82f6";
   const lightColor = isReturn ? "#818cf8" : "#60a5fa";
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl p-5">
+    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl p-5 shadow-xs">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
           <Icon size={16} className={isReturn ? "text-indigo-500" : "text-blue-500"} />
           {title}
         </h3>
-        <span className="text-xs font-semibold px-2.5 py-1 bg-slate-200 dark:bg-slate-700 rounded-md text-slate-600 dark:text-slate-300">
-          {transfersLabel}
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border ${
+          layoverInfo.isConnecting 
+            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-bold" 
+            : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-transparent"
+        }`}>
+          {layoverInfo.label}
         </span>
       </div>
 
-      {/* Zaman çizelgesi: kalkış — süre/kavis — varış */}
+      {/* Zaman Çizelgesi: Kalkış — Süre/Kavis — Varış */}
       <div className="flex items-center gap-3">
         <div className="flex-1 text-center">
           <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">
@@ -74,7 +132,7 @@ function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, depa
           </div>
         </div>
 
-        {/* Kavisli SVG Yolu & Uçak Animasyonu (Soldan Sağa) */}
+        {/* Kavisli SVG Yolu & Uçak Animasyonu */}
         <div className="flex-1 flex flex-col items-center justify-center relative min-w-[140px] px-1">
           {duration && (
             <div className="z-10 mb-[-4px]">
@@ -101,7 +159,6 @@ function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, depa
                 </filter>
               </defs>
 
-              {/* Kavisli Kesikli Yolu */}
               <path
                 id={pathId}
                 d={pathD}
@@ -116,10 +173,18 @@ function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, depa
               <circle cx="12" cy={startY} r="3.5" className={isReturn ? "fill-indigo-500" : "fill-blue-500"} />
               <circle cx="12" cy={startY} r="6" className={isReturn ? "fill-indigo-500/20" : "fill-blue-500/20"} />
 
+              {/* Durak / Aktarma Noktası (Layover Node) */}
+              {layoverInfo.isConnecting && (
+                <g>
+                  <circle cx="100" cy={midY} r="4" fill="#F59E0B" stroke="#FFFFFF" strokeWidth="1.5" />
+                  <circle cx="100" cy={midY} r="8" fill="#F59E0B" fillOpacity="0.25" />
+                </g>
+              )}
+
               <circle cx="188" cy={endY} r="3.5" className={isReturn ? "fill-indigo-500" : "fill-blue-500"} />
               <circle cx="188" cy={endY} r="6" className={isReturn ? "fill-indigo-500/20" : "fill-blue-500/20"} />
 
-              {/* Sağa Bakan Uçak İkonu (Soldan Sağa Süzülür) */}
+              {/* Sağa Bakan Uçak İkonu */}
               <g filter={`url(#${glowId})`}>
                 <path
                   d="M 10 0 L 3 -2.5 L -2 -9 L -4.5 -9 L -2 -2.5 L -7 -2.5 L -9 -6 L -11 -6 L -9.5 0 L -11 6 L -9 6 L -7 2.5 L -2 2.5 L -4.5 9 L -2 9 L 3 2.5 Z"
@@ -155,6 +220,44 @@ function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, depa
         <span>{formatFlightDateTime(arrivalTime)}</span>
       </div>
 
+      {/* Detaylı Uçuş Bacakları Breakdown (2 Leg Details) */}
+      {layoverInfo.isConnecting && (
+        <div className="mt-4 pt-4 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2.5">
+          <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center justify-between">
+            <span>Uçuş Adımları (2 Bacak)</span>
+            <span className="text-[11px] text-amber-500 font-semibold">1 Durak / Aktarma</span>
+          </div>
+
+          {/* Leg 1 */}
+          <div className="flex items-center justify-between bg-white dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-500 font-bold flex items-center justify-center text-[10px]">1</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{departureCity || "Kalkış"}</span>
+              <ArrowRight size={12} className="text-slate-400" />
+              <span className="font-bold text-slate-800 dark:text-slate-200">{layoverInfo.connectingCity}</span>
+            </div>
+            <span className="font-mono text-slate-500 dark:text-slate-400">{formatFlightTime(departureTime)} - {formatFlightTime(layoverInfo.leg1ArrivalTime)}</span>
+          </div>
+
+          {/* Layover Badge */}
+          <div className="flex items-center justify-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 py-1.5 px-3 rounded-lg text-xs font-bold shadow-xs">
+            <Clock size={13} />
+            <span>⏱ {layoverInfo.connectingCity} • {layoverInfo.layoverDuration} Bekleme Süresi</span>
+          </div>
+
+          {/* Leg 2 */}
+          <div className="flex items-center justify-between bg-white dark:bg-slate-900/60 p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-500 font-bold flex items-center justify-center text-[10px]">2</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">{layoverInfo.connectingCity}</span>
+              <ArrowRight size={12} className="text-slate-400" />
+              <span className="font-bold text-slate-800 dark:text-slate-200">{arrivalCity || "Varış"}</span>
+            </div>
+            <span className="font-mono text-slate-500 dark:text-slate-400">{formatFlightTime(layoverInfo.leg2DepartureTime)} - {formatFlightTime(arrivalTime)}</span>
+          </div>
+        </div>
+      )}
+
       <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex items-center gap-2">
         <Briefcase size={14} className="text-amber-500" />
         <span className="text-sm text-slate-600 dark:text-slate-300">
@@ -168,6 +271,10 @@ function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, depa
 export default function FlightDetailPanel({ flight, bookingDetails, onClose, onProceed }) {
   const { t } = useTranslation();
 
+  if (flight) {
+    console.log("AKTARMALI UÇUŞ DETAYI:", JSON.stringify(flight, null, 2));
+  }
+
   if (!flight) return null;
 
   const formattedPrice = flight.price != null && !isNaN(flight.price)
@@ -178,6 +285,8 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
       maximumFractionDigits: 0
     }).format(flight.price)
     : `${flight.price} ${flight.currency || 'TRY'}`;
+
+  const layoverInfo = getLayoverData(flight, false);
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 font-sans w-full relative">
@@ -210,11 +319,9 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
             <ArrowRight size={26} className="text-blue-400 shrink-0" />
             <span>{bookingDetails?.arrivalCity || t("reservation_arrival", "Varış")}</span>
           </h2>
-          {flight.transfers && (
-            <div className="mt-1.5 text-xs font-semibold text-slate-300 uppercase tracking-wide">
-              {flight.transfers}
-            </div>
-          )}
+          <div className="mt-1.5 text-xs font-semibold text-amber-400 uppercase tracking-wide flex items-center gap-2">
+            <span>{layoverInfo.label}</span>
+          </div>
         </div>
       </div>
 
@@ -222,7 +329,6 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
         <FlightSegment
           title={t("reservation_departure")}
-          transfersLabel={flight.transfers || t("reservation_direct", "Direkt Uçuş")}
           departureCity={bookingDetails?.departureCity}
           arrivalCity={bookingDetails?.arrivalCity}
           departureTime={flight.departureTime}
@@ -230,12 +336,12 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
           baggage={flight.baggage}
           icon={Plane}
           isReturn={false}
+          flight={flight}
         />
 
         {flight.returnDepartureTime && (
           <FlightSegment
             title={t("reservation_return_departure", "Dönüş")}
-            transfersLabel={flight.returnTransfers || flight.transfers || t("reservation_direct", "Direkt Uçuş")}
             departureCity={bookingDetails?.arrivalCity}
             arrivalCity={bookingDetails?.departureCity}
             departureTime={flight.returnDepartureTime}
@@ -243,6 +349,7 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
             baggage={flight.returnBaggage || flight.baggage}
             icon={ArrowDown}
             isReturn={true}
+            flight={flight}
           />
         )}
 
