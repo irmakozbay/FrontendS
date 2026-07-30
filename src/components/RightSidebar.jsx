@@ -22,6 +22,44 @@ import {
 } from "lucide-react";
 import { AirlineLogo } from "../utils/airlineLogos";
 
+const HOTEL_FALLBACK_IMAGES = [
+  "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80",
+];
+
+function getHotelImage(result, idx) {
+  if (Array.isArray(result.photos) && result.photos.length > 0 && result.photos[0]) return result.photos[0];
+  if (Array.isArray(result.images) && result.images.length > 0 && result.images[0]) return result.images[0];
+  if (result.thumbnailFull) return result.thumbnailFull;
+  if (result.heroImage) return result.heroImage;
+  if (result.thumbnailUrl && !result.thumbnailUrl.includes("placeholder")) return result.thumbnailUrl;
+  if (result.thumbnail) return result.thumbnail;
+  if (result.photo) return result.photo;
+
+  // Gerçek API görseli bulunamadığında benzersiz (unique) fallback görsel atanır
+  const charCode = String(result.hotelId || result.id || result.name || idx).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const fallbackIdx = (charCode + idx) % HOTEL_FALLBACK_IMAGES.length;
+  return HOTEL_FALLBACK_IMAGES[fallbackIdx];
+}
+
+function sanitizeBadgeText(boardType) {
+  if (!boardType) return null;
+  const str = String(boardType).trim();
+  if (/low level|yerel dil|debug|unknown/i.test(str)) {
+    return "Popüler Seçim";
+  }
+  if (/all inclusive|her [şs]ey dahil|ai/i.test(str)) return "Her Şey Dahil";
+  if (/bed.*breakfast|oda.*kahvalt[ıi]|bb/i.test(str)) return "Oda Kahvaltı";
+  if (/half board|yar[ıi]m pansiyon|hb/i.test(str)) return "Yarım Pansiyon";
+  if (/full board|tam pansiyon|fb/i.test(str)) return "Tam Pansiyon";
+  if (/ultra/i.test(str)) return "Ultra Her Şey Dahil";
+  return str;
+}
+
 function formatDate(value, language = "tr") {
   if (!value) return "";
 
@@ -592,6 +630,8 @@ export default function RightSidebar({
     const isSelected = selectedHotel && (selectedHotel.name === result.name || selectedHotel.hotelId === result.hotelId);
     const locationParts = [result.city, result.town, result.village, result.region].filter(Boolean);
     const locationText = [...new Set(locationParts)].join(', ');
+    const hotelImage = getHotelImage(result, idx);
+    const badgeText = sanitizeBadgeText(result.boardType || result.boardName || result.pensionType);
 
     return (
       <div
@@ -602,17 +642,17 @@ export default function RightSidebar({
       >
         <div className="relative mb-3.5 h-44 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-700">
           <img
-            src={result.thumbnailUrl || result.photo || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80"}
+            src={hotelImage}
             alt={result.name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80";
+              e.target.src = HOTEL_FALLBACK_IMAGES[idx % HOTEL_FALLBACK_IMAGES.length];
             }}
           />
-          {result.boardType && (
-            <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md">
-              {result.boardType}
+          {badgeText && (
+            <span className="absolute left-3 top-3 rounded-full bg-black/65 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md shadow-sm">
+              {badgeText}
             </span>
           )}
           <button
@@ -674,9 +714,6 @@ export default function RightSidebar({
   };
 
   const FlightResultCard = ({ result, idx }) => {
-    if (result) {
-      console.log("Flight Payload:", result);
-    }
     const id = result.offerId || idx;
     const isFav = favoriteIds.has(id);
     const isSelected =

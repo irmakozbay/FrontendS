@@ -1110,8 +1110,8 @@ export default function Index() {
         >
           <div
             className={cn(
-              "w-full h-[90vh] max-h-[90vh] bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col relative animate-fade-in scale-100 transition-all",
-              (activePanel === 'hotelDetail' || activePanel === 'flightDetail') ? "max-w-[1180px]" : "max-w-[850px]"
+              "w-full h-[92vh] max-h-[92vh] bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col relative animate-fade-in scale-100 transition-all",
+              (activePanel === 'hotelDetail' || activePanel === 'flightDetail') ? "w-[92vw] max-w-7xl" : "max-w-[850px]"
             )}
             onClick={(e) => e.stopPropagation()}
           >

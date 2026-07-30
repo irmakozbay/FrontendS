@@ -398,12 +398,7 @@ export default function ReservationPage() {
         videoRef.current.load();
         videoRef.current
             .play()
-            .catch((error) =>
-                console.log(
-                    "Video oynatılamadı:",
-                    error
-                )
-            );
+            .catch(() => {});
     }, [theme]);
 
     useEffect(() => {

@@ -1,4 +1,35 @@
 {
+  "welcome": {
+    "support": {
+      "title": "Brauchen Sie Hilfe?",
+      "subtitle": "Unser Support-Team und unser KI-Assistent stehen Ihnen rund um die Uhr zur Verfügung.",
+      "button": "Mit Live-Support verbinden",
+      "modalTitle": "Live-Support & Hilfe-Center",
+      "quickHelpLabel": "Schnelle Lösungen",
+      "solutionLabel": "Lösung",
+      "unresolvedNotice": "Haben Sie die gesuchte Antwort nicht gefunden? Sie können unser Support-Team direkt per E-Mail kontaktieren.",
+      "sendEmail": "E-Mail senden",
+      "emailCopied": "Kopiert!",
+      "quickHelp": {
+        "pnr": {
+          "title": "Wo finde ich meinen PNR-Code?",
+          "solution": "Sie können den 6-stelligen Code verwenden, der nach der Buchungsbestätigung auf Ihrem Bildschirm angezeigt wird und in Ihrem Profil unter 'Meine Buchungen' zu finden ist."
+        },
+        "age": {
+          "title": "Altersgrenzen für Kleinkinder & Kinder",
+          "solution": "Kleinkinder sind 0-2 Jahre (0-24 Monate) und Kinder 2-12 Jahre. Die Preise werden automatisch basierend auf dem Geburtsdatum berechnet."
+        },
+        "cancel": {
+          "title": "Stornierungs- & Erstattungsbedingungen",
+          "solution": "Sie können Ihre vergangenen oder aktiven Buchungen unter 'Meine Buchungen' einsehen und eine Stornierungsanfrage senden."
+        },
+        "free": {
+          "title": "Ist die Nutzung von Sanny AI kostenlos?",
+          "solution": "Der Sanny AI-Assistent und die Buchungssuchdienste sind völlig kostenlos."
+        }
+      }
+    }
+  },
   "auth": {
     "googleLogin": "Mit Google anmelden",
     "continueAsGuest": "Als Gast fortfahren",
