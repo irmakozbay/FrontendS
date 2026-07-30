@@ -530,7 +530,8 @@ export default function Index() {
       setMessages(prev => [...prev, botMsg]);
 
       // 1. Arama Tipini Güncelle ve YALNIZCA GERÇEK SONUÇLAR (results) GELDİĞİNDE Sağ Paneli Aç
-      const hasResults = data.results && data.results.length > 0;
+      const isSearchIntent = Boolean(data.searchType && (data.searchType.includes("HOTEL") || data.searchType.includes("FLIGHT")));
+      const hasResults = Boolean(data.results && data.results.length > 0);
       if (hasResults) {
         setHasValidSearch(true);
         setIsRightSidebarOpen(true);
