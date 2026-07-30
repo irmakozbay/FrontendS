@@ -6,6 +6,7 @@ import {
     CalendarCheck,
     LoaderCircle,
     AlertCircle,
+    X,
 } from "lucide-react";
 
 import { getReservations } from "../../services/adminReservationService.js";
@@ -18,6 +19,7 @@ export default function Reservations() {
     const [activeTab, setActiveTab] = useState("ALL"); // "ALL", "HOTEL", "FLIGHT"
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [selectedReservation, setSelectedReservation] = useState(null);
 
     useEffect(() => {
         async function loadReservations() {
@@ -332,6 +334,7 @@ export default function Reservations() {
                                     <td className="px-6 py-4">
                                         <button
                                             type="button"
+                                            onClick={() => setSelectedReservation(reservation)}
                                             className="rounded-lg border border-gray-200 p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800"
                                             aria-label={t(
                                                 "reservations.view_details"
@@ -355,6 +358,131 @@ export default function Reservations() {
                     </div>
                 )}
             </div>
+
+            {/* Rezervasyon Detay Modalı */}
+            {selectedReservation && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="relative w-full max-w-2xl rounded-2xl border border-gray-150 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 animate-slide-up max-h-[90vh] overflow-y-auto">
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-gray-150 pb-4 dark:border-slate-800">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-955 dark:text-white flex items-center gap-2">
+                                    <span className="text-orange-500">#{selectedReservation.reservationNumber}</span>
+                                    Rezervasyon Detayları
+                                </h3>
+                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                    TourVisio rezervasyon verileri ve yolcu listesi.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedReservation(null)}
+                                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Detay Kartları */}
+                        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+                            <div className="rounded-xl bg-gray-50 p-4 dark:bg-slate-950/40">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Hizmet Tipi</span>
+                                <p className="mt-1 font-bold text-gray-800 dark:text-slate-200 uppercase">
+                                    {selectedReservation.type}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 p-4 dark:bg-slate-950/40 col-span-1 sm:col-span-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Ürün Adı</span>
+                                <p className="mt-1 font-bold text-gray-800 dark:text-slate-200 truncate" title={selectedReservation.itemName}>
+                                    {selectedReservation.itemName}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 p-4 dark:bg-slate-950/40">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Destinasyon</span>
+                                <p className="mt-1 font-bold text-gray-800 dark:text-slate-200">
+                                    {selectedReservation.destination}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 p-4 dark:bg-slate-950/40">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Toplam Tutar</span>
+                                <p className="mt-1 font-bold text-emerald-600 dark:text-emerald-400">
+                                    {formatPrice(selectedReservation.totalPrice, selectedReservation.currency)}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 p-4 dark:bg-slate-950/40">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Kişi Sayısı</span>
+                                <p className="mt-1 font-bold text-gray-800 dark:text-slate-200">
+                                    {Array.isArray(selectedReservation.passengers) ? selectedReservation.passengers.length : 0} Yolcu
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 p-4 dark:bg-slate-950/40">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Giriş / Kalkış</span>
+                                <p className="mt-1 font-semibold text-gray-800 dark:text-slate-200">
+                                    {formatDate(selectedReservation.startDate)}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-gray-50 p-4 dark:bg-slate-950/40">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Çıkış / İniş</span>
+                                <p className="mt-1 font-semibold text-gray-800 dark:text-slate-200">
+                                    {formatDate(selectedReservation.endDate)}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Yolcu Bilgileri Bölümü */}
+                        <div className="mt-6">
+                            <h4 className="text-xs font-bold text-gray-955 dark:text-white uppercase tracking-wider mb-3">
+                                Yolcu Bilgileri ({Array.isArray(selectedReservation.passengers) ? selectedReservation.passengers.length : 0})
+                            </h4>
+                            
+                            <div className="space-y-3">
+                                {Array.isArray(selectedReservation.passengers) && selectedReservation.passengers.length > 0 ? (
+                                    selectedReservation.passengers.map((passenger, idx) => (
+                                        <div key={idx} className="rounded-xl border border-gray-150 p-4 dark:border-slate-800 dark:bg-slate-950/20 text-xs">
+                                            <div className="flex justify-between items-center border-b border-gray-100 pb-2 mb-2 dark:border-slate-800">
+                                                <span className="font-bold text-gray-800 dark:text-white">
+                                                    {idx + 1}. {passenger.firstName} {passenger.lastName}
+                                                </span>
+                                                <span className="inline-flex items-center gap-1 rounded bg-orange-50 px-1.5 py-0.5 text-[9px] font-bold text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 uppercase">
+                                                    {passenger.gender === "MALE" ? "Erkek" : passenger.gender === "FEMALE" ? "Kadın" : passenger.gender}
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                <div>
+                                                    <span className="text-[9px] text-gray-400 dark:text-slate-500 uppercase">Kimlik / Pasaport</span>
+                                                    <p className="font-semibold text-gray-700 dark:text-slate-300">{passenger.identityNumber || "-"}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[9px] text-gray-400 dark:text-slate-500 uppercase">Doğum Tarihi</span>
+                                                    <p className="font-semibold text-gray-700 dark:text-slate-300">{formatDate(passenger.birthDate)}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[9px] text-gray-400 dark:text-slate-500 uppercase">Uyruk</span>
+                                                    <p className="font-semibold text-gray-700 dark:text-slate-300">{passenger.nationality || "-"}</p>
+                                                </div>
+                                                {passenger.email && (
+                                                    <div className="col-span-2">
+                                                        <span className="text-[9px] text-gray-400 dark:text-slate-500 uppercase">E-posta</span>
+                                                        <p className="font-semibold text-gray-700 dark:text-slate-300">{passenger.email}</p>
+                                                    </div>
+                                                )}
+                                                {passenger.phoneNumber && (
+                                                    <div>
+                                                        <span className="text-[9px] text-gray-400 dark:text-slate-500 uppercase">Telefon</span>
+                                                        <p className="font-semibold text-gray-700 dark:text-slate-300">{passenger.phoneNumber}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-gray-400 text-center py-4">Bu rezervasyona ait kayıtlı yolcu bulunmamaktadır.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
