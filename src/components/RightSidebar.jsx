@@ -866,6 +866,9 @@ export default function RightSidebar({
   };
 
   const FlightResultCard = ({ result, idx }) => {
+    if (result) {
+      console.log("Flight Payload:", result);
+    }
     const id = result.offerId || idx;
     const isFav = favoriteIds.has(id);
     const isSelected = selectedFlight && selectedFlight.offerId === result.offerId;
