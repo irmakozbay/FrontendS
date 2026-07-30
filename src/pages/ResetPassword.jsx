@@ -41,20 +41,23 @@ export default function ResetPasswordPage() {
         e.preventDefault();
         setError('');
 
+        const cleanPassword = password ? password.trim() : '';
+        const cleanConfirmPassword = confirmPassword ? confirmPassword.trim() : '';
+
         // Karakter uzunluğu kontrolü (Dile duyarlı hata mesajı)
-        if (password.length < 6 || password.length > 30) {
+        if (cleanPassword.length < 6 || cleanPassword.length > 30) {
             setError(t('reset_password_length_err'));
             return;
         }
         // Eşleşme kontrolü (Dile duyarlı hata mesajı)
-        if (password !== confirmPassword) {
-            setError(t('reset_password_mismatch_err'));
+        if (cleanPassword !== cleanConfirmPassword) {
+            setError(t('reset_password_mismatch_err', 'Passwords do not match'));
             return;
         }
 
         setLoading(true);
         try {
-            await api.post('/api/auth/reset-password', { token, password });
+            await api.post('/api/auth/reset-password', { token, password: cleanPassword });
             setSuccess(true);
             setTimeout(() => navigate('/login'), 3000); // 3 saniye sonra girişe yönlendir
         } catch (err) {
@@ -67,7 +70,13 @@ export default function ResetPasswordPage() {
     return (
         <div className="min-h-screen flex items-center justify-center px-4 relative font-sans bg-transparent">
             {/* Sol üstteki ortak logo */}
-            <SannyLogo />
+            <Link 
+                to="/welcome" 
+                className="fixed top-4 left-4 z-50 group flex items-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                title={t('auth.backToHome', 'Ana Sayfaya Dön')}
+            >
+                <SannyLogo className="flex items-center gap-2 select-none" />
+            </Link>
 
             {/* Sağ üstteki tema ve dil seçenekleri */}
             <div className="fixed top-4 right-4 z-50 flex items-center gap-2">

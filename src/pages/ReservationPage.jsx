@@ -733,11 +733,10 @@ export default function ReservationPage() {
                                         </div>
                                         <div className="min-w-0 flex-1 text-xs md:text-sm text-emerald-900 dark:text-emerald-200">
                                             <p className="font-semibold leading-relaxed">
-                                                E-postanız başarıyla gönderildi! Bilet ve rezervasyon detaylarınız{" "}
-                                                <strong className="underline decoration-emerald-400 font-bold">
-                                                    {passengers[0]?.email || reservationResult?.passengers?.[0]?.email || "e-posta"}
-                                                </strong>{" "}
-                                                adresine iletilmiştir.
+                                                {t("booking.emailSuccessNotice", {
+                                                    email: passengers[0]?.email || reservationResult?.passengers?.[0]?.email || "e-posta",
+                                                    defaultValue: `E-postanız başarıyla gönderildi! Bilet ve rezervasyon detaylarınız ${passengers[0]?.email || reservationResult?.passengers?.[0]?.email || "e-posta"} adresine iletilmiştir.`
+                                                })}
                                             </p>
                                         </div>
                                     </div>
@@ -766,13 +765,14 @@ export default function ReservationPage() {
                                                     totalPrice: price,
                                                     currency: curr,
                                                     userEmail: email,
-                                                    extraDetails: reservationResult
+                                                    extraDetails: reservationResult,
+                                                    lang: i18n.language || "tr"
                                                 });
                                             }}
                                             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-750"
                                         >
                                             <Download size={18} className="text-blue-600 dark:text-blue-400" />
-                                            PDF Olarak İndir
+                                            {t("booking.downloadPdf", "PDF Olarak İndir")}
                                         </button>
 
                                         <button

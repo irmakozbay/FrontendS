@@ -265,7 +265,7 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
                   onClick={confirmCancel}
                   className="flex-1 py-2.5 rounded-xl font-bold bg-rose-600 text-white hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-all text-sm cursor-pointer"
                 >
-                  {t('common.cancel')}
+                  {t('appointment_modal_cancel_btn', 'Evet, İptal Et')}
                 </button>
               </div>
             </div>

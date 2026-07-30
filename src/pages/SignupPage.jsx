@@ -95,12 +95,12 @@ export default function SignupPage() {
           err = t('invalid_phone');
         }
       } else if (field === 'password') {
-        if (value.length < 6 || value.length > 30) {
+        if (value.trim().length < 6 || value.trim().length > 30) {
           err = t('password_min_error');
         }
       } else if (field === 'confirmPassword') {
-        if (value !== formData.password) {
-          err = t('mismatch_error');
+        if (value.trim() !== (formData.password ? formData.password.trim() : '')) {
+          err = t('mismatch_error', 'Passwords do not match');
         }
       }
     }
@@ -133,12 +133,12 @@ export default function SignupPage() {
 
     try {
       await api.post('/api/auth/signup', {
-        name: formData.name,
-        lastname: formData.lastname,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword
+        name: formData.name ? formData.name.trim() : '',
+        lastname: formData.lastname ? formData.lastname.trim() : '',
+        email: formData.email ? formData.email.trim() : '',
+        phone: formData.phone ? formData.phone.trim() : '',
+        password: formData.password ? formData.password.trim() : '',
+        confirmPassword: formData.confirmPassword ? formData.confirmPassword.trim() : ''
       });
       navigate('/login');
     } catch (err) {
@@ -154,9 +154,13 @@ export default function SignupPage() {
             ...(hasPhone && { phone: "Phone number already exists" })
           }));
         } else if (err.response.status === 400) {
+          const serverMessage = err.response.data?.message || err.response.data?.error || "Invalid parameters";
+          const isMismatch = serverMessage.toLowerCase().includes('match') || serverMessage.toLowerCase().includes('confirm');
           setFieldErrors((prev) => ({
             ...prev,
-            confirmPassword: "Passwords do not match or invalid request parameters."
+            confirmPassword: isMismatch
+              ? t('mismatch_error', 'Passwords do not match')
+              : serverMessage
           }));
         } else {
           setFieldErrors((prev) => ({
@@ -203,7 +207,13 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 relative font-sans bg-transparent">
       {/* Shared Header Bar Logo on Left */}
-      <SannyLogo />
+      <Link 
+        to="/welcome" 
+        className="fixed top-4 left-4 z-50 group flex items-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+        title={t('auth.backToHome', 'Ana Sayfaya Dön')}
+      >
+        <SannyLogo className="flex items-center gap-2 select-none" />
+      </Link>
 
       {/* Top Right Controls (Theme Toggle + Language Selector) */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">

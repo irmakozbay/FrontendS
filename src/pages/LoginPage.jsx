@@ -240,7 +240,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4 relative font-sans bg-transparent">
       {/* Top Left Branding Link to Welcome */}
       <Link 
-        to="/" 
+        to="/welcome" 
         className="fixed top-4 left-4 z-50 group flex items-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
         title={t('auth.backToHome', 'Ana Sayfaya Dön')}
       >

@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 
 import ChatSidebar from "../components/ChatSidebar";
 import AppointmentDetailModal from "../components/AppointmentDetailModal";
+import CancelSuccessModal from "../components/CancelSuccessModal";
 import api from "../services/api";
 import { useTheme } from "../components/ThemeContext";
 
@@ -89,6 +90,7 @@ export default function PastAppointments() {
   const [filterType, setFilterType] = useState("All");
   const [sortType, setSortType] = useState("Newest");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [successModalData, setSuccessModalData] = useState(null);
 
   const videoRef = useRef(null);
 
@@ -251,6 +253,14 @@ export default function PastAppointments() {
       setLoading(true);
       await api.delete(`/api/reservations/${appointmentToCancel.id}`);
 
+      const pnr =
+        appointmentToCancel.pnrCode ||
+        appointmentToCancel.bookingNumber ||
+        appointmentToCancel.resNumber ||
+        appointmentToCancel.reservationNumber ||
+        `REZ-${appointmentToCancel.id}`;
+      const type = appointmentToCancel.type;
+
       setAppointments((previous) =>
         previous.map((appointment) =>
           appointment.id === appointmentToCancel.id
@@ -259,9 +269,12 @@ export default function PastAppointments() {
         )
       );
 
-      if (selectedAppt && selectedAppt.id === appointmentToCancel.id) {
-        setSelectedAppt({ ...selectedAppt, status: "CANCELLED" });
-      }
+      setSelectedAppt(null);
+
+      setSuccessModalData({
+        pnr,
+        type,
+      });
     } catch (error) {
       console.error("Rezervasyon iptal edilirken hata oluştu:", error);
     } finally {
@@ -523,6 +536,14 @@ export default function PastAppointments() {
           onClose={handleCloseModal}
           onEdit={handleEditReservation}
           onCancel={handleCancelReservation}
+        />
+      )}
+
+      {successModalData && (
+        <CancelSuccessModal
+          pnr={successModalData.pnr}
+          type={successModalData.type}
+          onClose={() => setSuccessModalData(null)}
         />
       )}
     </div>

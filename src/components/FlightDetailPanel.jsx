@@ -102,11 +102,11 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
 
   const formattedPrice = flight.price != null && !isNaN(flight.price)
     ? new Intl.NumberFormat('tr-TR', {
-        style: 'currency',
-        currency: flight.currency || 'TRY',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(flight.price)
+      style: 'currency',
+      currency: flight.currency || 'TRY',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(flight.price)
     : `${flight.price} ${flight.currency || 'TRY'}`;
 
   // Let's create a map for airline colors
@@ -123,11 +123,11 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
       <div className="relative h-56 shrink-0 overflow-hidden bg-white">
         {flight.airline?.toLowerCase()?.includes('ajet') ? (
           <div className="absolute inset-0 bg-white">
-             <img src="/ajet.png" alt="Ajet" className="w-full h-full object-cover" />
+            <img src="/ajet.png" alt="Ajet" className="w-full h-full object-cover" />
           </div>
         ) : flight.airline?.toLowerCase()?.includes('pegasus') ? (
           <div className="absolute inset-0 bg-white">
-             <img src="/pegasus.png" alt="Pegasus" className="w-full h-full object-cover opacity-90" />
+            <img src="/pegasus.png" alt="Pegasus" className="w-full h-full object-cover opacity-90" />
           </div>
         ) : (
           <div className={`absolute inset-0 bg-gradient-to-r ${bgGradient} flex items-center justify-center`}>
@@ -147,9 +147,9 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
 
         <div className="absolute bottom-5 left-6 right-6">
           {!flight.airline?.toLowerCase()?.includes('ajet') && !flight.airline?.toLowerCase()?.includes('pegasus') && (
-             <div className="text-white/90 text-sm font-bold mb-1 tracking-wider uppercase">
-               {flight.airline || t("flight_ticket", "Uçak Bileti")}
-             </div>
+            <div className="text-white/90 text-sm font-bold mb-1 tracking-wider uppercase">
+              {flight.airline || t("flight_ticket", "Uçak Bileti")}
+            </div>
           )}
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white drop-shadow-lg flex items-center gap-3">
             {bookingDetails?.departureCity || t("reservation_departure", "Gidiş")}
