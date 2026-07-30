@@ -1,10 +1,36 @@
 import React, { useState } from 'react';
-import { 
-  X, Download, MessageSquare, PhoneCall, RefreshCw, Calendar, Users, 
-  Ticket, User, Plane, Car, MapPin, CheckCircle2, XCircle, AlertCircle, Moon, Edit, Trash2, Info
+import {
+  X, Download, MessageSquare, PhoneCall, RefreshCw, Calendar, Users,
+  Ticket, User, Plane, Car, MapPin, CheckCircle2, XCircle, AlertCircle, Moon, Edit, Trash2, Info, ArrowRight
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { AirlineLogo, getAirlineLogo } from '../utils/airlineLogos';
+
+function getRouteDetails(appointment) {
+  let dep = appointment.departureCity;
+  let arr = appointment.arrivalCity;
+
+  if ((!dep || !arr) && (appointment.destination || appointment.route || appointment.title)) {
+    const raw = appointment.destination || appointment.route || appointment.title || "";
+    if (raw !== "Varış" && raw !== "Kalkış") {
+      const parts = raw.split(/->|→|-|–|\bto\b/i).map(s => s.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        if (!dep) dep = parts[0];
+        if (!arr) arr = parts[parts.length - 1];
+      }
+    }
+  }
+
+  if (!arr && appointment.destination && appointment.destination !== "Varış") {
+    arr = appointment.destination;
+  }
+
+  return {
+    departureCity: dep && dep !== "Kalkış" ? dep : (appointment.departureCity || "Kalkış"),
+    arrivalCity: arr && arr !== "Varış" ? arr : (appointment.arrivalCity || appointment.destination || "Varış")
+  };
+}
 
 export default function AppointmentDetailModal({ appointment, onClose, onEdit, onCancel }) {
   const { t } = useTranslation();
@@ -14,6 +40,11 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
   if (!appointment) return null;
 
   const isCancelled = ["CANCELLED", "Cancelled", "İptal Edildi"].includes(appointment.status);
+  const isFlight = appointment.type === "Flight" || appointment.type === "FLIGHT";
+  const { departureCity, arrivalCity } = getRouteDetails(appointment);
+  const flightDate = appointment.date || appointment.checkIn || appointment.departureTime;
+  const flightNo = appointment.flightNumber || appointment.pnrCode || appointment.bookingNumber || (appointment.id ? `REZ-${appointment.id}` : null);
+  const flightTypeLabel = appointment.transfers || (appointment.returnDepartureTime ? "Gidiş - Dönüş" : "Direkt Uçuş");
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -83,7 +114,7 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 z-[100] transition-opacity flex items-center justify-center p-4 sm:p-6"
       onClick={onClose}
     >
@@ -94,7 +125,7 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
         {/* Header */}
         {/* Header */}
         <div className="relative overflow-hidden rounded-t-2xl">
-          <button 
+          <button
             onClick={(e) => {
               e.stopPropagation();
               onClose();
@@ -104,47 +135,96 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
           >
             <X size={18} />
           </button>
-          
+
           {/* Banner Container */}
-          <div className="relative h-80 sm:h-96 w-full bg-slate-200 dark:bg-slate-800">
-            {appointment.imageUrl || appointment.thumbnailFull || appointment.thumbnail ? (
-              <img 
-                src={appointment.imageUrl || appointment.thumbnailFull || appointment.thumbnail} 
-                alt="Thumbnail" 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  if (e.currentTarget.nextElementSibling) {
-                    e.currentTarget.nextElementSibling.classList.remove('hidden');
-                  }
-                }}
-              />
-            ) : null}
-            <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 ${appointment.imageUrl || appointment.thumbnailFull || appointment.thumbnail ? 'hidden' : ''}`}>
-              <span className="text-7xl opacity-40 drop-shadow-sm">
-                {appointment.type === "Hotel" ? "🏨" : appointment.type === "Flight" ? "✈" : "🚗"}
-              </span>
+          <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-gradient-to-br from-[#0B192C] via-[#0F172A] to-[#1E293B] flex flex-col justify-between p-6">
+            {/* Ambient Lighting Glows */}
+            <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Top Brand Logo Row */}
+            <div className="relative z-20 flex items-center pr-12">
+              {appointment.type === "Flight" || appointment.type === "FLIGHT" ? (
+                <div className="flex items-center gap-3">
+                  {getAirlineLogo(appointment.airlineCode || appointment.itemName || appointment.title, true) && (
+                    <img
+                      src={getAirlineLogo(appointment.airlineCode || appointment.itemName || appointment.title, true)}
+                      alt={appointment.airlineName || appointment.title}
+                      className="h-8 sm:h-9 w-auto object-contain shrink-0"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  )}
+                  <span className="text-xl sm:text-2xl font-extrabold text-white">
+                    {appointment.airlineName || appointment.title}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-white font-bold text-lg">
+                  <span>{appointment.type === "Hotel" ? "🏨" : "🚗"}</span>
+                  <span>{appointment.title}</span>
+                </div>
+              )}
             </div>
-            {/* Text Overlay with Glow */}
-            <div className="absolute top-0 left-0 w-full p-4 sm:p-6 flex flex-col justify-start z-20 pr-16">
-              <h2 
-                className="text-2xl sm:text-3xl font-black text-white leading-tight font-display tracking-tight"
-                style={{ textShadow: '0 2px 6px rgba(0,0,0,0.7), 0 0 15px rgba(0,0,0,0.5)' }}
-              >
-                {appointment.title}
-              </h2>
+
+            {/* Destination / Title Glassmorphism Card */}
+            <div className="relative z-20 backdrop-blur-md bg-[#0F172A]/70 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl shadow-black/30">
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                <div className="text-xs font-bold uppercase tracking-widest text-amber-400">
+                  {isFlight
+                    ? t('past_appointments_badge_flight', 'Uçuş Rezervasyonu')
+                    : appointment.type === "Hotel"
+                    ? t('past_appointments_badge_hotel', 'Otel Rezervasyonu')
+                    : t('past_appointments_badge_transfer', 'Transfer Rezervasyonu')}
+                </div>
+                {isFlight && (
+                  <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                    {flightTypeLabel}
+                  </span>
+                )}
+              </div>
+
+              {/* Real Route Heading (Ankara → Antalya) */}
+              {isFlight ? (
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight flex items-center gap-3 flex-wrap">
+                  <span>{departureCity}</span>
+                  <ArrowRight size={24} className="text-blue-400 shrink-0" />
+                  <span>{arrivalCity}</span>
+                </h2>
+              ) : (
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
+                  {appointment.destination || appointment.title}
+                </h2>
+              )}
+
+              {/* Flight Banner Details Row (Date, Sefer No) */}
+              {isFlight && (
+                <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-slate-300 font-medium">
+                  {flightDate && (
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={14} className="text-blue-400" />
+                      <span>{flightDate}</span>
+                    </div>
+                  )}
+                  {flightNo && (
+                    <div className="flex items-center gap-1.5">
+                      <Ticket size={14} className="text-amber-400" />
+                      <span>Sefer No: <strong className="text-white font-mono">{flightNo}</strong></span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Body / Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white dark:bg-slate-900 relative">
-          
+
           {/* Status Section */}
           <div className="bg-white dark:bg-slate-800/80 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-3 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 dark:bg-slate-700"></div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Info size={14}/> {t('past_appointments_drawer_status')}</span>
+              <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Info size={14} /> {t('past_appointments_drawer_status')}</span>
               {getStatusBadge(appointment.status)}
             </div>
             <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-slate-700/50">
@@ -166,13 +246,13 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-slate-50/50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-100 dark:border-slate-800">
                 {appointment.passengers.map((passenger, index) => {
                   const fullName = `${passenger.firstName || ''} ${passenger.lastName || ''}`.trim();
-                  const maskedId = passenger.identityNumber 
-                    ? `***${passenger.identityNumber.slice(-4)}` 
+                  const maskedId = passenger.identityNumber
+                    ? `***${passenger.identityNumber.slice(-4)}`
                     : null;
-                  const formattedDate = passenger.birthDate 
-                    ? passenger.birthDate.split('-').reverse().join('.') 
+                  const formattedDate = passenger.birthDate
+                    ? passenger.birthDate.split('-').reverse().join('.')
                     : null;
-                    
+
                   return (
                     <div key={index} className="flex flex-col p-3.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:shadow-md">
                       <div className="flex items-center gap-2.5 mb-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-700/50">
@@ -181,7 +261,7 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
                         </div>
                         <span className="font-bold text-slate-800 dark:text-slate-200">{fullName}</span>
                       </div>
-                      
+
                       <div className="space-y-1.5">
                         {maskedId && (
                           <div className="flex justify-between items-center text-xs">
@@ -207,8 +287,8 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
         {/* Footer / Actions */}
         {!isCancelled && (
           <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 relative z-20">
-            
-            <button 
+
+            <button
               onClick={() => {
                 if (appointment.chatSessionId) {
                   navigate(`/chat?sessionId=${appointment.chatSessionId}`);
@@ -222,16 +302,16 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
               <MessageSquare size={18} />
               {t('reservation.viewRelatedChat')}
             </button>
-            
+
             <div className="grid grid-cols-2 gap-3 mt-3">
-              <button 
+              <button
                 onClick={() => onEdit && onEdit(appointment)}
                 className="py-3 rounded-xl font-bold bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
               >
                 <Edit size={16} />
                 {t('common.edit')}
               </button>
-              <button 
+              <button
                 onClick={handleCancelClick}
                 className="py-3 rounded-xl font-bold bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:border-rose-300 dark:hover:border-rose-800 transition-all flex items-center justify-center gap-2 text-sm group cursor-pointer"
               >
@@ -239,7 +319,7 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
                 {t('common.cancel')}
               </button>
             </div>
-            
+
           </div>
         )}
 
@@ -255,13 +335,13 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
                 {t('reservation.cancelBody', { resNumber: appointment.resNumber })}
               </p>
               <div className="flex gap-3 w-full">
-                <button 
+                <button
                   onClick={() => setShowCancelConfirm(false)}
                   className="flex-1 py-2.5 rounded-xl font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm cursor-pointer"
                 >
                   {t('common.keep')}
                 </button>
-                <button 
+                <button
                   onClick={confirmCancel}
                   className="flex-1 py-2.5 rounded-xl font-bold bg-rose-600 text-white hover:bg-rose-700 shadow-md shadow-rose-600/20 transition-all text-sm cursor-pointer"
                 >

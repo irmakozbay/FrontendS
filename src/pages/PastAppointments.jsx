@@ -22,6 +22,7 @@ import {
   Search,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { AirlineLogo, getAirlineLogo } from "../utils/airlineLogos";
 
 import ChatSidebar from "../components/ChatSidebar";
 import AppointmentDetailModal from "../components/AppointmentDetailModal";

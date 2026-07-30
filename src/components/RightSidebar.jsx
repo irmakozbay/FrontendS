@@ -19,6 +19,7 @@ import {
   Heart,
   SlidersHorizontal,
 } from "lucide-react";
+import { AirlineLogo } from "../utils/airlineLogos";
 
 function formatDate(value, language = "tr") {
   if (!value) return "";
@@ -795,9 +796,8 @@ export default function RightSidebar({
 
     return (
       <div
-        className={`rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden transition-all ${
-          isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
-        }`}
+        className={`rounded-2xl border bg-white dark:bg-slate-900 overflow-hidden transition-all ${isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
+          }`}
       >
         <div className="relative h-32 bg-slate-100 dark:bg-slate-800">
           {result.thumbnail ? (
@@ -873,13 +873,17 @@ export default function RightSidebar({
 
     return (
       <div
-        className={`rounded-2xl border bg-white dark:bg-slate-900 p-3.5 transition-all ${
-          isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
-        }`}
+        className={`rounded-2xl border bg-white dark:bg-slate-900 p-3.5 transition-all ${isSelected ? "border-[#FF8A00] ring-2 ring-[#FF8A00]/20" : "border-slate-200 dark:border-slate-800"
+          }`}
       >
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-bold text-slate-900 dark:text-white">{result.airline}</span>
-          <button onClick={() => toggleFavorite(id)} className="p-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <AirlineLogo airline={result.airlineCode || result.airline} className="h-7 w-auto object-contain" />
+            <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+              {result.airlineName || result.airline}
+            </span>
+          </div>
+          <button onClick={() => toggleFavorite(id)} className="p-1 shrink-0">
             <Heart size={14} className={isFav ? "fill-rose-500 text-rose-500" : "text-slate-400"} />
           </button>
         </div>
@@ -888,8 +892,15 @@ export default function RightSidebar({
           {result.transfers || t("reservation_direct", { defaultValue: "Direkt Uçuş" })}
         </div>
         <div className="flex items-end justify-between">
-          <div className="text-base font-extrabold text-[#FF8A00] dark:text-orange-400">
-            {formatPriceValue(result.price, result.currency)}
+          <div>
+            <div className="text-base font-extrabold text-[#FF8A00] dark:text-orange-400">
+              {formatPriceValue(result.price, result.currency)}
+            </div>
+            {result.unitPrice && (
+              <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                ({t("rightSidebar.perPerson", { defaultValue: "Kişi Başı" })}: {formatPriceValue(result.unitPrice, result.currency)})
+              </div>
+            )}
           </div>
           <button
             onClick={() => onSelectFlight && onSelectFlight(result)}
@@ -950,11 +961,16 @@ export default function RightSidebar({
                   ? t("rightSidebar.selectedHotel", { defaultValue: "Seçilen otel" })
                   : t("rightSidebar.selectedAirline", { defaultValue: "Seçilen havayolu" })}
               </p>
-              <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
-                {isHotel
-                  ? hotelName || t("rightSidebar.selectHotelFromChat", { defaultValue: "Sohbet alanından bir otel seç" })
-                  : airlineName || t("rightSidebar.selectFlightFromChat", { defaultValue: "Sohbet alanından bir uçuş seç" })}
-              </p>
+              <div className="flex items-center gap-2 truncate">
+                {!isHotel && airlineName && (
+                  <AirlineLogo airline={airlineName} className="h-6 w-auto object-contain shrink-0" />
+                )}
+                <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
+                  {isHotel
+                    ? hotelName || t("rightSidebar.selectHotelFromChat", { defaultValue: "Sohbet alanından bir otel seç" })
+                    : airlineName || t("rightSidebar.selectFlightFromChat", { defaultValue: "Sohbet alanından bir uçuş seç" })}
+                </p>
+              </div>
             </div>
           </div>
           {bookingDetails.price && (

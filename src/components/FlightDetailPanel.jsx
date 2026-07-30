@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Plane, Calendar, Clock, Briefcase, ArrowRight, ArrowDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { AirlineLogo } from '../utils/airlineLogos';
 
 function formatFlightDateTime(value) {
   if (!value) return value;
@@ -34,13 +35,27 @@ function formatDuration(startValue, endValue) {
   return `${hours}s ${minutes}dk`;
 }
 
-function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, departureTime, arrivalTime, baggage, icon: Icon }) {
+function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, departureTime, arrivalTime, baggage, icon: Icon, isReturn = false }) {
   const duration = formatDuration(departureTime, arrivalTime);
+  const pathId = isReturn ? "flight-path-return" : "flight-path-outbound";
+  const gradientId = isReturn ? "flight-grad-return" : "flight-grad-outbound";
+  const glowId = isReturn ? "flight-glow-return" : "flight-glow-outbound";
+
+  // Hem Gidiş hem Dönüş uçuşunda zaman ve hareket SOLDAN SAĞA akar (12 -> 188)
+  // Gidiş: Yukarı bükülen kavis (M 12 38 Q 100 8 188 38)
+  // Dönüş: Aşağı bükülen kavis (M 12 10 Q 100 40 188 10)
+  const pathD = isReturn ? "M 12 12 Q 100 42 188 12" : "M 12 38 Q 100 8 188 38";
+  const startY = isReturn ? 12 : 38;
+  const endY = isReturn ? 12 : 38;
+
+  const mainColor = isReturn ? "#6366f1" : "#3b82f6";
+  const lightColor = isReturn ? "#818cf8" : "#60a5fa";
+
   return (
     <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <Icon size={16} className="text-blue-500" />
+          <Icon size={16} className={isReturn ? "text-indigo-500" : "text-blue-500"} />
           {title}
         </h3>
         <span className="text-xs font-semibold px-2.5 py-1 bg-slate-200 dark:bg-slate-700 rounded-md text-slate-600 dark:text-slate-300">
@@ -48,7 +63,7 @@ function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, depa
         </span>
       </div>
 
-      {/* Zaman çizelgesi: kalkış — süre — varış */}
+      {/* Zaman çizelgesi: kalkış — süre/kavis — varış */}
       <div className="flex items-center gap-3">
         <div className="flex-1 text-center">
           <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">
@@ -59,14 +74,69 @@ function FlightSegment({ title, transfersLabel, departureCity, arrivalCity, depa
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center px-2">
+        {/* Kavisli SVG Yolu & Uçak Animasyonu (Soldan Sağa) */}
+        <div className="flex-1 flex flex-col items-center justify-center relative min-w-[140px] px-1">
           {duration && (
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1">{duration}</span>
+            <div className="z-10 mb-[-4px]">
+              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs bg-white dark:bg-slate-900 border ${
+                isReturn 
+                  ? "text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/80" 
+                  : "text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/80"
+              }`}>
+                {duration}
+              </span>
+            </div>
           )}
-          <div className="w-full flex items-center gap-1">
-            <span className="h-px flex-1 bg-slate-300 dark:bg-slate-600" />
-            <Plane size={14} className="text-blue-400 rotate-90" />
-            <span className="h-px flex-1 bg-slate-300 dark:bg-slate-600" />
+
+          <div className="w-full relative h-12 flex items-center justify-center overflow-visible">
+            <svg viewBox="0 0 200 48" className="w-full h-full overflow-visible">
+              <defs>
+                <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor={mainColor} stopOpacity="0.2" />
+                  <stop offset="50%" stopColor={lightColor} stopOpacity="1" />
+                  <stop offset="100%" stopColor={mainColor} stopOpacity="0.2" />
+                </linearGradient>
+                <filter id={glowId} x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor={lightColor} floodOpacity="0.9" />
+                </filter>
+              </defs>
+
+              {/* Kavisli Kesikli Yolu */}
+              <path
+                id={pathId}
+                d={pathD}
+                fill="none"
+                stroke={`url(#${gradientId})`}
+                strokeWidth="2.5"
+                strokeDasharray="4 4"
+                strokeLinecap="round"
+              />
+
+              {/* Kalkış ve Varış Noktaları */}
+              <circle cx="12" cy={startY} r="3.5" className={isReturn ? "fill-indigo-500" : "fill-blue-500"} />
+              <circle cx="12" cy={startY} r="6" className={isReturn ? "fill-indigo-500/20" : "fill-blue-500/20"} />
+
+              <circle cx="188" cy={endY} r="3.5" className={isReturn ? "fill-indigo-500" : "fill-blue-500"} />
+              <circle cx="188" cy={endY} r="6" className={isReturn ? "fill-indigo-500/20" : "fill-blue-500/20"} />
+
+              {/* Sağa Bakan Uçak İkonu (Soldan Sağa Süzülür) */}
+              <g filter={`url(#${glowId})`}>
+                <path
+                  d="M 10 0 L 3 -2.5 L -2 -9 L -4.5 -9 L -2 -2.5 L -7 -2.5 L -9 -6 L -11 -6 L -9.5 0 L -11 6 L -9 6 L -7 2.5 L -2 2.5 L -4.5 9 L -2 9 L 3 2.5 Z"
+                  fill={mainColor}
+                />
+                <animateMotion
+                  rotate="auto"
+                  dur="2.8s"
+                  repeatCount="indefinite"
+                  calcMode="spline"
+                  keyTimes="0; 1"
+                  keySplines="0.4 0 0.2 1"
+                >
+                  <mpath href={`#${pathId}`} />
+                </animateMotion>
+              </g>
+            </svg>
           </div>
         </div>
 
@@ -109,55 +179,39 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
     }).format(flight.price)
     : `${flight.price} ${flight.currency || 'TRY'}`;
 
-  // Let's create a map for airline colors
-  const airlineLower = (flight.airline || "").toLowerCase();
-  let bgGradient = "from-blue-600 to-sky-400";
-  if (airlineLower.includes("pegasus")) bgGradient = "from-yellow-500 to-red-500";
-  if (airlineLower.includes("ajet") || airlineLower.includes("anadolu")) bgGradient = "from-blue-700 to-blue-900";
-  if (airlineLower.includes("turkish") || airlineLower.includes("thy") || airlineLower.includes("türk")) bgGradient = "from-red-600 to-red-800";
-  if (airlineLower.includes("sunexpress")) bgGradient = "from-blue-500 to-orange-400";
-
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 font-sans w-full relative">
       {/* Header Banner */}
-      <div className="relative h-56 shrink-0 overflow-hidden bg-white">
-        {flight.airline?.toLowerCase()?.includes('ajet') ? (
-          <div className="absolute inset-0 bg-white">
-            <img src="/ajet.png" alt="Ajet" className="w-full h-full object-cover" />
-          </div>
-        ) : flight.airline?.toLowerCase()?.includes('pegasus') ? (
-          <div className="absolute inset-0 bg-white">
-            <img src="/pegasus.png" alt="Pegasus" className="w-full h-full object-cover opacity-90" />
-          </div>
-        ) : (
-          <div className={`absolute inset-0 bg-gradient-to-r ${bgGradient} flex items-center justify-center`}>
-            <Plane size={64} className="opacity-50 text-white" />
-          </div>
-        )}
-
-        {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
+      <div className="relative min-h-[220px] p-6 shrink-0 overflow-hidden bg-gradient-to-br from-[#0B192C] via-[#0F172A] to-[#1E293B] flex flex-col justify-between">
+        {/* Subtle Ambient Light Glows */}
+        <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
 
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full bg-black/40 p-2 text-white hover:bg-black/60 transition-colors cursor-pointer"
+          className="absolute right-4 top-4 z-20 rounded-full bg-white/10 backdrop-blur-md p-2 text-white hover:bg-white/20 transition-colors cursor-pointer border border-white/10"
         >
           <X size={20} />
         </button>
 
-        <div className="absolute bottom-5 left-6 right-6">
-          {!flight.airline?.toLowerCase()?.includes('ajet') && !flight.airline?.toLowerCase()?.includes('pegasus') && (
-            <div className="text-white/90 text-sm font-bold mb-1 tracking-wider uppercase">
-              {flight.airline || t("flight_ticket", "Uçak Bileti")}
-            </div>
-          )}
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white drop-shadow-lg flex items-center gap-3">
-            {bookingDetails?.departureCity || t("reservation_departure", "Gidiş")}
-            <ArrowRight size={32} className="opacity-80" />
-            {bookingDetails?.arrivalCity || t("reservation_arrival", "Varış")}
+        {/* Airline Brand / Logo Header */}
+        <div className="relative z-10 flex items-center justify-between pt-1">
+          <AirlineLogo
+            airline={flight.airline}
+            className="h-10 sm:h-12 w-auto object-contain max-w-[220px]"
+            theme="dark"
+          />
+        </div>
+
+        {/* Glassmorphism Title Area */}
+        <div className="relative z-10 mt-6 backdrop-blur-md bg-[#0F172A]/70 border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl shadow-black/30">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+            <span>{bookingDetails?.departureCity || t("reservation_departure", "Gidiş")}</span>
+            <ArrowRight size={26} className="text-blue-400 shrink-0" />
+            <span>{bookingDetails?.arrivalCity || t("reservation_arrival", "Varış")}</span>
           </h2>
           {flight.transfers && (
-            <div className="mt-1.5 text-white/80 text-xs font-semibold uppercase tracking-wide">
+            <div className="mt-1.5 text-xs font-semibold text-slate-300 uppercase tracking-wide">
               {flight.transfers}
             </div>
           )}
@@ -166,7 +220,6 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-6 space-y-5">
-
         <FlightSegment
           title={t("reservation_departure")}
           transfersLabel={flight.transfers || t("reservation_direct", "Direkt Uçuş")}
@@ -176,6 +229,7 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
           arrivalTime={flight.arrivalTime}
           baggage={flight.baggage}
           icon={Plane}
+          isReturn={false}
         />
 
         {flight.returnDepartureTime && (
@@ -188,6 +242,7 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
             arrivalTime={flight.returnArrivalTime}
             baggage={flight.returnBaggage || flight.baggage}
             icon={ArrowDown}
+            isReturn={true}
           />
         )}
 
@@ -207,7 +262,6 @@ export default function FlightDetailPanel({ flight, bookingDetails, onClose, onP
             )}
           </div>
         )}
-
       </div>
 
       {/* Footer / Action */}
