@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import {
   PanelLeftOpen,
@@ -286,6 +286,7 @@ export default function Index() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Guest users get or reuse a guestSessionId stored in sessionStorage
   const getGuestSessionId = () => {
@@ -303,6 +304,7 @@ export default function Index() {
   const videoRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const autoSendHandledRef = useRef(false);
 
   const email = user?.email || localStorage.getItem('userId') || sessionStorage.getItem('userId') || "";
   const profileFullNameForGreeting = user && (user.firstName || user.lastName)
@@ -429,19 +431,32 @@ export default function Index() {
       };
       loadHistory();
     } else {
-      setMessages([]);
-      setIsChatActive(false);
-      setHasValidSearch(false);
-      setIsRightSidebarOpen(false);
-      setSearchType("hotel");
-      setBookingDetails({ city: "", departureCity: "", arrivalCity: "", checkIn: "", checkOut: "", guests: "", adultCount: 1, childCount: 0, childAges: [], infantCount: 0, infantAges: [], passengerCount: 1, hotelName: "", airline: "", price: "", returnDate: "" });
-      setSelectedHotel(null);
-      setSelectedFlight(null);
-      if (location.state?.initialPrompt) {
-        setSearchQuery(location.state.initialPrompt);
+      if (!location.state?.initialPrompt) {
+        setMessages([]);
+        setIsChatActive(false);
+        setHasValidSearch(false);
+        setIsRightSidebarOpen(false);
+        setSearchType("hotel");
+        setSelectedHotel(null);
+        setSelectedFlight(null);
       }
     }
   }, [sessionId]);
+
+  // Welcome sayfasından veya başka bir sayfadan aktarılan initialPrompt ve autoSend mantığı
+  useEffect(() => {
+    if (location.state?.initialPrompt && !autoSendHandledRef.current) {
+      const prompt = location.state.initialPrompt;
+      const shouldAutoSend = location.state.autoSend;
+      autoSendHandledRef.current = true;
+      setSearchQuery(prompt);
+      navigate(location.pathname + location.search, { replace: true, state: {} });
+
+      if (shouldAutoSend) {
+        handleSend(prompt);
+      }
+    }
+  }, [location.state]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -464,11 +479,11 @@ export default function Index() {
     return "greeting_night";
   };
 
-  // --- Yeni Mesaj GÃ¶nderme ve bookingMeta GÃ¼ncelleme ---
-  const handleSend = async () => {
-    if (!searchQuery.trim()) return;
+  // --- Yeni Mesaj Gönderme ve bookingMeta Güncelleme ---
+  const handleSend = async (overridePrompt) => {
+    const query = typeof overridePrompt === "string" ? overridePrompt.trim() : searchQuery.trim();
+    if (!query) return;
 
-    const query = searchQuery;
     const userMsg = { id: Date.now(), text: query, sender: "user" };
 
     setMessages(prev => [...prev, userMsg]);

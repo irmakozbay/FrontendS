@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   PanelLeftOpen,
   Hotel,
@@ -83,6 +83,7 @@ export default function PastAppointments() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedAppt, setSelectedAppt] = useState(null);
@@ -187,6 +188,19 @@ export default function PastAppointments() {
       );
 
       setAppointments(mappedReservations);
+
+      const targetPnr = location.state?.highlightPnr;
+      if (targetPnr) {
+        const found = mappedReservations.find(
+          (a) =>
+            String(a.resNumber).toLowerCase() === String(targetPnr).toLowerCase() ||
+            String(a.pnrCode).toLowerCase() === String(targetPnr).toLowerCase() ||
+            String(a.id).toLowerCase() === String(targetPnr).toLowerCase()
+        );
+        if (found) {
+          setSelectedAppt(found);
+        }
+      }
     } catch (error) {
       console.error("Rezervasyonlar yüklenirken hata oluştu:", error);
       setAppointments([]);

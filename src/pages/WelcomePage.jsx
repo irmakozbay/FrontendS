@@ -78,8 +78,10 @@ export default function WelcomePage() {
     }
   };
 
-  // Auto-scroll Timer (3.5 seconds) with Pause control
+  // Auto-scroll Timer (3.5 seconds) with Pause control (DISABLED)
   useEffect(() => {
+    // Autoscroll disabled as requested
+    /*
     if (isPaused) return;
 
     const timer = setInterval(() => {
@@ -88,12 +90,14 @@ export default function WelcomePage() {
     }, 3500);
 
     return () => clearInterval(timer);
+    */
   }, [isPaused, sections.length]);
 
   const handleStartSearch = (e) => {
     e?.preventDefault();
+    if (!searchQuery.trim()) return;
     continueAsGuest();
-    navigate('/chat', { state: { initialPrompt: searchQuery } });
+    navigate('/chat', { state: { initialPrompt: searchQuery.trim(), autoSend: true } });
   };
 
   const handleGuestEntry = () => {
