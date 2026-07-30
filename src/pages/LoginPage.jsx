@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Sun, Moon, User as UserIcon, ArrowLeft } from 'lucide-react';
+import { Sun, Moon, User as UserIcon, ArrowLeft, ShieldCheck } from 'lucide-react';
 import SannyLogo from '../components/SannyLogo';
 import LanguageSelector from '../components/LanguageSelector';
 import api from '../services/api';
@@ -36,6 +36,13 @@ export default function LoginPage() {
   const [socialLoading, setSocialLoading] = useState(false);
   const [socialError, setSocialError] = useState('');
 
+  // 2FA state
+  const [isTwoFactorMode, setIsTwoFactorMode] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  const [verificationLoading, setVerificationLoading] = useState(false);
+
   const rememberMeRef = useRef(rememberMe);
 
   useEffect(() => {
@@ -63,6 +70,11 @@ export default function LoginPage() {
             setSocialError('');
             console.log("Google ID Token Başarıyla Alındı, backend'e gönderiliyor...");
             const data = await handleOAuthLogin('google', credential, rememberMeRef.current);
+            if (data && data.twoFactorRequired) {
+              setIsTwoFactorMode(true);
+              setTwoFactorToken(data.tempToken);
+              return;
+            }
             if (data && data.token) {
               login(data.user, data.token, rememberMeRef.current);
             }
@@ -133,6 +145,12 @@ export default function LoginPage() {
     try {
       const response = await api.post('/api/auth/login', { email, password });
       const data = response.data;
+
+      if (data.twoFactorRequired) {
+        setIsTwoFactorMode(true);
+        setTwoFactorToken(data.tempToken);
+        return;
+      }
 
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
@@ -205,6 +223,11 @@ export default function LoginPage() {
       }
 
       const data = await handleOAuthLogin('google', idToken, rememberMe);
+      if (data && data.twoFactorRequired) {
+        setIsTwoFactorMode(true);
+        setTwoFactorToken(data.tempToken);
+        return;
+      }
       if (data && data.token) {
         login(data.user, data.token, rememberMe);
       }
@@ -219,6 +242,36 @@ export default function LoginPage() {
       }
     } finally {
       setSocialLoading(false);
+    }
+  }
+
+  async function handleTwoFactorSubmit(e) {
+    e.preventDefault();
+    if (verificationCode.length !== 6) return;
+
+    try {
+      setVerificationLoading(true);
+      setVerificationError('');
+
+      const response = await api.post('/api/auth/verify-2fa', {
+        tempToken: twoFactorToken,
+        code: verificationCode
+      });
+      const data = response.data;
+
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+
+      login(data.user, data.token, rememberMe);
+      navigate('/chat');
+    } catch (err) {
+      console.error('2FA verification error:', err);
+      setVerificationError(err.response?.data?.message || "Doğrulama kodu geçersiz veya süresi dolmuş.");
+    } finally {
+      setVerificationLoading(false);
     }
   }
 
@@ -372,13 +425,66 @@ export default function LoginPage() {
             </button>
           </form>
         ) : (
-          /* NORMAL KULLANICI GİRİŞ FORMU */
-          <form onSubmit={handleUserSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-2.5">
-            {/* Email */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="email" className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-3">
-                {t('email_label')}
-              </label>
+          /* NORMAL KULLANICI GİRİŞ FORMU VEYA 2FA FORMU */
+          isTwoFactorMode ? (
+            <form onSubmit={handleTwoFactorSubmit} className="flex flex-col gap-3 font-sans">
+              <div className="flex flex-col gap-1.5 text-center px-2">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f07c24]/10 text-[#f07c24] mb-3">
+                  <ShieldCheck size={28} />
+                </div>
+                <h3 className="text-[17px] font-bold text-slate-900 dark:text-white">
+                  Güvenlik Doğrulaması
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Lütfen e-posta adresinize gönderilen 6 haneli doğrulama kodunu giriniz.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1 mt-2">
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={(e) => {
+                    setVerificationCode(e.target.value.replace(/\D/g, ''));
+                    setVerificationError('');
+                  }}
+                  placeholder="Doğrulama Kodu (Örn: 123456)"
+                  className="w-full bg-slate-100 dark:bg-slate-800/90 border border-slate-350 dark:border-slate-700 rounded-full py-2.5 text-center text-lg font-bold tracking-[8px] placeholder:tracking-normal text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
+                />
+                {verificationError && (
+                  <p className="text-[12px] text-red-500 text-center mt-1 font-semibold">{verificationError}</p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={verificationLoading || verificationCode.length !== 6}
+                className="w-full bg-primary hover:bg-[#f07c24]/90 active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-white font-bold py-2.5 rounded-full transition-all duration-300 shadow-md hover:shadow-primary/30 mt-3 text-[15px]"
+              >
+                {verificationLoading ? 'Doğrulanıyor...' : 'Kodu Doğrula ve Giriş Yap'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTwoFactorMode(false);
+                  setTwoFactorToken('');
+                  setVerificationCode('');
+                  setVerificationError('');
+                }}
+                className="text-center text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200 mt-2 hover:underline cursor-pointer"
+              >
+                Giriş Ekranına Geri Dön
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleUserSubmit} onKeyDown={handleFormKeyDown} className="flex flex-col gap-2.5">
+              {/* Email */}
+              <div className="flex flex-col gap-1">
+                <label htmlFor="email" className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-3">
+                  {t('email_label')}
+                </label>
               <div className="relative flex items-center">
                 <div className="absolute left-4 text-slate-400 dark:text-slate-500 pointer-events-none">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -515,10 +621,11 @@ export default function LoginPage() {
               </div>
             </div>
           </form>
-        )}
+        )
+      )}
 
         {/* ALT ALAN (Kayıt ol & Admin olarak giriş yap) */}
-        {!isAdminMode && (
+        {!isAdminMode && !isTwoFactorMode && (
           <div className="mt-4 text-center flex flex-col gap-2">
             <p className="text-[14px] text-slate-600 dark:text-slate-300">
               {t('no_account')}{' '}
