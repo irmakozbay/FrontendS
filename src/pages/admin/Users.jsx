@@ -77,13 +77,14 @@ export default function Users() {
         })
             .then(res => {
                 if (res.data) {
+                    const isUserActive = res.data.isActive !== undefined ? res.data.isActive : (res.data.active !== undefined ? res.data.active : (res.data.status === "active"));
                     setUsers((currentUsers) =>
                         Array.isArray(currentUsers) ? currentUsers.map((user) =>
                             user.id === id
                                 ? {
                                     ...user,
-                                    status: res.data.isActive ? "active" : "inactive",
-                                    isActive: res.data.isActive
+                                    status: isUserActive ? "active" : "inactive",
+                                    isActive: isUserActive
                                 }
                                 : user
                         ) : []
