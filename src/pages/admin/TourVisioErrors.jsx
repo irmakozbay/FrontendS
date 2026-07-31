@@ -75,6 +75,34 @@ export default function TourVisioErrors() {
         }
     };
 
+    // Error Resolution Suggestion Helper
+    const getErrorResolutionSuggestion = (log) => {
+        if (log.success) return null;
+        
+        const statusCode = log.statusCode;
+        const errMsg = (log.errorMessage || "").toLowerCase();
+        
+        if (statusCode === 401 || errMsg.includes("unauthorized") || errMsg.includes("invalid token")) {
+            return "Kimlik doğrulama hatası (401). TourVisio API token'ının süresi dolmuş veya hatalı olabilir. Lütfen 'start-local.ps1' dosyasındaki TOURVISIO_USERNAME ve TOURVISIO_PASSWORD bilgilerini doğrulayın.";
+        }
+        if (statusCode === 403) {
+            return "Yetki erişim hatası (403). Kullandığınız acente kodu (TOURVISIO_AGENCY) veya kullanıcının bu işlemi gerçekleştirmek için yetkisi bulunmuyor. Acente yetkilendirmelerini kontrol edin.";
+        }
+        if (statusCode === 404) {
+            return "Kaynak bulunamadı hatası (404). İstek yapılan servis adresi hatalı veya sorgulanan otel/uçuş verileri TourVisio tarafında mevcut değil. URI yolunu kontrol edin.";
+        }
+        if (statusCode === 504 || errMsg.includes("timeout") || errMsg.includes("sockettimeoutexception")) {
+            return "Zaman aşımı hatası (504/Timeout). TourVisio API sunucusu belirlenen sürede yanıt vermedi. İnternet bağlantısını kontrol edin veya 'application.properties' dosyasındaki read-timeout süresini yükseltin.";
+        }
+        if (errMsg.includes("connection refused") || errMsg.includes("connectexception") || errMsg.includes("unknownhostexception")) {
+            return "Bağlantı hatası (Connection Refused). TourVisio dış sunucusuna erişilemiyor. İnternet bağlantınızı veya 'TOURVISIO_BASE_URL' adresinin aktifliğini kontrol edin.";
+        }
+        if (statusCode >= 500) {
+            return "Dış sunucu hatası (500). TourVisio API sisteminde içsel bir problem oluştu. İstek parametrelerini veya JSON/XML gövdesini (Request Body) kontrol edin; geçersiz biçimlendirilmiş veriler sunucu hatasına yol açıyor olabilir.";
+        }
+        return "Bilinmeyen entegrasyon hatası. İstek gövdesinde gönderilen verilerle yanıt parametrelerinin (Request/Response) yapısını inceleyin.";
+    };
+
     // Latency Color Helper
     const getLatencyColor = (ms) => {
         if (ms < 350) return "text-emerald-500";
@@ -276,14 +304,26 @@ export default function TourVisioErrors() {
                                                                 <div className="space-y-4">
                                                                     {/* 1. Error Message Section (only if unsuccessful) */}
                                                                     {!log.success && (
-                                                                        <div className="space-y-2 border-l-2 border-rose-500 pl-4">
-                                                                            <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                                                                                <AlertTriangle size={14} />
-                                                                                Entegrasyon Hata Ayrıntısı
-                                                                            </h4>
-                                                                            <p className="font-mono text-[10px] text-gray-700 dark:text-slate-350 whitespace-pre-wrap leading-relaxed">
-                                                                                {log.errorMessage || "Detaylı hata mesajı bulunmuyor."}
-                                                                            </p>
+                                                                        <div className="space-y-3">
+                                                                            <div className="space-y-2 border-l-2 border-rose-500 pl-4">
+                                                                                <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                                                                                    <AlertTriangle size={14} />
+                                                                                    Entegrasyon Hata Ayrıntısı
+                                                                                </h4>
+                                                                                <p className="font-mono text-[10px] text-gray-700 dark:text-slate-350 whitespace-pre-wrap leading-relaxed">
+                                                                                    {log.errorMessage || "Detaylı hata mesajı bulunmuyor."}
+                                                                                </p>
+                                                                            </div>
+
+                                                                            <div className="space-y-2 border-l-2 border-amber-500 bg-amber-500/5 p-3.5 rounded-r-xl pl-4">
+                                                                                <h4 className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                                                                    <CheckCircle2 size={14} className="text-amber-500" />
+                                                                                    Önerilen Çözüm Adımı
+                                                                                </h4>
+                                                                                <p className="text-[10.5px] text-gray-700 dark:text-slate-300 leading-relaxed font-semibold">
+                                                                                    {getErrorResolutionSuggestion(log)}
+                                                                                </p>
+                                                                            </div>
                                                                         </div>
                                                                     )}
 
