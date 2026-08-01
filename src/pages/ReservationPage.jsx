@@ -1403,7 +1403,6 @@ export default function ReservationPage() {
                                                                 </div>
                                                             </div>
 
-<<<<<<< HEAD
                                                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                                     <div>
                                                                         <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1471,77 +1470,7 @@ export default function ReservationPage() {
                                                                             </span>
                                                                         )}
                                                                     </div>
-=======
-                                                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                                <div>
-                                                                    <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">
-                                                                        {t("reservation_gender", "Cinsiyet")}
-                                                                    </label>
-                                                                    <select
-                                                                        required
-                                                                        value={
-                                                                            passenger.gender || "MR"
-                                                                        }
-                                                                        onChange={(
-                                                                            event
-                                                                        ) =>
-                                                                            handlePassengerChange(
-                                                                                index,
-                                                                                "gender",
-                                                                                event.target
-                                                                                    .value
-                                                                            )
-                                                                        }
-                                                                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-                                                                    >
-                                                                        <option value="MR">
-                                                                            {i18n.language?.startsWith("tr") ? "Erkek" : "Mr"}
-                                                                        </option>
-                                                                        <option value="MRS">
-                                                                            {i18n.language?.startsWith("tr") ? "Kadın" : "Mrs"}
-                                                                        </option>
-                                                                    </select>
->>>>>>> 2f719330653cd4260363c20e1f1911706d1a8da5
                                                                 </div>
-
-                                                                <div>
-                                                                    <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                                                        Doğum Tarihi
-                                                                    </label>
-                                                                    <input
-                                                                        required
-                                                                        type="date"
-                                                                        max={new Date()
-                                                                            .toISOString()
-                                                                            .split("T")[0]}
-                                                                        value={
-                                                                            passenger.birthDate ||
-                                                                            ""
-                                                                        }
-                                                                        onChange={(
-                                                                            event
-                                                                        ) =>
-                                                                            handlePassengerChange(
-                                                                                index,
-                                                                                "birthDate",
-                                                                                event.target
-                                                                                    .value
-                                                                            )
-                                                                        }
-                                                                        className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus:outline-none dark:bg-slate-900 dark:text-white ${errors.birthDate
-                                                                            ? "border-red-500 ring-1 ring-red-500"
-                                                                            : "border-slate-300 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/50 dark:border-slate-800"
-                                                                            }`}
-                                                                    />
-                                                                    {errors.birthDate && (
-                                                                        <span className="mt-1 block text-[10px] font-medium text-red-500">
-                                                                            {
-                                                                                errors.birthDate
-                                                                            }
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
 
                                                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                                 <div>
