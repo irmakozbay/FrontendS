@@ -85,7 +85,7 @@ export default function PastAppointments() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [selectedAppt, setSelectedAppt] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -410,17 +410,17 @@ export default function PastAppointments() {
           </button>
         )}
 
-        <div className="relative z-20 mx-auto w-full max-w-4xl flex-1 animate-fade-in p-6 md:p-10">
-          <div className="mb-8">
-            <h1 className="mb-2 text-3xl font-bold text-[#0F172A] dark:text-slate-100">
+        <div className="relative z-20 mx-auto w-full max-w-4xl flex-1 animate-fade-in p-3 pt-16 sm:p-6 md:p-10">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="mb-2 text-2xl sm:text-3xl font-bold text-[#0F172A] dark:text-slate-100">
               {t("past_appointments_title", "Geçmiş Randevular")}
             </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
               {t("past_appointments_desc", "Geçmiş otel, uçuş ve transfer rezervasyonlarınızı görüntüleyin ve yönetin.")}
             </p>
           </div>
 
-          <div className="relative ml-6 space-y-6 border-l-2 border-slate-200 py-2 pl-8 dark:border-slate-800">
+          <div className="relative ml-2 sm:ml-6 space-y-6 border-l-2 border-slate-200 py-2 pl-4 sm:pl-8 dark:border-slate-800">
             {/* Filter Dropdown */}
             <div className="absolute -left-[20px] top-0 z-30">
               <button

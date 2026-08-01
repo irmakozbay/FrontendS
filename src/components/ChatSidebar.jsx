@@ -150,17 +150,38 @@ export default function ChatSidebar({
     : null;
   const displayUsername = profileFullName || (username.includes('@') ? username.split('@')[0] : username);
 
+  const closeMobileSidebar = () => {
+    setIsOpen(false);
+  };
+
+  const handleNav = (path, callback) => {
+    if (path) navigate(path);
+    if (callback) callback();
+    closeMobileSidebar();
+  };
+
   return (
-    <div
-      className={`h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 overflow-hidden relative z-30 ${isOpen ? 'w-[340px]' : 'w-0 border-r-0'
-        }`}
-    >
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-40 animate-fade-in"
+          aria-hidden="true"
+        />
+      )}
+
+      <div
+        className={`h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 overflow-hidden 
+          fixed md:relative left-0 top-0 z-50 md:z-30 shadow-2xl md:shadow-none
+          ${isOpen ? 'w-[85%] sm:w-[320px] md:w-[340px] translate-x-0' : 'w-0 -translate-x-full md:translate-x-0 border-r-0'}
+        `}
+      >
       {/* 1. Top Row (Logo Alanı) */}
       <div className="p-4 flex items-center justify-between border-b border-transparent">
         <button
           onClick={() => {
-            navigate('/chat');
-            if (onNewChat) onNewChat();
+            handleNav('/chat', onNewChat);
           }}
           className="flex items-center gap-1.5 select-none focus:outline-none cursor-pointer text-left hover:opacity-90 active:scale-95 transition-all"
           title={t('sidebar_new_chat')}
@@ -173,7 +194,6 @@ export default function ChatSidebar({
         </button>
         <button
           onClick={() => setIsOpen(false)}
-          // YENİ: hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400
           className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 focus:outline-none cursor-pointer"
           title="Collapse Sidebar"
         >
@@ -186,8 +206,7 @@ export default function ChatSidebar({
         <button
           onClick={() => {
             sessionStorage.removeItem('guestSessionId');
-            navigate('/chat');
-            if (onNewChat) onNewChat();
+            handleNav('/chat', onNewChat);
           }}
           className="flex items-center gap-1.5 text-[#0B5FFF] dark:text-[#3b82f6] hover:text-[#0B5FFF]/80 dark:hover:text-[#3b82f6]/80 hover:underline text-sm font-semibold transition-all duration-150 focus:outline-none cursor-pointer"
         >
@@ -208,7 +227,7 @@ export default function ChatSidebar({
               placeholder={t('sidebar_search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => navigate('/chat/search')}
+              onFocus={() => handleNav('/chat/search')}
               className="w-full bg-transparent pl-7 pr-2 py-1.5 text-sm text-text-primary dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none transition-all cursor-pointer"
             />
           </div>
@@ -222,7 +241,7 @@ export default function ChatSidebar({
         </div>
         <nav className="flex flex-col gap-1 p-2">
           <button
-            onClick={() => navigate('/chat')}
+            onClick={() => handleNav('/chat')}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none cursor-pointer ${isChatActive
               ? 'bg-slate-100 dark:bg-slate-800 text-primary dark:text-blue-400'
               : 'text-text-secondary dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-text-primary dark:hover:text-slate-200'
@@ -235,7 +254,7 @@ export default function ChatSidebar({
           {/* Misafirler için Randevular gizli */}
           {!isGuest && (
             <button
-              onClick={() => navigate('/past-reservations')}
+              onClick={() => handleNav('/past-reservations')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none cursor-pointer ${isAppointmentsActive
                 ? 'bg-slate-100 dark:bg-slate-800 text-primary dark:text-blue-400'
                 : 'text-text-secondary dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-text-primary dark:hover:text-slate-200'
@@ -262,7 +281,7 @@ export default function ChatSidebar({
                 return (
                   <div
                     key={session.id}
-                    onClick={() => navigate(`/chat?sessionId=${session.id}`)}
+                    onClick={() => handleNav(`/chat?sessionId=${session.id}`)}
                     className="p-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-800 group relative flex flex-col gap-1"
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -303,7 +322,7 @@ export default function ChatSidebar({
       <div className="p-3 flex items-center justify-between gap-1">
         {/* Profil alanı: misafirler için /login yönlendirmesi */}
         <div
-          onClick={() => navigate(isGuest ? '/login' : '/profile')}
+          onClick={() => handleNav(isGuest ? '/login' : '/profile')}
           className={`flex items-center gap-2.5 cursor-pointer p-1.5 rounded-lg transition-colors min-w-0 flex-1 ${!isGuest && location.pathname === '/profile'
               ? 'bg-slate-100 dark:bg-slate-800'
               : 'hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
@@ -346,7 +365,7 @@ export default function ChatSidebar({
         {/* Ayarlar Butonu — Misafirlere gösterilmez */}
         {!isGuest && (
           <button
-            onClick={() => navigate('/settings')}
+            onClick={() => handleNav('/settings')}
             className={`p-2 rounded-lg transition-colors focus:outline-none flex-shrink-0 ${location.pathname === '/settings'
               ? 'bg-slate-100 dark:bg-slate-800 text-primary dark:text-orange-400'
               : 'text-text-secondary dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary dark:hover:text-orange-400'
@@ -407,6 +426,7 @@ export default function ChatSidebar({
         </div>,
         document.body
       )}
-    </div>
+      </div>
+    </>
   );
 }
