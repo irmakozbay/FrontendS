@@ -191,11 +191,11 @@ export default function ReservationPreviewModal({
             aria-labelledby="reservation-preview-title"
         >
             <div className="flex h-full w-full flex-col overflow-hidden">
-                <div className="flex flex-shrink-0 items-start justify-between border-b border-slate-200 bg-white px-7 py-4 dark:border-slate-800 dark:bg-slate-900 md:px-10">
+                <div className="flex flex-shrink-0 items-start justify-between border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-7 md:px-10">
                     <div>
                         <h2
                             id="reservation-preview-title"
-                            className="text-[28px] font-bold leading-tight text-slate-900 dark:text-white md:text-[30px]"
+                            className="text-xl font-bold leading-tight text-slate-900 dark:text-white sm:text-2xl md:text-[30px]"
                         >
                             {isEditMode
                                 ? t("res_preview_edit_title", "Güncelleme Önizlemesi")
@@ -204,7 +204,7 @@ export default function ReservationPreviewModal({
                                     : t("res_preview_title", "Rezervasyon Önizlemesi")}
                         </h2>
 
-                        <p className="mt-1.5 text-base text-slate-500 dark:text-slate-400">
+                        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                             {t("res_preview_desc", "Lütfen bilgileri kontrol ederek işlemi onaylayın.")}
                         </p>
                     </div>
@@ -220,7 +220,7 @@ export default function ReservationPreviewModal({
                     </button>
                 </div>
 
-                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-7 py-5 md:px-10">
+                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-7 sm:py-5 md:px-10">
                     <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950/40">
                         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                             <div>

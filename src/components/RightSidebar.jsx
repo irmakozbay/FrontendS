@@ -11,7 +11,9 @@ import {
   Hotel,
   Plane,
   Moon,
+  PanelLeftOpen,
   PanelRightClose,
+  X,
   Plus,
   Minus,
   Smile,
@@ -462,6 +464,8 @@ function Stepper({ currentStep, setCurrentStep, t }) {
 export default function RightSidebar({
   isRightSidebarOpen,
   setIsRightSidebarOpen,
+  isSidebarOpen,
+  setIsSidebarOpen,
   searchType,
   bookingDetails = {},
   selectedHotel,
@@ -1090,71 +1094,85 @@ export default function RightSidebar({
       });
 
   return (
-    <aside className="relative z-30 hidden h-full w-[420px] min-w-[420px] max-w-[420px] flex-none overflow-hidden border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:flex">
-      <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-white dark:bg-slate-900">
-        {/* Üst bölüm sabit kalır; panel kaydırıldığında kaybolmaz. */}
-        <div className="flex-shrink-0 border-b border-slate-100 bg-white px-6 pb-4 pt-5 dark:border-slate-800 dark:bg-slate-900">
-          <div className="mb-4 flex items-center justify-end">
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isRightSidebarOpen && (
+        <div
+          onClick={() => setIsRightSidebarOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-40 animate-fade-in"
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`fixed lg:relative inset-0 sm:left-auto sm:right-0 z-50 lg:z-30 h-full w-full sm:w-[450px] lg:w-[420px] lg:min-w-[420px] lg:max-w-[420px] flex-none overflow-hidden border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-2xl lg:shadow-none transition-all duration-300 ${
+        isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0 hidden lg:flex"
+      }`}>
+        <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-white dark:bg-slate-900">
+          {/* Üst bölüm sabit kalır; panel kaydırıldığında kaybolmaz. */}
+          <div className="flex-shrink-0 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 sticky top-0 z-20">
+            <div className="flex items-center justify-between gap-2">
+              {/* Title & Badge */}
+              <div className="flex items-center gap-2 min-w-0">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">
+                  {t("rightSidebar.title", {
+                    defaultValue: "Rezervasyon Özeti",
+                  })}
+                </h2>
+                <span className="flex-shrink-0 px-2 py-0.5 text-xs font-semibold bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-full">
+                  {currentStep}/2
+                </span>
+              </div>
+
+              {/* Single Close Button on Mobile/Drawer */}
+              <button
+                type="button"
+                onClick={() => setIsRightSidebarOpen(false)}
+                className="p-1.5 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Paneli kapat"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mt-3 h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div
+                className="h-full rounded-full bg-[#FF8A00] transition-all duration-300 dark:bg-orange-500"
+                style={{
+                  width: `${(currentStep / 2) * 100}%`,
+                }}
+              />
+            </div>
+
+            <div className="mt-3">
+              <Stepper
+                currentStep={currentStep}
+                setCurrentStep={setCurrentStep}
+                t={t}
+              />
+            </div>
+          </div>
+
+          {/* Sadece adım içeriği kaydırılır. */}
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-6 py-4 pb-20 lg:pb-5">
+            {currentStep === 1 &&
+              renderSelectionStep()}
+
+            {currentStep === 2 &&
+              renderReviewStep()}
+          </div>
+
+          <div className="flex-shrink-0 border-t border-slate-100 bg-white px-4 sm:px-6 py-4 dark:border-slate-800 dark:bg-slate-900">
             <button
               type="button"
-              onClick={() => setIsRightSidebarOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
-              title={t("rightSidebar.closePanel", {
-                defaultValue: "Paneli kapat",
-              })}
+              onClick={handleNext}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF8A00] px-4 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(255,138,0,0.28)] transition hover:bg-[#E87900] active:scale-[0.99] dark:bg-orange-500 dark:hover:bg-orange-600 cursor-pointer"
             >
-              <PanelRightClose size={17} />
+              {buttonText}
+              <ChevronRight size={16} />
             </button>
           </div>
-
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-xl font-extrabold tracking-tight text-slate-950 dark:text-white">
-              {t("rightSidebar.title", {
-                defaultValue: "Rezervasyon Özeti",
-              })}
-            </h1>
-
-            <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-[#FF8A00] dark:bg-orange-500/10 dark:text-orange-400">
-              {currentStep}/2
-            </span>
-          </div>
-
-          <div className="mb-5 h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-            <div
-              className="h-full rounded-full bg-[#FF8A00] transition-all duration-300 dark:bg-orange-500"
-              style={{
-                width: `${(currentStep / 2) * 100}%`,
-              }}
-            />
-          </div>
-
-          <Stepper
-            currentStep={currentStep}
-            setCurrentStep={setCurrentStep}
-            t={t}
-          />
         </div>
-
-        {/* Sadece adım içeriği kaydırılır. */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-          {currentStep === 1 &&
-            renderSelectionStep()}
-
-          {currentStep === 2 &&
-            renderReviewStep()}
-        </div>
-
-        <div className="flex-shrink-0 border-t border-slate-100 bg-white px-6 py-5 dark:border-slate-800 dark:bg-slate-900">
-          <button
-            type="button"
-            onClick={handleNext}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF8A00] px-4 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(255,138,0,0.28)] transition hover:bg-[#E87900] active:scale-[0.99] dark:bg-orange-500 dark:hover:bg-orange-600 cursor-pointer"
-          >
-            {buttonText}
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }
