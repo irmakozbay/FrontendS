@@ -5,6 +5,7 @@ import {
     ArrowLeft,
     CheckCircle2,
     User,
+    Smile,
     Baby,
     Mail,
     Phone,
@@ -309,8 +310,10 @@ export default function ReservationPreviewModal({
                                     >
                                         <div className="flex items-start gap-3">
                                             <div className="rounded-xl bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-                                                {isBabyOrChild ? (
-                                                    <Baby size={18} />
+                                                {passenger.type === "CHILD" || pTypeLabel === t("res_preview_child", "Çocuk") ? (
+                                                    <Smile size={18} className="text-emerald-600 dark:text-emerald-400" />
+                                                ) : passenger.type === "INFANT" || pTypeLabel === t("unit_infant", "Bebek") ? (
+                                                    <Baby size={18} className="text-amber-600 dark:text-amber-400" />
                                                 ) : (
                                                     <User size={18} />
                                                 )}

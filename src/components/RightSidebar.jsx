@@ -14,6 +14,7 @@ import {
   PanelRightClose,
   Plus,
   Minus,
+  Smile,
   Baby,
   Star,
   Heart,
@@ -338,7 +339,7 @@ function GuestSelector({
       {childCount > 0 && (
         <div className="mt-1 border-t border-slate-200 pt-3 dark:border-slate-700">
           <div className="mb-3 flex items-center gap-2">
-            <Baby
+            <Smile
               size={16}
               className="text-[#FF8A00] dark:text-orange-400"
             />

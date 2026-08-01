@@ -8,6 +8,7 @@ import {
     MailCheck,
     Download,
     User,
+    Smile,
     Baby,
     Mail,
     Phone,
@@ -93,6 +94,40 @@ function toDateOnly(value) {
     return date.toISOString().slice(0, 10);
 }
 
+function getBirthDateMinMax(passenger, index) {
+    const today = new Date();
+    const formatDateStr = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+    };
+
+    if (index === 0) {
+        const maxDate = new Date();
+        maxDate.setFullYear(today.getFullYear() - 18);
+        return { max: formatDateStr(maxDate), min: "1900-01-01" };
+    }
+
+    if (passenger.type === "INFANT") {
+        const minDate = new Date();
+        minDate.setFullYear(today.getFullYear() - 2);
+        return { max: formatDateStr(today), min: formatDateStr(minDate) };
+    }
+
+    if (passenger.type === "CHILD") {
+        const minDate = new Date();
+        minDate.setFullYear(today.getFullYear() - 18);
+        const maxDate = new Date();
+        maxDate.setFullYear(today.getFullYear() - 2);
+        return { max: formatDateStr(maxDate), min: formatDateStr(minDate) };
+    }
+
+    const maxDate = new Date();
+    maxDate.setFullYear(today.getFullYear() - 12);
+    return { max: formatDateStr(maxDate), min: "1900-01-01" };
+}
+
 function getPassengerErrors(passenger, index = 0) {
     const errors = {};
     const isPrimaryContact = index === 0;
@@ -126,13 +161,34 @@ function getPassengerErrors(passenger, index = 0) {
         errors.birthDate = "Doğum tarihi gereklidir.";
     } else {
         const birthDate = new Date(passenger.birthDate);
-        if (birthDate >= new Date()) {
+        const today = new Date();
+        if (birthDate >= today) {
             errors.birthDate = "Doğum tarihi geçmişte olmalıdır.";
-        } else if (isPrimaryContact) {
-            const eighteenYearsAgo = new Date();
-            eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
-            if (birthDate > eighteenYearsAgo) {
-                errors.birthDate = "Rezervasyonu yapan kişi 18 yaşından büyük olmalıdır.";
+        } else {
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (isPrimaryContact && age < 18) {
+                errors.birthDate = "Rezervasyonu yapan kişi 18 yaşından büyük (veya en az 18 yaşında) olmalıdır.";
+            } else if (passenger.type === "CHILD") {
+                if (age >= 18) {
+                    errors.birthDate = "Çocuk yolcu doğum tarihi 18 yaşından küçük olmalıdır (2-17 yaş arası).";
+                } else if (age < 2) {
+                    errors.birthDate = "Çocuk yolcu en az 2 yaşında olmalıdır (0-2 yaş arası bebek kategorisindedir).";
+                } else if (passenger.age && Math.abs(age - parseInt(passenger.age, 10)) > 1) {
+                    errors.birthDate = `Çocuk doğum tarihi aramadaki yaşla (${passenger.age} yaş) uyumlu olmalıdır.`;
+                }
+            } else if (passenger.type === "INFANT") {
+                if (age >= 2) {
+                    errors.birthDate = "Bebek yolcu 2 yaşından küçük olmalıdır (0-2 yaş arası / 0-24 ay).";
+                } else if (passenger.age && Math.abs(age - parseInt(passenger.age, 10)) > 1) {
+                    errors.birthDate = `Bebek doğum tarihi aramadaki yaşla (${passenger.age} yaş) uyumlu olmalıdır.`;
+                }
+            } else if (passenger.type === "ADULT" && !isPrimaryContact && age < 12) {
+                errors.birthDate = "Yetişkin yolcu en az 12 yaşında olmalıdır.";
             }
         }
     }
@@ -338,58 +394,45 @@ export default function ReservationPage() {
             editData?.passengers?.length ||
             1
         )
-        : isFlight
-            ? parseInt(
-                bookingDetails?.passengerCount,
-                10
-            ) || 1
-            : parseInt(
-                bookingDetails?.adultCount,
-                10
-            ) || 1;
+        : parseInt(
+            bookingDetails?.adultCount,
+            10
+        ) || parseInt(
+            bookingDetails?.passengerCount,
+            10
+        ) || 1;
 
     const childCount = isEditMode
         ? (editData?.passengers || []).filter(
             (passenger) =>
                 passenger.type === "CHILD"
         ).length
-        : isFlight
-            ? 0
-            : parseInt(
-                bookingDetails?.childCount,
-                10
-            ) || 0;
+        : parseInt(
+            bookingDetails?.childCount,
+            10
+        ) || 0;
 
     const childAges = useMemo(
-        () =>
-            isFlight
-                ? []
-                : bookingDetails?.childAges || [],
-        [isFlight, bookingDetails?.childAges]
+        () => bookingDetails?.childAges || [],
+        [bookingDetails?.childAges]
     );
 
     // Bebekler için de yolcu formu alanı açılmalı — aksi hâlde "2 yetişkin 1 bebek"
     // ile arama yapılıp rezervasyona geçildiğinde bebek sessizce yolcu listesinden
-    // düşüyordu (TourVisio'ya giden arama isteğinde bebek yetişkin sayısına
-    // eklenirken, kullanıcıya gösterilen rezervasyon formu bunu hiç bilmiyordu).
+    // düşüyordu.
     const infantCount = isEditMode
         ? (editData?.passengers || []).filter(
             (passenger) =>
                 passenger.type === "INFANT"
         ).length
-        : isFlight
-            ? 0
-            : parseInt(
-                bookingDetails?.infantCount,
-                10
-            ) || 0;
+        : parseInt(
+            bookingDetails?.infantCount,
+            10
+        ) || 0;
 
     const infantAges = useMemo(
-        () =>
-            isFlight
-                ? []
-                : bookingDetails?.infantAges || [],
-        [isFlight, bookingDetails?.infantAges]
+        () => bookingDetails?.infantAges || [],
+        [bookingDetails?.infantAges]
     );
 
     useEffect(() => {
@@ -1206,6 +1249,11 @@ export default function ReservationPage() {
                                                                     size={18}
                                                                     className="text-blue-500 dark:text-slate-200"
                                                                 />
+                                                            ) : passenger.type === "CHILD" ? (
+                                                                <Smile
+                                                                    size={18}
+                                                                    className="text-emerald-500 dark:text-emerald-400"
+                                                                />
                                                             ) : (
                                                                 <Baby
                                                                     size={18}
@@ -1348,9 +1396,8 @@ export default function ReservationPage() {
                                                                         <input
                                                                             required
                                                                             type="date"
-                                                                            max={new Date()
-                                                                                .toISOString()
-                                                                                .split("T")[0]}
+                                                                            min={getBirthDateMinMax(passenger, index).min}
+                                                                            max={getBirthDateMinMax(passenger, index).max}
                                                                             value={
                                                                                 passenger.birthDate ||
                                                                                 ""
