@@ -457,15 +457,18 @@ export default function WelcomePage() {
           </div>
 
           {/* Footer at bottom of section 4 */}
-          <footer className="w-full max-w-6xl mx-auto pt-6 border-t border-white/20 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-200 dark:text-slate-400">
-            <div className="flex items-center gap-2">
+          <footer className="w-full max-w-6xl mx-auto mt-8 pt-6 border-t border-white/20 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-200 dark:text-slate-400">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
               <SannyLogo className="flex items-center gap-2 select-none" imgClassName="w-6 h-6 object-contain" textClassName="font-display font-black text-[#f07c24] text-lg tracking-wider" />
-              <span className="border-l border-white/20 dark:border-slate-800/60 pl-3">
+              <span className="hidden sm:inline-block border-l border-white/20 dark:border-slate-800/60 pl-3">
+                {t('landing.footerTagline')}
+              </span>
+              <span className="sm:hidden text-white/80 text-[11px]">
                 {t('landing.footerTagline')}
               </span>
             </div>
 
-            <p>© {new Date().getFullYear()} SANNY AI. {t('landing.allRightsReserved')}</p>
+            <p className="text-center sm:text-right font-medium">© {new Date().getFullYear()} SANNY AI. {t('landing.allRightsReserved')}</p>
           </footer>
         </section>
 
