@@ -851,9 +851,9 @@ export default function ReservationPage() {
                     </button>
                 )}
 
-                <div className="z-20 flex flex-1 items-start justify-center overflow-y-auto px-4 py-8 md:py-12">
+                <div className="z-20 flex flex-1 items-start justify-center overflow-y-auto px-3 py-4 sm:px-4 sm:py-8 md:py-12">
                     <div className="mt-4 w-full max-w-[672px] md:mt-6">
-                        <div className="rounded-[20px] border border-slate-200 bg-white/95 p-8 shadow-xl dark:border-slate-800 dark:bg-slate-900/95 md:p-10">
+                        <div className="rounded-2xl sm:rounded-[20px] border border-slate-200 bg-white/95 p-4 sm:p-8 shadow-xl dark:border-slate-800 dark:bg-slate-900/95 md:p-10">
                             <div className="mb-6 flex items-center justify-between gap-4 border-b border-slate-100 pb-4 dark:border-slate-800">
                                 <div className="flex items-center gap-3">
                                     <button
