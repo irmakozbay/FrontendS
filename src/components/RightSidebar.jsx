@@ -1072,9 +1072,8 @@ export default function RightSidebar({
         />
       )}
 
-      <aside className={`fixed lg:relative inset-0 sm:left-auto sm:right-0 z-50 lg:z-30 h-full w-full sm:w-[450px] lg:w-[420px] lg:min-w-[420px] lg:max-w-[420px] flex-none overflow-hidden border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-2xl lg:shadow-none transition-all duration-300 ${
-        isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0 hidden lg:flex"
-      }`}>
+      <aside className={`fixed lg:relative inset-0 sm:left-auto sm:right-0 z-50 lg:z-30 h-full w-full sm:w-[450px] lg:w-[420px] lg:min-w-[420px] lg:max-w-[420px] flex-none overflow-hidden border-l border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-2xl lg:shadow-none transition-all duration-300 ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0 hidden lg:flex"
+        }`}>
         <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-white dark:bg-slate-900">
           {/* Üst bölüm sabit kalır; panel kaydırıldığında kaybolmaz. */}
           <div className="flex-shrink-0 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 sticky top-0 z-20">

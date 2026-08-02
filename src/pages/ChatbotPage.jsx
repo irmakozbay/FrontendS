@@ -873,7 +873,7 @@ export default function Index() {
                         {t(getGreetingKey(), { username })}
                       </h1>
                     </div>
-                    <p className="text-[#1E232C]/70 dark:text-slate-350 text-sm font-semibold">
+                    <p className="text-[#1E232C]/70 dark:text-slate-300 text-sm font-semibold">
                       {t("ops_subtitle")}
                     </p>
                   </div>
@@ -897,7 +897,7 @@ export default function Index() {
                               onChange={handleTextareaChange}
                               onKeyDown={handleKeyDown}
                               placeholder={t("input_placeholder_welcome")}
-                              className="w-full pl-3 pr-28 py-2.5 bg-transparent text-black dark:text-white placeholder-black/40 dark:placeholder-white/40 focus:outline-none resize-none max-h-32 text-sm leading-relaxed"
+                              className="w-full pl-3 pr-28 py-2.5 bg-transparent text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none resize-none max-h-32 text-sm leading-relaxed"
                             />
                             <div className="absolute right-2 flex items-center gap-1.5 z-40">
                               <button

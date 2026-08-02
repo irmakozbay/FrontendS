@@ -449,7 +449,7 @@ export default function LoginPage() {
                     setVerificationError('');
                   }}
                   placeholder="Doğrulama Kodu (Örn: 123456)"
-                  className="w-full bg-slate-100 dark:bg-slate-800/90 border border-slate-350 dark:border-slate-700 rounded-full py-2.5 text-center text-lg font-bold tracking-[8px] placeholder:tracking-normal text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
+                  className="w-full bg-slate-100 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700 rounded-full py-2.5 text-center text-lg font-bold tracking-[8px] placeholder:tracking-normal text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
                 />
                 {verificationError && (
                   <p className="text-[12px] text-red-500 text-center mt-1 font-semibold">{verificationError}</p>
