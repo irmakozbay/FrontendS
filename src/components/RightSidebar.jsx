@@ -24,30 +24,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { AirlineLogo } from "../utils/airlineLogos";
+import { getHotelImage, handleHotelImageError, DEFAULT_HOTEL_IMAGE } from "../utils/hotelImageUtils";
+import { useFavorites } from "./FavoritesContext";
 
-const HOTEL_FALLBACK_IMAGES = [
-  "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80",
-];
 
-function getHotelImage(result, idx) {
-  if (Array.isArray(result.photos) && result.photos.length > 0 && result.photos[0]) return result.photos[0];
-  if (Array.isArray(result.images) && result.images.length > 0 && result.images[0]) return result.images[0];
-  if (result.thumbnailFull) return result.thumbnailFull;
-  if (result.heroImage) return result.heroImage;
-  if (result.thumbnailUrl && !result.thumbnailUrl.includes("placeholder")) return result.thumbnailUrl;
-  if (result.thumbnail) return result.thumbnail;
-  if (result.photo) return result.photo;
-
-  // Gerçek API görseli bulunamadığında benzersiz (unique) fallback görsel atanır
-  const charCode = String(result.hotelId || result.id || result.name || idx).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  const fallbackIdx = (charCode + idx) % HOTEL_FALLBACK_IMAGES.length;
-  return HOTEL_FALLBACK_IMAGES[fallbackIdx];
-}
 
 function sanitizeBadgeText(boardType) {
   if (!boardType) return null;
@@ -479,15 +459,7 @@ export default function RightSidebar({
   const { t, i18n } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [resultSort, setResultSort] = useState("price_asc");
-  const [favoriteIds, setFavoriteIds] = useState(() => new Set());
-
-  const toggleFavorite = (id) => {
-    setFavoriteIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [adultCount, setAdultCount] = useState(
     Number(bookingDetails.adultCount) || 1
   );
@@ -630,8 +602,7 @@ export default function RightSidebar({
   });
 
   const HotelResultCard = ({ result, idx }) => {
-    const id = result.hotelId || result.offerId || idx;
-    const isFav = favoriteIds.has(id);
+    const isFav = isFavorite(result);
     const isSelected = selectedHotel && (selectedHotel.name === result.name || selectedHotel.hotelId === result.hotelId);
     const locationParts = [result.city, result.town, result.village, result.region].filter(Boolean);
     const locationText = [...new Set(locationParts)].join(', ');
@@ -650,10 +621,7 @@ export default function RightSidebar({
             src={hotelImage}
             alt={result.name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = HOTEL_FALLBACK_IMAGES[idx % HOTEL_FALLBACK_IMAGES.length];
-            }}
+            onError={(e) => handleHotelImageError(e, result)}
           />
           {badgeText && (
             <span className="absolute left-3 top-3 rounded-full bg-black/65 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md shadow-sm">
@@ -664,7 +632,7 @@ export default function RightSidebar({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              toggleFavorite(id);
+              toggleFavorite(result);
             }}
             className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-md transition hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-900"
           >
