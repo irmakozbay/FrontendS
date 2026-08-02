@@ -16,6 +16,7 @@ import {
     ChevronUp,
 } from "lucide-react";
 import { generateReservationPdf } from "../utils/pdfGenerator";
+import { getHotelImage, handleHotelImageError, DEFAULT_HOTEL_IMAGE } from "../utils/hotelImageUtils";
 import PhoneInput, {
     isValidPhoneNumber,
 } from "react-phone-number-input";
@@ -1119,10 +1120,10 @@ export default function ReservationPage() {
                                             {(selectedItem?.imageUrl || selectedItem?.thumbnailFull || selectedItem?.thumbnail || editData?.imageUrl) && (
                                                 <div className="w-full sm:w-48 shrink-0 border-b sm:border-b-0 sm:border-r border-slate-200 dark:border-slate-800">
                                                     <img
-                                                        src={selectedItem?.imageUrl || selectedItem?.thumbnailFull || selectedItem?.thumbnail || editData?.imageUrl}
+                                                        src={getHotelImage(selectedItem)}
                                                         alt="Thumbnail"
                                                         className="h-40 sm:h-full w-full object-cover"
-                                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                        onError={(e) => handleHotelImageError(e, selectedItem)}
                                                     />
                                                 </div>
                                             )}
