@@ -37,11 +37,21 @@ export default function FavoritesPage() {
   });
 
   const handleCardClick = (item) => {
-    navigate("/reservation", {
+    const itemDetails = item.itemDetails || item.rawItem || item;
+    const title = item.title || item.name || "Otel";
+    const autoPrompt = item.type === "FLIGHT"
+      ? `${title} uçuşu hakkında detaylı bilgi almak ve rezervasyon adımlarına geçmek istiyorum.`
+      : `${title} oteli hakkında detaylı bilgi almak ve rezervasyon adımlarına geçmek istiyorum.`;
+
+    const targetUrl = item.sessionId ? `/chat?sessionId=${item.sessionId}` : "/chat";
+
+    navigate(targetUrl, {
       state: {
-        selectedItem: item.rawItem || item,
-        selectedHotel: item.type !== "FLIGHT" ? (item.rawItem || item) : null,
-        selectedFlight: item.type === "FLIGHT" ? (item.rawItem || item) : null,
+        autoPrompt: autoPrompt,
+        initialPrompt: autoPrompt,
+        autoSend: true,
+        selectedItem: itemDetails,
+        inspectItem: itemDetails,
         searchType: item.type === "FLIGHT" ? "flight" : "hotel",
       },
     });
@@ -138,7 +148,7 @@ export default function FavoritesPage() {
                 }`}
               >
                 <Hotel size={14} />
-                <span>{t("favorites_filter_hotels", "Oteller")}</span>
+                <span>{t("favorites_filter_hotels", "Oteller")} ({favorites.filter((f) => f.type !== "FLIGHT").length})</span>
               </button>
 
               <button
@@ -151,7 +161,7 @@ export default function FavoritesPage() {
                 }`}
               >
                 <Plane size={14} />
-                <span>{t("favorites_filter_flights", "Uçuşlar")}</span>
+                <span>{t("favorites_filter_flights", "Uçuşlar")} ({favorites.filter((f) => f.type === "FLIGHT").length})</span>
               </button>
             </div>
           )}
