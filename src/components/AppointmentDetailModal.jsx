@@ -6,6 +6,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { getAirlineLogo } from '../utils/airlineLogos';
+import { getHotelImage, handleHotelImageError } from '../utils/hotelImageUtils';
 import { generateReservationPdf } from '../utils/pdfGenerator';
 import { useTheme } from './ThemeContext';
 import api from '../services/api';
@@ -339,31 +340,61 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
           onClick={(e) => e.stopPropagation()}
         >
           {/* Modal Header Banner Container */}
-          <div className="relative overflow-hidden rounded-t-2xl border-b border-slate-200 dark:border-slate-800">
+          <div className="relative overflow-hidden rounded-t-2xl border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
 
-            {/* Requirement 3: Close (X) Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className="absolute top-5 right-5 p-2.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 hover:bg-[#f07c24] hover:text-white hover:border-[#f07c24] text-slate-700 dark:text-slate-200 rounded-full transition-all duration-200 z-40 cursor-pointer shadow-md"
-              title="Kapat"
-            >
-              <X size={18} />
-            </button>
+            {/* Top Modal Header Bar with Title & Close Button (Matching Image 1 layout) */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 z-10 relative">
+              <div className="flex items-center gap-3">
+                {isHotel ? (
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
+                    <HotelIcon size={22} />
+                  </div>
+                ) : isFlight ? (
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
+                    <Plane size={22} />
+                  </div>
+                ) : (
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
+                    🚗
+                  </div>
+                )}
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {appointment.title || appointment.itemName || (isHotel ? "OTEL" : "REZERVASYON")}
+                </h2>
+              </div>
 
-            {/* Header Banner Content */}
-            <div className={`relative h-60 sm:h-64 w-full overflow-hidden ${brandGradientClass} flex flex-col justify-between p-6 transition-colors duration-300`}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full transition-all duration-200 cursor-pointer"
+                title="Kapat"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-              {/* Ambient Lighting Glows */}
-              <div className="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-amber-500/10 dark:bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+            {/* Main Header Content Container */}
+            <div className="p-5 sm:p-6 space-y-4 bg-slate-50/50 dark:bg-slate-900/50">
 
-              {/* Top Row with Dynamic Airline Logo Container & Dynamic Flight Number */}
-              <div className="relative z-30 flex items-center justify-between pr-12 gap-3">
-                {isFlight ? (
-                  <div className="flex items-center justify-center w-32 sm:w-36 h-20 p-0 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-md shrink-0 overflow-hidden bg-slate-950 transition-all duration-200">
+              {/* Hotel Photo Banner Section */}
+              {isHotel && (
+                <div className="relative h-44 sm:h-52 w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md group">
+                  <img
+                    src={getHotelImage(appointment)}
+                    alt={appointment.title || appointment.hotelName || "Hotel"}
+                    className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                    onError={(e) => handleHotelImageError(e, appointment)}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+                </div>
+              )}
+
+              {/* Flight Airline Logo & Flight Number Header (Flight mode) */}
+              {isFlight && (
+                <div className="relative z-10 flex items-center justify-between gap-3">
+                  <div className="flex items-center justify-center w-32 sm:w-36 h-16 p-0 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md shrink-0 overflow-hidden bg-slate-950">
                     {dynamicLogoUrl ? (
                       <img
                         src={dynamicLogoUrl}
@@ -378,45 +409,34 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div className="flex items-center gap-2.5 text-slate-900 dark:text-white font-bold text-lg">
-                    <span className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-400/30">
-                      {isHotel ? <HotelIcon size={24} /> : "🚗"}
-                    </span>
-                    <span className="text-xl font-extrabold">{appointment.title}</span>
-                  </div>
-                )}
 
-                {/* Requirement 1, 2 & 3: Fully Dynamic TourVisio Flight Number Badge */}
-                {isFlight && (
                   <button
                     type="button"
                     onClick={handleCopyFlightNo}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-amber-400/60 dark:border-amber-400/40 text-amber-700 dark:text-amber-300 text-xs font-bold shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-all duration-200 group"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-amber-400/60 dark:border-amber-400/40 text-amber-700 dark:text-amber-300 text-xs font-bold shadow-md cursor-pointer hover:scale-105 transition-all duration-200 group"
                     title="Uçuş numarasını kopyalamak için tıklayın"
                   >
                     <Ticket size={14} className="text-amber-500 shrink-0 group-hover:rotate-12 transition-transform" />
                     <span>Uçuş No: <strong className="text-slate-900 dark:text-white font-mono">{flightNo}</strong></span>
                     <Copy size={12} className="text-amber-500/80 ml-1 opacity-75 group-hover:opacity-100" />
                   </button>
-                )}
-              </div>
+                </div>
+              )}
 
-              {/* Destination / Route Info Card */}
-              <div className="relative z-30 backdrop-blur-md bg-white/80 dark:bg-[#0F172A]/85 border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl shadow-slate-200/50 dark:shadow-black/40 space-y-2">
+              {/* Destination / Stay Info Card (Clean White/Dark Card matching Image 1) */}
+              <div className="bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                     <span>{isFlight ? "✈" : isHotel ? "🏨" : "🚗"}</span>
                     <span>
                       {isFlight
-                        ? t('past_appointments_badge_flight', 'Uçuş Rezervasyonu')
+                        ? t('past_appointments_badge_flight', 'OTEL')
                         : isHotel
-                        ? t('past_appointments_badge_hotel', 'Otel Rezervasyonu')
-                        : t('past_appointments_badge_transfer', 'Transfer Rezervasyonu')}
+                        ? t('past_appointments_badge_hotel', 'OTEL')
+                        : t('past_appointments_badge_transfer', 'TRANSFER')}
                     </span>
                   </div>
 
-                  {/* Ticket Class & Baggage Badges */}
                   {isFlight && (
                     <div className="flex items-center gap-2">
                       <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-400/30 flex items-center gap-1">
@@ -429,25 +449,25 @@ export default function AppointmentDetailModal({ appointment, onClose, onEdit, o
                   )}
                 </div>
 
-                {/* Route with Airport Codes + City Names */}
+                {/* Destination Title */}
                 {isFlight ? (
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight flex items-center gap-2.5 flex-wrap">
-                    <span className="bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm">{depStr}</span>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight flex items-center gap-2.5 flex-wrap">
+                    <span className="bg-slate-50 dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm">{depStr}</span>
                     <ArrowRight size={20} className="text-amber-500 dark:text-amber-400 shrink-0" />
-                    <span className="bg-white dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm">{arrStr}</span>
+                    <span className="bg-slate-50 dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white shadow-sm">{arrStr}</span>
                   </h2>
                 ) : (
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                     {appointment.destination || appointment.title}
                   </h2>
                 )}
 
-                {/* Hotel Dates & Total Nights Subheading */}
+                {/* Hotel Dates & Night Count Subheading */}
                 {isHotel && (
-                  <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
                     <Calendar size={14} className="text-amber-500 shrink-0" />
                     <span>{startDateStr} - {endDateStr}</span>
-                    <span className="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-400/30 font-bold ml-1">
+                    <span className="px-2.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-400/30 font-bold ml-1">
                       {nightsCount} Gece
                     </span>
                   </div>
