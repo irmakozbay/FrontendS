@@ -302,8 +302,22 @@ export default function FavoritesPage() {
                 onClick={() => navigate("/chat")}
                 className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 px-7 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-rose-500/25 transition-all hover:opacity-95 hover:scale-105 cursor-pointer"
               >
-                <Hotel size={18} />
-                <span>{t("favorites_explore_button", "Otelleri Keşfet")}</span>
+                {activeFilter === "FLIGHT" ? (
+                  <>
+                    <Plane size={18} />
+                    <span>{t("favorites_explore_flights_button", "Uçuşları Keşfet")}</span>
+                  </>
+                ) : activeFilter === "HOTEL" ? (
+                  <>
+                    <Hotel size={18} />
+                    <span>{t("favorites_explore_hotels_button", "Otelleri Keşfet")}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={18} />
+                    <span>{t("favorites_explore_button", "Fırsatları Keşfet")}</span>
+                  </>
+                )}
                 <ArrowRight size={16} />
               </button>
             </div>
