@@ -782,6 +782,8 @@ export default function RightSidebar({
         <div className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-700/60">
           <div>
             <div className="text-[11px] text-slate-400">{t("rightSidebar.totalPrice", { defaultValue: "Toplam Fiyat" })}</div>
+
+
             <div className="text-lg font-extrabold text-[#FF8A00] dark:text-orange-400">
               {formatPrice(result.price)} {result.currency || "TRY"}
             </div>
