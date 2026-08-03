@@ -14,13 +14,16 @@ import {
   Trash2,
   Sun,
   Moon,
-  LogIn
+  LogIn,
+  Heart
 } from 'lucide-react';
 import SannyLogo from './SannyLogo';
 import LanguageSelector from './LanguageSelector';
 import api from '../services/api';
 import { useTheme } from './ThemeContext.jsx';
 import { useAuth } from './AuthContext';
+import { useFavorites } from './FavoritesContext';
+
 
 export default function ChatSidebar({
   isOpen,
@@ -32,8 +35,10 @@ export default function ChatSidebar({
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { isGuest, user } = useAuth();
+  const { favoritesCount } = useFavorites();
 
   const isChatActive = location.pathname.startsWith('/chat');
+  const isFavoritesActive = location.pathname === '/favorites';
   const isAppointmentsActive = location.pathname === '/past-reservations';
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -249,6 +254,24 @@ export default function ChatSidebar({
           >
             <MessageSquare size={16} />
             <span>{t('sidebar_chats')}</span>
+          </button>
+
+          <button
+            onClick={() => handleNav('/favorites')}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus:outline-none cursor-pointer ${isFavoritesActive
+              ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-bold border border-rose-200 dark:border-rose-800/60'
+              : 'text-text-secondary dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-text-primary dark:hover:text-slate-200'
+              }`}
+          >
+            <div className="flex items-center gap-3">
+              <Heart size={16} className={favoritesCount > 0 ? "fill-rose-500 text-rose-500" : ""} />
+              <span>{t('sidebar_favorites', 'Favorilerim')}</span>
+            </div>
+            {favoritesCount > 0 && (
+              <span className="flex items-center justify-center bg-rose-500 text-white font-extrabold text-xs rounded-full px-2 py-0.5 min-w-[20px] shadow-xs">
+                {favoritesCount}
+              </span>
+            )}
           </button>
 
           {/* Misafirler için Randevular gizli */}
