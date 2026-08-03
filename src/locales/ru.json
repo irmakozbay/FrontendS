@@ -857,5 +857,44 @@
   "favorites_filter_flights": "Авиабилеты",
   "favorites_clear_all": "Очистить все",
   "favorites_inspect": "Обзор",
-  "favorites_price": "Цена"
+  "favorites_price": "Цена",
+  "dashboard_menu": "Общая сводка",
+  "system_metrics_menu": "Системные метрики",
+  "analytics_menu": "Аналитика",
+  "forecaster_menu": "AI Прогноз и Риск",
+  "errors_menu": "Ошибки TourVisio",
+  "reservations_menu": "Бронирования",
+  "users_menu": "Пользователи",
+  "chat_logs_menu": "Логи чатов",
+  "admin_panel_title": "Панель администратора",
+  "change_language": "Сменить язык",
+  "light_mode": "Светлый режим",
+  "dark_mode": "Темный режим",
+  "logout": "Выйти",
+  "users_page": {
+    "title": "Пользователи",
+    "description": "Управление всеми учетными записями пользователей и ролями в системе.",
+    "search_placeholder": "Поиск по имени или email...",
+    "status": {
+      "active": "Активен",
+      "inactive": "Неактивен"
+    },
+    "role_label": "Роль",
+    "roles": {
+      "admin": "Администратор",
+      "user": "Пользователь"
+    },
+    "reservation_label": "Бронирование",
+    "last_login": "Последний вход",
+    "last_logout": "Последний выход",
+    "make_inactive": "Приостановить учетную запись",
+    "make_active": "Активировать учетную запись",
+    "access_denied": "У вас нет прав для просмотра этих данных. Пожалуйста, войдите с учетной записью администратора.",
+    "load_error": "Произошла ошибка при получении списка пользователей. Пожалуйста, попробуйте позже.",
+    "status_toggle_error": "Не удалось обновить статус пользователя. Пожалуйста, попробуйте еще раз."
+  },
+  "tourvisio_errors_page": {
+    "title": "Ошибки интеграции TourVisio",
+    "description": "Задержки внешней интеграции TourVisio XML/JSON и журналы ошибок подключения."
+  }
 }

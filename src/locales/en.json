@@ -857,5 +857,44 @@
   "favorites_filter_flights": "Flights",
   "favorites_clear_all": "Clear All",
   "favorites_inspect": "Inspect",
-  "favorites_price": "Price"
+  "favorites_price": "Price",
+  "dashboard_menu": "General Summary",
+  "system_metrics_menu": "System Metrics",
+  "analytics_menu": "Analytics",
+  "forecaster_menu": "AI Forecast & Risk",
+  "errors_menu": "TourVisio Errors",
+  "reservations_menu": "Reservations",
+  "users_menu": "Users",
+  "chat_logs_menu": "Chat Logs",
+  "admin_panel_title": "Admin Panel",
+  "change_language": "Change language",
+  "light_mode": "Switch to light mode",
+  "dark_mode": "Switch to dark mode",
+  "logout": "Log out",
+  "users_page": {
+    "title": "Users",
+    "description": "Manage all user accounts and roles in the system.",
+    "search_placeholder": "Search by name or email...",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "role_label": "Role",
+    "roles": {
+      "admin": "Administrator",
+      "user": "User"
+    },
+    "reservation_label": "Reservation",
+    "last_login": "Last Login",
+    "last_logout": "Last Logout",
+    "make_inactive": "Suspend Account",
+    "make_active": "Activate Account",
+    "access_denied": "You do not have permission to view this data. Please log in with an administrator account.",
+    "load_error": "An error occurred while retrieving the user list. Please try again later.",
+    "status_toggle_error": "User status could not be updated. Please try again."
+  },
+  "tourvisio_errors_page": {
+    "title": "TourVisio Integration Errors",
+    "description": "TourVisio XML/JSON external integration latencies and connection error logs."
+  }
 }
