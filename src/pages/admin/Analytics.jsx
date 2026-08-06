@@ -9,6 +9,8 @@ import {
     Award,
     Activity,
     DollarSign,
+    Clock,
+    Settings,
 } from "lucide-react";
 import api from "../../services/api.js";
 
