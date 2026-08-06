@@ -396,8 +396,10 @@ export default function Index() {
                 minStars: c.minStars || null
               });
 
+              const hasLocation = Boolean(c.locationOrHotelName || (c.departureLocation && c.arrivalLocation));
+              const hasCheckIn = Boolean(c.checkInDate || c.departureDate);
               const hasResultsInHistory = Boolean(lastResultMessage && lastResultMessage.results && lastResultMessage.results.length > 0);
-              if (hasResultsInHistory) {
+              if (hasResultsInHistory || (hasLocation && hasCheckIn)) {
                 setHasValidSearch(true);
                 setIsRightSidebarOpen(true);
               } else {
@@ -620,10 +622,17 @@ export default function Index() {
         }
       }
 
-      // 3. Sadece GEÇERLİ seyahat aramalarında (HOTEL_SEARCH / FLIGHT_SEARCH) sağ paneli güncelle.
-      // Kapsam dışı veya anlamsız mesajlarda sağ paneldeki son geçerli veriler korunur.
-      if (isSearchIntent && data.criteria) {
+      // 3. Sağ paneli güncelle ve seyahat aramalarında otomatik olarak aç.
+      if (data.criteria) {
         const c = data.criteria;
+        if (c.searchType) {
+          if (c.searchType.includes("HOTEL")) {
+            setSearchType("hotel");
+          } else if (c.searchType.includes("FLIGHT")) {
+            setSearchType("flight");
+          }
+        }
+
         setBookingDetails(prev => ({
           ...prev,
           city: c.locationOrHotelName || "",
@@ -644,6 +653,14 @@ export default function Index() {
           maxPrice: c.maxPrice || null,
           minStars: c.minStars || null
         });
+
+        // Konum/Kalkış ve Giriş/Gidiş tarihi tanımlıysa, sağ paneli otomatik göster
+        const hasLocation = Boolean(c.locationOrHotelName || (c.departureLocation && c.arrivalLocation));
+        const hasCheckIn = Boolean(c.checkInDate || c.departureDate);
+        if (hasLocation && hasCheckIn) {
+          setHasValidSearch(true);
+          setIsRightSidebarOpen(true);
+        }
       }
 
       // 4. SonuÃ§ listesindeki ilk (en iyi) Ã¶ÄŸeden otel adÄ± / uÃ§uÅŸ fiyatÄ± iÃ§in bir
