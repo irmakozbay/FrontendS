@@ -171,6 +171,15 @@ export default function FlightReservationFormPanel({
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [useProfileInfo, setUseProfileInfo] = useState(false);
 
+  const handleDeletePassenger = (passengerId) => {
+    if (!guests || guests.length <= 1) return;
+    const updatedGuests = guests.filter((g) => g.id !== passengerId);
+    setGuests(updatedGuests);
+    if (expandedGuestId === passengerId) {
+      setExpandedGuestId(updatedGuests[0]?.id || "adult-0");
+    }
+  };
+
   const handleToggleUseProfileInfo = async (checked) => {
     setUseProfileInfo(checked);
     if (!guests || guests.length === 0) return;
@@ -510,42 +519,69 @@ export default function FlightReservationFormPanel({
 
   const locationText = `${bookingDetails?.departureCity || ''} -> ${bookingDetails?.arrivalCity || ''}`;
 
-  const formattedPrice =
-    safeFlight?.price != null &&
-      !Number.isNaN(Number(safeFlight.price))
-      ? new Intl.NumberFormat("tr-TR", {
-        style: "currency",
-        currency: safeFlight.currency || "TRY",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(Number(safeFlight.price))
-      : `${safeFlight?.price || 0} ${safeFlight?.currency || "TRY"}`;
+  const originalAdults = parseInt(bookingDetails?.adultCount, 10) || 1;
+  const originalChildren = parseInt(bookingDetails?.childCount, 10) || 0;
+  const originalInfants = parseInt(bookingDetails?.infantCount, 10) || 0;
 
-  const roomPriceValue =
-    safeFlight?.price != null &&
-      !Number.isNaN(Number(safeFlight.price))
-      ? Number(safeFlight.price) * 0.92
-      : null;
+  const originalWeight = (originalAdults * 1.0) + (originalChildren * 0.5) + (originalInfants * 0.1);
 
-  const taxValue =
-    safeFlight?.price != null &&
-      !Number.isNaN(Number(safeFlight.price))
-      ? Number(safeFlight.price) * 0.08
-      : null;
+  const currentAdults = (guests || []).filter(g => g.type === "ADULT");
+  const currentChildren = (guests || []).filter(g => g.type === "CHILD");
+  const currentInfants = (guests || []).filter(g => g.type === "INFANT" || g.type === "BABY");
+
+  const adultCount = currentAdults.length;
+  const childCount = currentChildren.length;
+  const infantCount = currentInfants.length;
+
+  const currentWeight = (adultCount * 1.0) + (childCount * 0.5) + (infantCount * 0.1);
+
+  const basePrice = safeFlight?.price != null && !Number.isNaN(Number(safeFlight.price))
+    ? Number(safeFlight.price)
+    : (bookingDetails?.price != null && !Number.isNaN(Number(bookingDetails.price))
+        ? Number(bookingDetails.price)
+        : 0);
+
+  const totalPriceVal = originalWeight > 0 ? basePrice * (currentWeight / originalWeight) : basePrice;
+
+  const currencyVal = safeFlight?.currency || bookingDetails?.currency || "TRY";
+
+  const formattedPrice = new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: currencyVal,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(totalPriceVal);
+
+  const roomPriceValue = totalPriceVal * 0.92;
+  const taxValue = totalPriceVal * 0.08;
 
   const formatSubPrice = (value) => {
     if (value === null) return "-";
-
     return new Intl.NumberFormat("tr-TR", {
       style: "currency",
-      currency: safeFlight?.currency || "TRY",
+      currency: currencyVal,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
   };
 
-  const adultCount =
-    parseInt(bookingDetails?.adultCount, 10) || 1;
+  const adultWeight = 1.0;
+  const childWeight = 0.5;
+  const infantWeight = 0.1;
+  const totalWeight = (adultCount * adultWeight) + (childCount * childWeight) + (infantCount * infantWeight);
+
+  const adultUnitPrice = totalWeight > 0 ? (roomPriceValue / totalWeight) * adultWeight : 0;
+  const childUnitPrice = totalWeight > 0 ? (roomPriceValue / totalWeight) * childWeight : 0;
+  const infantUnitPrice = totalWeight > 0 ? (roomPriceValue / totalWeight) * infantWeight : 0;
+
+  const adultTotalPrice = adultUnitPrice * adultCount;
+  const childTotalPrice = childUnitPrice * childCount;
+  const infantTotalPrice = infantUnitPrice * infantCount;
+
+  // Passenger header unit prices
+  const adultHeaderPrice = totalWeight > 0 ? (totalPriceVal / totalWeight) * adultWeight : 0;
+  const childHeaderPrice = totalWeight > 0 ? (totalPriceVal / totalWeight) * childWeight : 0;
+  const infantHeaderPrice = totalWeight > 0 ? (totalPriceVal / totalWeight) * infantWeight : 0;
 
   const validateReservationForm = () => {
     if (!termsAccepted) {
@@ -832,21 +868,29 @@ export default function FlightReservationFormPanel({
                     const isExpanded =
                       expandedGuestId === guest.id;
 
+                    const typeIndex = (guests || [])
+                      .slice(0, index)
+                      .filter((g) => g.type === guest.type).length + 1;
+
                     const guestTitle =
                       guest.type === "ADULT"
-                        ? `${index + 1}. ${t(
-                          "unit_adult",
-                          "Yetişkin"
-                        )}`
-                        : guest.type === "INFANT"
-                          ? `${index - adultCount + 1}. ${t(
-                            "unit_infant",
-                            "Bebek"
-                          )}`
-                          : `${index - adultCount + 1}. ${t(
-                            "unit_child",
-                            "Çocuk"
-                          )}`;
+                        ? `${typeIndex}. ${t("unit_adult", "Yetişkin")}`
+                        : guest.type === "INFANT" || guest.type === "BABY"
+                          ? `${typeIndex}. ${t("unit_infant", "Bebek")}`
+                          : `${typeIndex}. ${t("unit_child", "Çocuk")}`;
+
+                    const passengerUnitPrice = guest.type === "ADULT"
+                      ? adultHeaderPrice
+                      : (guest.type === "INFANT" || guest.type === "BABY" ? infantHeaderPrice : childHeaderPrice);
+
+                    const formattedPassengerUnitPrice = passengerUnitPrice > 0
+                      ? new Intl.NumberFormat("tr-TR", {
+                          style: "currency",
+                          currency: currencyVal,
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }).format(passengerUnitPrice)
+                      : "";
 
                     const errors =
                       getPassengerErrors(guest, index, t, bookingDetails?.checkIn, guests);
@@ -883,6 +927,11 @@ export default function FlightReservationFormPanel({
 
                             <span className="text-base font-bold text-slate-800 dark:text-slate-200">
                               {guestTitle}
+                              {passengerUnitPrice > 0 && (
+                                <span className="ml-2 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                                  ({formattedPassengerUnitPrice})
+                                </span>
+                              )}
                             </span>
 
                             {index === 0 && (
@@ -901,7 +950,19 @@ export default function FlightReservationFormPanel({
                               )}
                           </div>
 
-                          <div className="text-slate-400 dark:text-slate-500">
+                          <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500">
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeletePassenger(guest.id);
+                                }}
+                                className="mr-1 flex h-8 items-center justify-center rounded-lg bg-red-50 px-3 text-xs font-bold text-red-500 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40 transition-colors"
+                              >
+                                {t("delete", "Sil")}
+                              </button>
+                            )}
                             {isExpanded ? (
                               <ChevronUp size={20} />
                             ) : (
@@ -1281,19 +1342,38 @@ export default function FlightReservationFormPanel({
                 </h3>
 
                 <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                    <span>
-                      {t("ticket_price", "Bilet Fiyatı")} (
-                      {bookingDetails?.guests ||
-                        t("passenger_1", "1 Yolcu")}
-                      )
-                    </span>
-                    <span className="font-medium">
-                      {formatSubPrice(
-                        roomPriceValue
-                      )}
-                    </span>
-                  </div>
+                  {adultCount > 0 && (
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span>
+                        {adultCount} x {t("unit_adult", "Yetişkin")}
+                      </span>
+                      <span className="font-medium">
+                        {formatSubPrice(adultTotalPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                  {childCount > 0 && (
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span>
+                        {childCount} x {t("unit_child", "Çocuk")}
+                      </span>
+                      <span className="font-medium">
+                        {formatSubPrice(childTotalPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                  {infantCount > 0 && (
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span>
+                        {infantCount} x {t("unit_infant", "Bebek")}
+                      </span>
+                      <span className="font-medium">
+                        {formatSubPrice(infantTotalPrice)}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
                     <span>{t("res_form_taxes_fees", "Vergiler ve Harçlar")}</span>

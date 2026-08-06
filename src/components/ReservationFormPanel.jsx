@@ -230,6 +230,15 @@ export default function ReservationFormPanel({
   const [termsModalOpen, setTermsModalOpen] = useState(false);
   const [useProfileInfo, setUseProfileInfo] = useState(false);
 
+  const handleDeletePassenger = (passengerId) => {
+    if (!guests || guests.length <= 1) return;
+    const updatedGuests = guests.filter((g) => g.id !== passengerId);
+    setGuests(updatedGuests);
+    if (expandedGuestId === passengerId) {
+      setExpandedGuestId(updatedGuests[0]?.id || "adult-0");
+    }
+  };
+
   const handleToggleUseProfileInfo = async (checked) => {
     setUseProfileInfo(checked);
     if (!guests || guests.length === 0) return;
@@ -580,11 +589,29 @@ export default function ReservationFormPanel({
       ? uniqueLocationParts.join(", ")
       : "";
 
-  const totalPriceVal = safeHotel?.price != null && !Number.isNaN(Number(safeHotel.price))
+  const originalAdults = parseInt(bookingDetails?.adultCount, 10) || 1;
+  const originalChildren = parseInt(bookingDetails?.childCount, 10) || 0;
+  const originalInfants = parseInt(bookingDetails?.infantCount, 10) || 0;
+
+  const originalWeight = (originalAdults * 1.0) + (originalChildren * 0.5) + (originalInfants * 0.1);
+
+  const currentAdults = (guests || []).filter(g => g.type === "ADULT");
+  const currentChildren = (guests || []).filter(g => g.type === "CHILD");
+  const currentInfants = (guests || []).filter(g => g.type === "INFANT" || g.type === "BABY");
+
+  const adultCount = currentAdults.length;
+  const childCount = currentChildren.length;
+  const infantCount = currentInfants.length;
+
+  const currentWeight = (adultCount * 1.0) + (childCount * 0.5) + (infantCount * 0.1);
+
+  const basePrice = safeHotel?.price != null && !Number.isNaN(Number(safeHotel.price))
     ? Number(safeHotel.price)
     : (bookingDetails?.price != null && !Number.isNaN(Number(bookingDetails.price))
         ? Number(bookingDetails.price)
         : 0);
+
+  const totalPriceVal = originalWeight > 0 ? basePrice * (currentWeight / originalWeight) : basePrice;
 
   const currencyVal = safeHotel?.currency || bookingDetails?.currency || "TRY";
 
@@ -607,10 +634,6 @@ export default function ReservationFormPanel({
       maximumFractionDigits: 2,
     }).format(value);
   };
-
-  const adultCount = parseInt(bookingDetails?.adultCount, 10) || 1;
-  const childCount = parseInt(bookingDetails?.childCount, 10) || 0;
-  const infantCount = parseInt(bookingDetails?.infantCount, 10) || 0;
 
   const adultWeight = 1.0;
   const childWeight = 0.5;
@@ -1029,7 +1052,19 @@ export default function ReservationFormPanel({
                               )}
                           </div>
 
-                          <div className="text-slate-400 dark:text-slate-500">
+                          <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500">
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleDeletePassenger(guest.id);
+                                }}
+                                className="mr-1 flex h-8 items-center justify-center rounded-lg bg-red-50 px-3 text-xs font-bold text-red-500 hover:bg-red-100 dark:bg-red-950/20 dark:text-red-400 dark:hover:bg-red-950/40 transition-colors"
+                              >
+                                {t("delete", "Sil")}
+                              </button>
+                            )}
                             {isExpanded ? (
                               <ChevronUp size={20} />
                             ) : (
