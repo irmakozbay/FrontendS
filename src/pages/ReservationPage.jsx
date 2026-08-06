@@ -95,6 +95,160 @@ function toDateOnly(value) {
     return date.toISOString().slice(0, 10);
 }
 
+
+function parseLocalDate(value) {
+    const dateOnly = toDateOnly(value);
+
+    if (!dateOnly) {
+        return null;
+    }
+
+    const [year, month, day] = dateOnly
+        .split("-")
+        .map(Number);
+
+    const date = new Date(year, month - 1, day);
+
+    return Number.isNaN(date.getTime())
+        ? null
+        : date;
+}
+
+function formatLocalDate(date) {
+    if (
+        !(date instanceof Date) ||
+        Number.isNaN(date.getTime())
+    ) {
+        return null;
+    }
+
+    const year = date.getFullYear();
+    const month = String(
+        date.getMonth() + 1
+    ).padStart(2, "0");
+    const day = String(
+        date.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+function parseNightCount(details = {}) {
+    const candidates = [
+        details.nightCount,
+        details.nights,
+        details.numberOfNights,
+        details.stayNights,
+        details.durationNights,
+        details.duration,
+        details.stayDuration,
+    ];
+
+    for (const candidate of candidates) {
+        if (
+            candidate === null ||
+            candidate === undefined ||
+            candidate === ""
+        ) {
+            continue;
+        }
+
+        if (
+            typeof candidate === "number" &&
+            Number.isFinite(candidate)
+        ) {
+            const normalized = Math.trunc(candidate);
+
+            if (normalized > 0) {
+                return normalized;
+            }
+        }
+
+        const match = String(candidate)
+            .match(/(\d{1,3})/);
+
+        if (match) {
+            const normalized =
+                Number.parseInt(match[1], 10);
+
+            if (normalized > 0) {
+                return normalized;
+            }
+        }
+    }
+
+    return null;
+}
+
+function resolveHotelStartDate(details = {}) {
+    return toDateOnly(
+        details.checkIn ||
+        details.startDate ||
+        details.checkInDate
+    );
+}
+
+function resolveHotelEndDate(details = {}) {
+    const explicitEndDate = toDateOnly(
+        details.checkOut ||
+        details.endDate ||
+        details.checkOutDate
+    );
+
+    if (explicitEndDate) {
+        return explicitEndDate;
+    }
+
+    const startDate = parseLocalDate(
+        resolveHotelStartDate(details)
+    );
+    const nightCount = parseNightCount(details);
+
+    if (!startDate || !nightCount) {
+        return null;
+    }
+
+    const endDate = new Date(startDate);
+    endDate.setDate(
+        endDate.getDate() + nightCount
+    );
+
+    return formatLocalDate(endDate);
+}
+
+function resolveFlightStartDate(
+    selectedItem = {},
+    details = {}
+) {
+    return toDateOnly(
+        selectedItem.departureTime ||
+        details.checkIn ||
+        details.departureDate ||
+        details.startDate ||
+        details.flightDate
+    );
+}
+
+function resolveFlightEndDate(
+    selectedItem = {},
+    details = {}
+) {
+    const startDate = resolveFlightStartDate(
+        selectedItem,
+        details
+    );
+
+    return (
+        toDateOnly(
+            selectedItem.returnDepartureTime ||
+            details.returnDate ||
+            details.endDate ||
+            details.flightReturnDate
+        ) ||
+        startDate
+    );
+}
+
 function getBirthDateMinMax(passenger, index) {
     const today = new Date();
     const formatDateStr = (d) => {
@@ -432,13 +586,9 @@ export default function ReservationPage() {
             editData?.passengers?.length ||
             1
         )
-        : parseInt(
-            bookingDetails?.adultCount,
-            10
-        ) || parseInt(
-            bookingDetails?.passengerCount,
-            10
-        ) || 1;
+        : (bookingDetails?.adultCount !== undefined && bookingDetails?.adultCount !== null
+            ? parseInt(bookingDetails.adultCount, 10)
+            : (parseInt(bookingDetails?.passengerCount, 10) || 1));
 
     const childCount = isEditMode
         ? (editData?.passengers || []).filter(
@@ -542,6 +692,30 @@ export default function ReservationPage() {
 
         if (!selectedItem) {
             setPassengers([]);
+            return;
+        }
+
+        // Kullanıcı form alanlarından birine veri girdiyse ve yolcu sayısı eşleşiyorsa
+        // formu yeniden başlatıp kullanıcının yazdıklarını sıfırlama.
+        const isUserEdited = (passList) => {
+            if (!Array.isArray(passList) || passList.length === 0) return false;
+            return passList.some((p) => {
+                const hasText = Boolean(
+                    (p.firstName && p.firstName.trim()) ||
+                    (p.lastName && p.lastName.trim()) ||
+                    (p.identityNumber && p.identityNumber.trim()) ||
+                    (p.email && p.email.trim()) ||
+                    (p.phone && p.phone.trim()) ||
+                    (p.birthDate && p.birthDate.trim())
+                );
+                const nonDefaultGender = p.gender && p.gender !== "MR" && p.gender !== "CHD";
+                const nonDefaultNationality = p.nationality && p.nationality !== "TR";
+                return hasText || nonDefaultGender || nonDefaultNationality;
+            });
+        };
+
+        const totalExpectedCount = adultCount + childCount + infantCount;
+        if (passengers.length > 0 && isUserEdited(passengers) && passengers.length === totalExpectedCount) {
             return;
         }
 
@@ -749,22 +923,24 @@ export default function ReservationPage() {
 
         const startDate = selectedItem
             ? isFlight
-                ? toDateOnly(
-                    selectedItem.departureTime
+                ? resolveFlightStartDate(
+                    selectedItem,
+                    bookingDetails
                 )
-                : toDateOnly(
-                    bookingDetails?.checkIn
+                : resolveHotelStartDate(
+                    bookingDetails
                 )
             : toDateOnly(editData?.startDate);
 
         const endDate = selectedItem
             ? isFlight
-                ? toDateOnly(
-                    selectedItem.returnDepartureTime
-                ) || startDate
-                : toDateOnly(
-                    bookingDetails?.checkOut
+                ? resolveFlightEndDate(
+                    selectedItem,
+                    bookingDetails
                 )
+                : resolveHotelEndDate(
+                    bookingDetails
+                ) || startDate
             : toDateOnly(editData?.endDate) ||
             startDate;
 
@@ -994,8 +1170,12 @@ export default function ReservationPage() {
                                                 const pnr = reservationResult.pnrCode || reservationResult.reservationNumber || reservationResult.id || "PNR12345";
                                                 const title = selectedItem?.airline || selectedItem?.name || bookingDetails?.hotelName || (isFlight ? "Uçuş Bileti" : "Otel Rezervasyonu");
                                                 const dest = isFlight ? (bookingDetails?.arrivalCity || selectedItem?.arrivalCity || "-") : (bookingDetails?.city || selectedItem?.city || "-");
-                                                const start = isFlight ? (selectedItem?.departureTime || bookingDetails?.startDate) : (bookingDetails?.checkIn || bookingDetails?.startDate);
-                                                const end = isFlight ? (selectedItem?.returnDepartureTime || selectedItem?.arrivalTime || bookingDetails?.endDate) : (bookingDetails?.checkOut || bookingDetails?.endDate);
+                                                const start = isFlight
+                                                    ? resolveFlightStartDate(selectedItem, bookingDetails)
+                                                    : resolveHotelStartDate(bookingDetails);
+                                                const end = isFlight
+                                                    ? resolveFlightEndDate(selectedItem, bookingDetails)
+                                                    : resolveHotelEndDate(bookingDetails) || start;
                                                 const price = selectedItem?.price ?? bookingDetails?.totalPrice ?? reservationResult?.totalAmount ?? 0;
                                                 const curr = selectedItem?.currency || bookingDetails?.currency || "TRY";
                                                 const email = passengers[0]?.email || reservationResult?.passengers?.[0]?.email || "";
@@ -1404,74 +1584,74 @@ export default function ReservationPage() {
                                                                 </div>
                                                             </div>
 
-                                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                                    <div>
-                                                                        <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">
-                                                                            {t("reservation_gender", "Cinsiyet")}
-                                                                        </label>
-                                                                        <select
-                                                                            required
-                                                                            value={
-                                                                                passenger.gender || "MR"
-                                                                            }
-                                                                            onChange={(
-                                                                                event
-                                                                            ) =>
-                                                                                handlePassengerChange(
-                                                                                    index,
-                                                                                    "gender",
-                                                                                    event.target
-                                                                                        .value
-                                                                                )
-                                                                            }
-                                                                            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-                                                                        >
-                                                                            <option value="MR">
-                                                                                {i18n.language?.startsWith("tr") ? "Erkek" : "Mr"}
-                                                                            </option>
-                                                                            <option value="MRS">
-                                                                                {i18n.language?.startsWith("tr") ? "Kadın" : "Mrs"}
-                                                                            </option>
-                                                                        </select>
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                                                            Doğum Tarihi
-                                                                        </label>
-                                                                        <input
-                                                                            required
-                                                                            type="date"
-                                                                            min={getBirthDateMinMax(passenger, index).min}
-                                                                            max={getBirthDateMinMax(passenger, index).max}
-                                                                            value={
-                                                                                passenger.birthDate ||
-                                                                                ""
-                                                                            }
-                                                                            onChange={(
-                                                                                event
-                                                                            ) =>
-                                                                                handlePassengerChange(
-                                                                                    index,
-                                                                                    "birthDate",
-                                                                                    event.target
-                                                                                        .value
-                                                                                )
-                                                                            }
-                                                                            className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus:outline-none dark:bg-slate-900 dark:text-white ${errors.birthDate
-                                                                                ? "border-red-500 ring-1 ring-red-500"
-                                                                                : "border-slate-300 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/50 dark:border-slate-800"
-                                                                                }`}
-                                                                        />
-                                                                        {errors.birthDate && (
-                                                                            <span className="mt-1 block text-[10px] font-medium text-red-500">
-                                                                                {
-                                                                                    errors.birthDate
-                                                                                }
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
+                                                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                                <div>
+                                                                    <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">
+                                                                        {t("reservation_gender", "Cinsiyet")}
+                                                                    </label>
+                                                                    <select
+                                                                        required
+                                                                        value={
+                                                                            passenger.gender || "MR"
+                                                                        }
+                                                                        onChange={(
+                                                                            event
+                                                                        ) =>
+                                                                            handlePassengerChange(
+                                                                                index,
+                                                                                "gender",
+                                                                                event.target
+                                                                                    .value
+                                                                            )
+                                                                        }
+                                                                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+                                                                    >
+                                                                        <option value="MR">
+                                                                            {i18n.language?.startsWith("tr") ? "Erkek" : "Mr"}
+                                                                        </option>
+                                                                        <option value="MRS">
+                                                                            {i18n.language?.startsWith("tr") ? "Kadın" : "Mrs"}
+                                                                        </option>
+                                                                    </select>
                                                                 </div>
+
+                                                                <div>
+                                                                    <label className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                                                                        Doğum Tarihi
+                                                                    </label>
+                                                                    <input
+                                                                        required
+                                                                        type="date"
+                                                                        min={getBirthDateMinMax(passenger, index).min}
+                                                                        max={getBirthDateMinMax(passenger, index).max}
+                                                                        value={
+                                                                            passenger.birthDate ||
+                                                                            ""
+                                                                        }
+                                                                        onChange={(
+                                                                            event
+                                                                        ) =>
+                                                                            handlePassengerChange(
+                                                                                index,
+                                                                                "birthDate",
+                                                                                event.target
+                                                                                    .value
+                                                                            )
+                                                                        }
+                                                                        className={`w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 transition-colors focus:outline-none dark:bg-slate-900 dark:text-white ${errors.birthDate
+                                                                            ? "border-red-500 ring-1 ring-red-500"
+                                                                            : "border-slate-300 focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/50 dark:border-slate-800"
+                                                                            }`}
+                                                                    />
+                                                                    {errors.birthDate && (
+                                                                        <span className="mt-1 block text-[10px] font-medium text-red-500">
+                                                                            {
+                                                                                errors.birthDate
+                                                                            }
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
 
                                                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                                 <div>

@@ -23,8 +23,6 @@ import "react-phone-number-input/style.css";
 import api from "../services/api";
 import { useAuth } from "./AuthContext";
 import ReservationPreviewModal from "./ReservationPreviewModal";
-import { getHotelImage, handleHotelImageError, DEFAULT_HOTEL_IMAGE } from "../utils/hotelImageUtils";
-
 import { handleFormKeyDown } from "../utils/formNavigation";
 import { HotelConfirmationModal } from "./ConfirmationModal";
 
@@ -38,6 +36,88 @@ function toDateOnly(value) {
   if (Number.isNaN(date.getTime())) return null;
 
   return date.toISOString().slice(0, 10);
+}
+
+
+function parseLocalDate(value) {
+  const dateOnly = toDateOnly(value);
+  if (!dateOnly) return null;
+
+  const [year, month, day] = dateOnly.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatLocalDate(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function parseNightCount(bookingDetails = {}) {
+  const candidates = [
+    bookingDetails.nightCount,
+    bookingDetails.nights,
+    bookingDetails.numberOfNights,
+    bookingDetails.stayNights,
+    bookingDetails.durationNights,
+    bookingDetails.duration,
+    bookingDetails.stayDuration,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate === null || candidate === undefined || candidate === "") {
+      continue;
+    }
+
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      const normalized = Math.trunc(candidate);
+      if (normalized > 0) return normalized;
+    }
+
+    const match = String(candidate).match(/(\d{1,3})/);
+    if (match) {
+      const normalized = Number.parseInt(match[1], 10);
+      if (normalized > 0) return normalized;
+    }
+  }
+
+  return null;
+}
+
+function resolveHotelCheckOut(bookingDetails = {}) {
+  const explicitCheckOut = toDateOnly(
+    bookingDetails.checkOut ||
+    bookingDetails.endDate ||
+    bookingDetails.checkOutDate
+  );
+
+  if (explicitCheckOut) {
+    return explicitCheckOut;
+  }
+
+  const checkIn = parseLocalDate(
+    bookingDetails.checkIn ||
+    bookingDetails.startDate ||
+    bookingDetails.checkInDate
+  );
+  const nightCount = parseNightCount(bookingDetails);
+
+  if (!checkIn || !nightCount) {
+    return null;
+  }
+
+  const checkOut = new Date(checkIn);
+  checkOut.setDate(checkOut.getDate() + nightCount);
+
+  return formatLocalDate(checkOut);
 }
 
 const normalizeIdentityNumber = (value) =>
@@ -725,12 +805,16 @@ export default function ReservationFormPanel({
         safeHotel?.city ||
         safeHotel?.region ||
         "-",
-      startDate: toDateOnly(bookingDetails?.checkIn),
-      endDate: toDateOnly(bookingDetails?.checkOut),
+      startDate: toDateOnly(
+        bookingDetails?.checkIn ||
+        bookingDetails?.startDate ||
+        bookingDetails?.checkInDate
+      ),
+      endDate: resolveHotelCheckOut(bookingDetails),
       totalPrice: Number(safeHotel?.price) || 0,
       currency: safeHotel?.currency || "TRY",
       chatSessionId: chatSessionId || null,
-      imageUrl: getHotelImage(safeHotel),
+      imageUrl: safeHotel?.thumbnailFull || safeHotel?.thumbnail || "",
       lang: i18n?.language || "tr",
       passengers: (guests || []).map((guest, index) => {
         const today = new Date();
@@ -844,16 +928,25 @@ export default function ReservationFormPanel({
     <>
       <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-50 font-sans dark:bg-slate-900">
         <div className="relative h-52 flex-shrink-0 overflow-hidden bg-slate-800 md:h-64">
-          <img
-            src={getHotelImage(safeHotel)}
-            alt={
-              safeHotel?.name ||
-              safeHotel?.hotelId ||
-              "Hotel"
-            }
-            className="h-full w-full object-cover"
-            onError={(event) => handleHotelImageError(event, safeHotel)}
-          />
+          {safeHotel?.thumbnailFull ||
+            safeHotel?.thumbnail ? (
+            <img
+              src={
+                safeHotel.thumbnailFull ||
+                safeHotel.thumbnail
+              }
+              alt={
+                safeHotel.name ||
+                safeHotel.hotelId ||
+                "Hotel"
+              }
+              className="h-full w-full object-cover"
+              onError={(event) => {
+                event.currentTarget.style.display =
+                  "none";
+              }}
+            />
+          ) : null}
 
           {onBack && (
             <button

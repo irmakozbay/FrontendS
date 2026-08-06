@@ -41,6 +41,29 @@ function toDateOnly(value) {
   return date.toISOString().slice(0, 10);
 }
 
+
+function resolveFlightStartDate(bookingDetails = {}) {
+  return toDateOnly(
+    bookingDetails.checkIn ||
+    bookingDetails.departureDate ||
+    bookingDetails.startDate ||
+    bookingDetails.flightDate
+  );
+}
+
+function resolveFlightEndDate(bookingDetails = {}) {
+  const startDate = resolveFlightStartDate(bookingDetails);
+
+  return (
+    toDateOnly(
+      bookingDetails.returnDate ||
+      bookingDetails.endDate ||
+      bookingDetails.flightReturnDate
+    ) ||
+    startDate
+  );
+}
+
 function isDuplicateTc(passengers, currentIndex) {
   const current = passengers[currentIndex];
   if (current?.nationality?.toUpperCase() !== "TR") return false;
@@ -643,8 +666,8 @@ export default function FlightReservationFormPanel({
       itemName: safeFlight?.airline || t("flight_ticket", "Uçak Bileti"),
       destination:
         `${bookingDetails?.departureCity || 'Gidiş'} -> ${bookingDetails?.arrivalCity || 'Varış'} (${safeFlight?.baggage || '15kg'}, ${safeFlight?.transfers || 'Direkt'})`,
-      startDate: toDateOnly(bookingDetails?.checkIn),
-      endDate: toDateOnly(bookingDetails?.returnDate || bookingDetails?.checkIn),
+      startDate: resolveFlightStartDate(bookingDetails),
+      endDate: resolveFlightEndDate(bookingDetails),
       totalPrice: Number(safeFlight?.price) || 0,
       currency: safeFlight?.currency || "TRY",
       chatSessionId: chatSessionId || null,

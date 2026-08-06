@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sun, Moon, User as UserIcon, ArrowLeft, ShieldCheck } from 'lucide-react';
 import SannyLogo from '../components/SannyLogo';
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const { theme, toggleTheme } = useTheme();
   const { login, continueAsGuest } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const videoRef = useRef(null);
 
@@ -75,9 +76,9 @@ export default function LoginPage() {
               return;
             }
             if (data && data.token) {
-              login(data.user, data.token, rememberMeRef.current);
+              await login(data.user, data.token, rememberMeRef.current);
             }
-            navigate('/chat');
+            navigateAfterLogin();
           } catch (err) {
             console.error('Google backend login error:', err);
             setSocialError(
@@ -93,9 +94,9 @@ export default function LoginPage() {
           console.error('Google Auth Init error:', err);
           setSocialError(err.message);
         }
-      }, { 
+      }, {
         locale: i18n.language,
-        buttonOptions: { 
+        buttonOptions: {
           theme: theme === 'dark' ? 'filled_black' : 'outline',
           shape: 'pill',
           text: 'continue_with'
@@ -132,6 +133,18 @@ export default function LoginPage() {
     setFieldErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
+  // Misafir sohbetinden giriş sayfasına gelindiyse aynı sohbet sayfasına geri dön.
+  const navigateAfterLogin = () => {
+    const returnTo = location.state?.returnTo || '/chat';
+
+    navigate(returnTo, {
+      replace: true,
+      state: {
+        restoreGuestSession: true,
+      },
+    });
+  };
+
   // KULLANICI GİRİŞI SUBMIT
   async function handleUserSubmit(e) {
     e.preventDefault();
@@ -157,8 +170,8 @@ export default function LoginPage() {
         localStorage.removeItem('rememberedEmail');
       }
 
-      login(data.user, data.token, rememberMe);
-      navigate('/chat');
+      await login(data.user, data.token, rememberMe);
+      navigateAfterLogin();
     } catch (err) {
       if (err.response && err.response.data && err.response.data.code === 'ACCOUNT_RESTRICTED') {
         setFieldErrors({
@@ -228,9 +241,9 @@ export default function LoginPage() {
         return;
       }
       if (data && data.token) {
-        login(data.user, data.token, rememberMe);
+        await login(data.user, data.token, rememberMe);
       }
-      navigate('/chat');
+      navigateAfterLogin();
     } catch (err) {
       if (err.message === 'cancelled') {
         setSocialError(t('social_login_cancelled', 'Giriş iptal edildi'));
@@ -264,8 +277,8 @@ export default function LoginPage() {
         localStorage.removeItem('rememberedEmail');
       }
 
-      login(data.user, data.token, rememberMe);
-      navigate('/chat');
+      await login(data.user, data.token, rememberMe);
+      navigateAfterLogin();
     } catch (err) {
       console.error('2FA verification error:', err);
       setVerificationError(err.response?.data?.message || "Doğrulama kodu geçersiz veya süresi dolmuş.");
@@ -304,8 +317,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative font-sans bg-transparent">
       {/* Top Left Branding Link to Welcome */}
-      <Link 
-        to="/welcome" 
+      <Link
+        to="/welcome"
         className="fixed top-3 left-3 sm:top-4 sm:left-4 z-50 group flex items-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
         title={t('auth.backToHome', 'Ana Sayfaya Dön')}
       >
@@ -484,144 +497,144 @@ export default function LoginPage() {
                 <label htmlFor="email" className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-3">
                   {t('email_label')}
                 </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-4 text-slate-400 dark:text-slate-500 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="20" height="16" x="2" y="4" rx="2" />
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                  </svg>
-                </div>
-                <input
-                  id="email"
-                  type="text"
-                  value={email}
-                  onChange={(e) => handleInputChange('email', e.target.value, setEmail)}
-                  onBlur={(e) => handleBlur('email', e.target.value)}
-                  placeholder={t('email_placeholder')}
-                  maxLength={100}
-                  className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-11 pr-5 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
-                />
-              </div>
-              {fieldErrors.email && (
-                <p className="text-[12px] text-red-500 pl-3 mt-0.5">{fieldErrors.email}</p>
-              )}
-            </div>
-
-            {/* Şifre */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="password" className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-3">
-                {t('password_label')}
-              </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-4 text-slate-400 dark:text-slate-500 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => handleInputChange('password', e.target.value, setPassword)}
-                  onBlur={(e) => handleBlur('password', e.target.value)}
-                  placeholder={t('password_placeholder')}
-                  maxLength={30}
-                  className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-11 pr-12 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors duration-200"
-                >
-                  {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
-                      <circle cx="12" cy="12" r="3" />
+                <div className="relative flex items-center">
+                  <div className="absolute left-4 text-slate-400 dark:text-slate-500 pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect width="20" height="16" x="2" y="4" rx="2" />
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                     </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                      <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                      <line x1="2" x2="22" y1="2" y2="22" />
+                  </div>
+                  <input
+                    id="email"
+                    type="text"
+                    value={email}
+                    onChange={(e) => handleInputChange('email', e.target.value, setEmail)}
+                    onBlur={(e) => handleBlur('email', e.target.value)}
+                    placeholder={t('email_placeholder')}
+                    maxLength={100}
+                    className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-11 pr-5 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
+                  />
+                </div>
+                {fieldErrors.email && (
+                  <p className="text-[12px] text-red-500 pl-3 mt-0.5">{fieldErrors.email}</p>
+                )}
+              </div>
+
+              {/* Şifre */}
+              <div className="flex flex-col gap-1">
+                <label htmlFor="password" className="text-[13px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider pl-3">
+                  {t('password_label')}
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-4 text-slate-400 dark:text-slate-500 pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
-                  )}
-                </button>
-              </div>
-              {fieldErrors.password && (
-                <p className="text-[12px] text-red-500 pl-3 mt-0.5">{fieldErrors.password}</p>
-              )}
-            </div>
-
-            {/* Hatırla & Şifremi Unuttum */}
-            <div className="flex items-center justify-between px-1">
-              <label className="flex items-center text-[13px] text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="mr-2 rounded border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-primary focus:ring-0 focus:ring-offset-0 w-4 h-4 accent-primary"
-                />
-                {t('remember_me')}
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-[13px] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:underline transition-colors duration-200 font-medium"
-              >
-                {t('forgot_password')}
-              </Link>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              className="max-w-[220px] w-full mx-auto block bg-primary hover:bg-primary-dark active:scale-95 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-md hover:shadow-primary/30 font-sans tracking-wide mt-1 text-[16px]"
-            >
-              {t('login_button')}
-            </button>
-
-            {/* ────────────────── SOSYAL GİRİŞ BÖLÜMÜ (SADECE GOOGLE) ────────────────── */}
-            <div className="flex flex-col gap-2 mt-1">
-              {/* VEYA Ayırıcı */}
-              <div className="flex items-center justify-center gap-3 px-4">
-                <span className="h-[1px] flex-1 bg-slate-300/60 dark:bg-slate-600/60"></span>
-                <span className="text-[12px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-medium">
-                  {t('auth.orContinueWith', 'VEYA ŞUNUNLA DEVAM EDİN')}
-                </span>
-                <span className="h-[1px] flex-1 bg-slate-300/60 dark:bg-slate-600/60"></span>
-              </div>
-
-              {/* Social Login Error Toast */}
-              {socialError && (
-                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400 text-[14px] animate-fade-in">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" x2="12" y1="8" y2="12" />
-                    <line x1="12" x2="12.01" y1="16" y2="16" />
-                  </svg>
-                  <span>{socialError}</span>
+                  </div>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => handleInputChange('password', e.target.value, setPassword)}
+                    onBlur={(e) => handleBlur('password', e.target.value)}
+                    placeholder={t('password_placeholder')}
+                    maxLength={30}
+                    className="w-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full pl-11 pr-12 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
+                  />
                   <button
                     type="button"
-                    onClick={() => setSocialError('')}
-                    className="ml-auto text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors duration-200"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" x2="6" y1="6" y2="18" />
-                      <line x1="6" x2="18" y1="6" y2="18" />
-                    </svg>
+                    {showPassword ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                        <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                        <line x1="2" x2="22" y1="2" y2="22" />
+                      </svg>
+                    )}
                   </button>
                 </div>
-              )}
-
-              {/* Google Button */}
-              <div className="flex flex-col items-center justify-center w-full min-h-[44px]">
-                <div id="googleBtnDiv" className="flex justify-center w-full"></div>
+                {fieldErrors.password && (
+                  <p className="text-[12px] text-red-500 pl-3 mt-0.5">{fieldErrors.password}</p>
+                )}
               </div>
-            </div>
-          </form>
-        )
-      )}
+
+              {/* Hatırla & Şifremi Unuttum */}
+              <div className="flex items-center justify-between px-1">
+                <label className="flex items-center text-[13px] text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="mr-2 rounded border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-primary focus:ring-0 focus:ring-offset-0 w-4 h-4 accent-primary"
+                  />
+                  {t('remember_me')}
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-[13px] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:underline transition-colors duration-200 font-medium"
+                >
+                  {t('forgot_password')}
+                </Link>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                className="max-w-[220px] w-full mx-auto block bg-primary hover:bg-primary-dark active:scale-95 text-white font-bold py-2.5 rounded-xl transition-all duration-300 shadow-md hover:shadow-primary/30 font-sans tracking-wide mt-1 text-[16px]"
+              >
+                {t('login_button')}
+              </button>
+
+              {/* ────────────────── SOSYAL GİRİŞ BÖLÜMÜ (SADECE GOOGLE) ────────────────── */}
+              <div className="flex flex-col gap-2 mt-1">
+                {/* VEYA Ayırıcı */}
+                <div className="flex items-center justify-center gap-3 px-4">
+                  <span className="h-[1px] flex-1 bg-slate-300/60 dark:bg-slate-600/60"></span>
+                  <span className="text-[12px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-medium">
+                    {t('auth.orContinueWith', 'VEYA ŞUNUNLA DEVAM EDİN')}
+                  </span>
+                  <span className="h-[1px] flex-1 bg-slate-300/60 dark:bg-slate-600/60"></span>
+                </div>
+
+                {/* Social Login Error Toast */}
+                {socialError && (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400 text-[14px] animate-fade-in">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" x2="12" y1="8" y2="12" />
+                      <line x1="12" x2="12.01" y1="16" y2="16" />
+                    </svg>
+                    <span>{socialError}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSocialError('')}
+                      className="ml-auto text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" x2="6" y1="6" y2="18" />
+                        <line x1="6" x2="18" y1="6" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
+                {/* Google Button */}
+                <div className="flex flex-col items-center justify-center w-full min-h-[44px]">
+                  <div id="googleBtnDiv" className="flex justify-center w-full"></div>
+                </div>
+              </div>
+            </form>
+          )
+        )}
 
         {/* ALT ALAN (Kayıt ol & Admin olarak giriş yap) */}
         {!isAdminMode && !isTwoFactorMode && (
@@ -630,6 +643,7 @@ export default function LoginPage() {
               {t('no_account')}{' '}
               <Link
                 to="/signup"
+                state={location.state}
                 className="text-[#0096c7] dark:text-cyan-400 hover:text-[#023e8a] dark:hover:text-cyan-300 font-semibold hover:underline transition-colors duration-200"
               >
                 {t('signup_link')}

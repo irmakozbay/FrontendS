@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import {
@@ -39,6 +39,142 @@ function formatPrice(price) {
   const num = Number(price);
   if (Number.isNaN(num)) return price;
   return Math.round(num).toLocaleString("tr-TR");
+}
+
+
+function formatLocalDate(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function parseFlexibleDate(value) {
+  if (!value) return null;
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : new Date(value);
+  }
+
+  const raw = String(value).trim();
+
+  const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const numericMatch = raw.match(/^(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?$/);
+  if (numericMatch) {
+    let [, day, month, year] = numericMatch;
+    const currentYear = new Date().getFullYear();
+
+    if (!year) {
+      year = String(currentYear);
+    } else if (year.length === 2) {
+      year = `20${year}`;
+    }
+
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const monthMap = {
+    ocak: 0,
+    şubat: 1,
+    subat: 1,
+    mart: 2,
+    nisan: 3,
+    mayıs: 4,
+    mayis: 4,
+    haziran: 5,
+    temmuz: 6,
+    ağustos: 7,
+    agustos: 7,
+    eylül: 8,
+    eylul: 8,
+    ekim: 9,
+    kasım: 10,
+    kasim: 10,
+    aralık: 11,
+    aralik: 11,
+    january: 0,
+    february: 1,
+    march: 2,
+    april: 3,
+    may: 4,
+    june: 5,
+    july: 6,
+    august: 7,
+    september: 8,
+    october: 9,
+    november: 10,
+    december: 11,
+  };
+
+  const textualMatch = raw
+    .toLocaleLowerCase("tr-TR")
+    .match(/^(\d{1,2})\s+([a-zçğıöşü]+)(?:\s+(\d{4}))?$/i);
+
+  if (textualMatch) {
+    const [, dayText, monthText, yearText] = textualMatch;
+    const month = monthMap[monthText];
+
+    if (month === undefined) return null;
+
+    const now = new Date();
+    let year = yearText ? Number(yearText) : now.getFullYear();
+    let date = new Date(year, month, Number(dayText));
+
+    if (!yearText) {
+      const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      if (date < todayOnly) {
+        year += 1;
+        date = new Date(year, month, Number(dayText));
+      }
+    }
+
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function extractNightCount(value) {
+  if (value === null || value === undefined || value === "") return null;
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const normalized = Math.trunc(value);
+    return normalized > 0 ? normalized : null;
+  }
+
+  const text = String(value).toLocaleLowerCase("tr-TR");
+  const match = text.match(
+    /(?:^|\s)(\d{1,3})\s*(?:gece|gecelik|night|nights|nacht|nächte)(?:\s|$)/i
+  );
+
+  if (!match) return null;
+
+  const count = Number.parseInt(match[1], 10);
+  return count > 0 ? count : null;
+}
+
+function calculateCheckoutDate(checkInValue, nightCountValue) {
+  const checkInDate = parseFlexibleDate(checkInValue);
+  const nightCount = extractNightCount(nightCountValue);
+
+  if (!checkInDate || !nightCount) return "";
+
+  const checkOutDate = new Date(checkInDate);
+  checkOutDate.setDate(checkOutDate.getDate() + nightCount);
+
+  return formatLocalDate(checkOutDate);
 }
 
 // TourVisio aramasÄ±nda Ã§ocuklar yetiÅŸkin sayÄ±sÄ±na eklenerek gÃ¶nderilir (TourVisio'da
@@ -166,7 +302,7 @@ export default function Index() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { isGuest, user } = useAuth();
-  
+
   const [accountRestricted, setAccountRestricted] = useState(() => localStorage.getItem('accountRestricted') === 'true');
 
   useEffect(() => {
@@ -268,6 +404,7 @@ export default function Index() {
     city: "",           // Otel iÃ§in: Nerede (Konum)
     checkIn: "",        // Otel iÃ§in GiriÅŸ / UÃ§ak iÃ§in GidiÅŸ Tarihi
     checkOut: "",       // Sadece Otel iÃ§in Ã‡Ä±kÄ±ÅŸ Tarihi
+    nightCount: null,
     guests: "",
     adultCount: 1,
     childCount: 0,
@@ -288,16 +425,22 @@ export default function Index() {
   const location = useLocation();
 
   // Guest users get or reuse a guestSessionId stored in sessionStorage
+  const createGuestSessionId = () =>
+    'guest-' + (window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 11));
+
   const getGuestSessionId = () => {
     let id = sessionStorage.getItem('guestSessionId');
     if (!id) {
-      id = 'guest-' + (window.crypto?.randomUUID ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 11));
+      id = createGuestSessionId();
       sessionStorage.setItem('guestSessionId', id);
     }
     return id;
   };
 
-  const sessionId = searchParams.get('sessionId') || (isGuest ? getGuestSessionId() : '');
+  const urlSessionId = searchParams.get('sessionId');
+  const sessionId = urlSessionId || (isGuest ? getGuestSessionId() : '');
   const [isListening, setIsListening] = useState(false);
 
   const videoRef = useRef(null);
@@ -310,6 +453,36 @@ export default function Index() {
     ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
     : null;
   const username = profileFullNameForGreeting || (email ? (email.includes('@') ? email.split('@')[0] : email) : "User");
+
+
+  // Misafir sohbetini kayıt/giriş sonrasında aynı tarayıcıda devam ettir.
+  useEffect(() => {
+    if (isGuest || !user || urlSessionId) return;
+
+    const pendingGuestSessionId =
+      sessionStorage.getItem('pendingGuestSessionId');
+
+    if (!pendingGuestSessionId) return;
+
+    setSearchParams(
+      { sessionId: pendingGuestSessionId },
+      { replace: true }
+    );
+
+    sessionStorage.removeItem('pendingGuestSessionId');
+  }, [isGuest, user, urlSessionId, setSearchParams]);
+
+  const continueAfterAuthentication = (path) => {
+    const guestChatSessionId = getGuestSessionId();
+    sessionStorage.setItem('pendingGuestSessionId', guestChatSessionId);
+
+    navigate(path, {
+      state: {
+        returnTo: `${location.pathname}${location.search}`,
+        guestSessionId: guestChatSessionId,
+      },
+    });
+  };
 
   // --- HTML5 Video Autoplay Engeli Ã‡Ã¶zÃ¼mÃ¼ & Tema DeÄŸiÅŸimi ---
   useEffect(() => {
@@ -375,22 +548,50 @@ export default function Index() {
             const criteriaResponse = await api.get(`/api/chat/sessions/${sessionId}/criteria`);
             const c = criteriaResponse.data;
             if (c) {
-              setBookingDetails(prev => ({
-                ...prev,
-                city: c.locationOrHotelName || "",
-                checkIn: c.checkInDate || c.departureDate || "",
-                checkOut: c.checkOutDate || "",
-                guests: formatGuestCount(c.adultCount, c.childCount, c.passengerCount, t, c.infantCount) || "",
-                adultCount: c.adultCount !== undefined && c.adultCount !== null ? c.adultCount : prev.adultCount,
-                childCount: c.childCount !== undefined && c.childCount !== null ? c.childCount : prev.childCount,
-                childAges: c.childAges || [],
-                infantCount: c.infantCount !== undefined && c.infantCount !== null ? c.infantCount : prev.infantCount,
-                infantAges: c.infantAges || [],
-                passengerCount: c.passengerCount !== undefined && c.passengerCount !== null ? c.passengerCount : prev.passengerCount,
-                departureCity: c.departureLocation || "",
-                arrivalCity: c.arrivalLocation || "",
-                returnDate: c.returnDate || ""
-              }));
+              setBookingDetails(prev => {
+                const resolvedCheckIn =
+                  c.checkInDate ||
+                  c.departureDate ||
+                  prev.checkIn ||
+                  "";
+
+                const resolvedNightCount =
+                  extractNightCount(
+                    c.nightCount ??
+                    c.nights ??
+                    c.numberOfNights ??
+                    c.duration
+                  ) ??
+                  prev.nightCount ??
+                  null;
+
+                const resolvedCheckOut =
+                  c.checkOutDate ||
+                  calculateCheckoutDate(
+                    resolvedCheckIn,
+                    resolvedNightCount
+                  ) ||
+                  prev.checkOut ||
+                  "";
+
+                return {
+                  ...prev,
+                  city: c.locationOrHotelName || prev.city || "",
+                  checkIn: resolvedCheckIn,
+                  checkOut: resolvedCheckOut,
+                  nightCount: resolvedNightCount,
+                  guests: formatGuestCount(c.adultCount, c.childCount, c.passengerCount, t, c.infantCount) || prev.guests || "",
+                  adultCount: c.adultCount !== undefined && c.adultCount !== null ? c.adultCount : prev.adultCount,
+                  childCount: c.childCount !== undefined && c.childCount !== null ? c.childCount : prev.childCount,
+                  childAges: c.childAges || prev.childAges || [],
+                  infantCount: c.infantCount !== undefined && c.infantCount !== null ? c.infantCount : prev.infantCount,
+                  infantAges: c.infantAges || prev.infantAges || [],
+                  passengerCount: c.passengerCount !== undefined && c.passengerCount !== null ? c.passengerCount : prev.passengerCount,
+                  departureCity: c.departureLocation || prev.departureCity || "",
+                  arrivalCity: c.arrivalLocation || prev.arrivalCity || "",
+                  returnDate: c.returnDate || prev.returnDate || ""
+                };
+              });
               setSessionCriteria({
                 maxPrice: c.maxPrice || null,
                 minStars: c.minStars || null
@@ -579,7 +780,7 @@ export default function Index() {
         setHasValidSearch(true);
         setIsRightSidebarOpen(true);
       }
-      
+
       if (data.searchType) {
         if (data.searchType.includes("HOTEL")) {
           setSearchType("hotel");
@@ -591,6 +792,11 @@ export default function Index() {
       // 2. Kullanıcının Kendi Yazdığı Mesajdan (Sorgudan) Tarih ve Konuk Bilgilerini Ayıkla (Yedek Plan)
       let extractedFromQuery = {};
       const lowerQuery = query.toLocaleLowerCase('tr-TR');
+
+      const extractedNightCount = extractNightCount(lowerQuery);
+      if (extractedNightCount) {
+        extractedFromQuery.nightCount = extractedNightCount;
+      }
 
       // Konuk Sayısı Ayıklama
       const guestMatch = lowerQuery.match(/(\d+)\s*(kişi|kisi|yetişkin|yetiskin|guest|adult)/i);
@@ -633,22 +839,78 @@ export default function Index() {
           }
         }
 
-        setBookingDetails(prev => ({
-          ...prev,
-          city: c.locationOrHotelName || "",
-          checkIn: c.checkInDate || c.departureDate || extractedFromQuery.checkIn || "",
-          checkOut: c.checkOutDate || extractedFromQuery.checkOut || "",
-          guests: formatGuestCount(c.adultCount, c.childCount, c.passengerCount, t, c.infantCount) || extractedFromQuery.guests || "",
-          adultCount: c.adultCount !== undefined && c.adultCount !== null ? c.adultCount : prev.adultCount,
-          childCount: c.childCount !== undefined && c.childCount !== null ? c.childCount : prev.childCount,
-          childAges: c.childAges || [],
-          infantCount: c.infantCount !== undefined && c.infantCount !== null ? c.infantCount : prev.infantCount,
-          infantAges: c.infantAges || [],
-          passengerCount: c.passengerCount !== undefined && c.passengerCount !== null ? c.passengerCount : prev.passengerCount,
-          departureCity: c.departureLocation || "",
-          arrivalCity: c.arrivalLocation || "",
-          returnDate: c.returnDate || ""
-        }));
+        setBookingDetails(prev => {
+          const resolvedCheckIn =
+            c.checkInDate ||
+            c.departureDate ||
+            extractedFromQuery.checkIn ||
+            prev.checkIn ||
+            "";
+
+          const resolvedNightCount =
+            extractNightCount(
+              c.nightCount ??
+              c.nights ??
+              c.numberOfNights ??
+              c.duration
+            ) ??
+            extractedFromQuery.nightCount ??
+            prev.nightCount ??
+            null;
+
+          const resolvedCheckOut =
+            c.checkOutDate ||
+            extractedFromQuery.checkOut ||
+            calculateCheckoutDate(
+              resolvedCheckIn,
+              resolvedNightCount
+            ) ||
+            prev.checkOut ||
+            "";
+
+          return {
+            ...prev,
+            city: c.locationOrHotelName || prev.city || "",
+            checkIn: resolvedCheckIn,
+            checkOut: resolvedCheckOut,
+            nightCount: resolvedNightCount,
+            guests:
+              formatGuestCount(
+                c.adultCount,
+                c.childCount,
+                c.passengerCount,
+                t,
+                c.infantCount
+              ) ||
+              extractedFromQuery.guests ||
+              prev.guests ||
+              "",
+            adultCount:
+              c.adultCount !== undefined && c.adultCount !== null
+                ? c.adultCount
+                : prev.adultCount,
+            childCount:
+              c.childCount !== undefined && c.childCount !== null
+                ? c.childCount
+                : prev.childCount,
+            childAges: c.childAges || prev.childAges || [],
+            infantCount:
+              c.infantCount !== undefined && c.infantCount !== null
+                ? c.infantCount
+                : prev.infantCount,
+            infantAges: c.infantAges || prev.infantAges || [],
+            passengerCount:
+              c.passengerCount !== undefined && c.passengerCount !== null
+                ? c.passengerCount
+                : prev.passengerCount,
+            departureCity:
+              c.departureLocation || prev.departureCity || "",
+            arrivalCity:
+              c.arrivalLocation || prev.arrivalCity || "",
+            returnDate:
+              c.returnDate || prev.returnDate || "",
+          };
+        });
         setSessionCriteria({
           maxPrice: c.maxPrice || null,
           minStars: c.minStars || null
@@ -821,14 +1083,14 @@ export default function Index() {
             {t('guest.bannerText', 'Misafir olarak oturum aÃ§tÄ±nÄ±z. Sohbet geÃ§miÅŸinizi kaydetmek iÃ§in')}{' '}
           </span>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => continueAfterAuthentication('/login')}
             className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-200 transition-colors cursor-pointer"
           >
             {t('guest.loginLink', 'GiriÅŸ Yap')}
           </button>
           <span>{t('guest.or', 'veya')}</span>
           <button
-            onClick={() => navigate('/signup')}
+            onClick={() => continueAfterAuthentication('/signup')}
             className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-200 transition-colors cursor-pointer"
           >
             {t('guest.registerLink', 'KayÄ±t Ol')}
@@ -846,9 +1108,20 @@ export default function Index() {
           setSearchQuery("");
           setSearchType("hotel");
           setActivePanel(null);
-          setBookingDetails({ city: "", departureCity: "", arrivalCity: "", checkIn: "", checkOut: "", guests: "", adultCount: 1, childCount: 0, childAges: [], infantCount: 0, infantAges: [], passengerCount: 1, hotelName: "", airline: "", price: "", returnDate: "" });
+          setHasValidSearch(false);
+          setIsRightSidebarOpen(false);
+          setIsChatCompleted(false);
+          setBookingDetails({ city: "", departureCity: "", arrivalCity: "", checkIn: "", checkOut: "", nightCount: null, guests: "", adultCount: 1, childCount: 0, childAges: [], infantCount: 0, infantAges: [], passengerCount: 1, hotelName: "", airline: "", price: "", returnDate: "" });
           setSelectedHotel(null);
           setSelectedFlight(null);
+
+          setSearchParams({}, { replace: true });
+          sessionStorage.removeItem('pendingGuestSessionId');
+          if (isGuest) {
+            sessionStorage.setItem('guestSessionId', createGuestSessionId());
+          } else {
+            sessionStorage.removeItem('guestSessionId');
+          }
         }}
       />
 

@@ -7,74 +7,113 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Attach bearer token to header (except for public auth endpoints or invalid tokens)
+const isValidToken = (value) =>
+  Boolean(
+    value &&
+    value !== 'null' &&
+    value !== 'undefined' &&
+    value.trim() !== ''
+  );
+
+const removeAuthorizationHeader = (headers) => {
+  if (!headers) return;
+
+  delete headers.Authorization;
+  delete headers.authorization;
+
+  if (typeof headers.delete === 'function') {
+    headers.delete('Authorization');
+    headers.delete('authorization');
+  }
+};
+
 api.interceptors.request.use(
   (config) => {
     const url = config.url || '';
+
     const isPublicAuthEndpoint =
       (url.includes('/api/auth') && !url.includes('/api/auth/logout')) ||
       url.includes('/api/authenticationservice/login');
 
-    if (isPublicAuthEndpoint) {
-      // Preserve explicit Authorization header if provided by caller (e.g. Bearer google_id_token for oauth-login)
-      const hasExplicitAuthHeader =
-        config.headers?.Authorization ||
-        config.headers?.authorization ||
-        (typeof config.headers?.get === 'function' && config.headers.get('Authorization'));
+    const isAdminEndpoint =
+      url.startsWith('/api/admin') ||
+      url.includes('/api/admin/');
 
-      if (!hasExplicitAuthHeader) {
-        delete config.headers.Authorization;
-        delete config.headers['Authorization'];
-        if (typeof config.headers?.delete === 'function') {
-          config.headers.delete('Authorization');
-          config.headers.delete('authorization');
-        }
+    const hasExplicitAuthorization =
+      config.headers?.Authorization ||
+      config.headers?.authorization ||
+      (typeof config.headers?.get === 'function' &&
+        config.headers.get('Authorization'));
+
+    if (isPublicAuthEndpoint) {
+      if (!hasExplicitAuthorization) {
+        removeAuthorizationHeader(config.headers);
       }
-    } else {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || localStorage.getItem('adminToken');
-      if (token && token !== 'null' && token !== 'undefined' && token.trim() !== '') {
-        config.headers.Authorization = `Bearer ${token.trim()}`;
-      } else {
-        delete config.headers.Authorization;
-        delete config.headers['Authorization'];
-        if (typeof config.headers?.delete === 'function') {
-          config.headers.delete('Authorization');
-          config.headers.delete('authorization');
-        }
-      }
+
+      return config;
     }
+
+    const token = isAdminEndpoint
+      ? localStorage.getItem('adminToken')
+      : localStorage.getItem('token') ||
+      sessionStorage.getItem('token');
+
+    if (isValidToken(token)) {
+      config.headers.Authorization = `Bearer ${token.trim()}`;
+    } else {
+      removeAuthorizationHeader(config.headers);
+    }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Globally handle 401 Unauthorized and 403 Forbidden Restrictions
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 403 && error.response.data?.code === 'ACCOUNT_RESTRICTED') {
+    const status = error.response?.status;
+    const responseCode = error.response?.data?.code;
+    const requestUrl = error.config?.url || '';
+
+    if (
+      status === 403 &&
+      responseCode === 'ACCOUNT_RESTRICTED'
+    ) {
       localStorage.setItem('accountRestricted', 'true');
       window.dispatchEvent(new Event('accountRestricted'));
     }
 
-    if (error.response && error.response.status === 401) {
-      const url = error.config?.url || '';
-      const isGuestSession = localStorage.getItem('isGuest') === 'true' || sessionStorage.getItem('isGuest') === 'true';
+    if (status === 401) {
+      const isGuestSession =
+        localStorage.getItem('isGuest') === 'true' ||
+        sessionStorage.getItem('isGuest') === 'true';
 
-      // Avoid redirecting when public auth endpoints fail OR when user is in a guest session OR on admin routes
-      if (!url.includes('/api/auth') && !isGuestSession && !window.location.pathname.startsWith('/admin')) {
-        localStorage.removeItem('token');
-        sessionStorage.removeItem('token');
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('user');
-        localStorage.removeItem('userId');
-        sessionStorage.removeItem('userId');
-        window.location.href = '/login';
+      const isAuthRequest =
+        requestUrl.includes('/api/auth');
+
+      const isAdminRequest =
+        requestUrl.startsWith('/api/admin') ||
+        requestUrl.includes('/api/admin/') ||
+        window.location.pathname.startsWith('/admin');
+
+      if (!isAuthRequest && !isGuestSession) {
+        if (isAdminRequest) {
+          localStorage.removeItem('adminToken');
+          window.location.href = '/login';
+        } else {
+          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
+          localStorage.removeItem('user');
+          sessionStorage.removeItem('user');
+          localStorage.removeItem('userId');
+          sessionStorage.removeItem('userId');
+
+          window.location.href = '/login';
+        }
       }
     }
+
     return Promise.reject(error);
   }
 );
