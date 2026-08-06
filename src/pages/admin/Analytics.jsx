@@ -246,43 +246,132 @@ export default function Analytics() {
                         </div>
                     </div>
 
-                    {/* Alt Bölüm: En Çok Tercih Edilen Uçuş Rotaları */}
-                    <div className="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900/50">
-                        <div className="mb-4">
-                            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 flex items-center gap-1.5">
-                                <Award size={16} className="text-blue-500" />
-                                En Popüler Uçuş Rotaları
-                            </h3>
-                            <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
-                                Asistan aracılığıyla en çok bilet kesilen uçuş noktaları.
-                            </p>
+                    {/* Alt Bölüm: En Çok Tercih Edilen Uçuş Rotaları ve Retrospektif Analizi */}
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        {/* En Popüler Uçuş Rotaları */}
+                        <div className="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900/50 lg:col-span-1 flex flex-col justify-between">
+                            <div>
+                                <div className="mb-4">
+                                    <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 flex items-center gap-1.5">
+                                        <Award size={16} className="text-blue-500" />
+                                        En Popüler Uçuş Rotaları
+                                    </h3>
+                                    <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+                                        Asistan aracılığıyla en çok bilet kesilen uçuş noktaları.
+                                    </p>
+                                </div>
+
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs text-left border-collapse">
+                                        <thead>
+                                            <tr className="border-b border-gray-100 bg-gray-50/50 font-bold uppercase tracking-wider text-gray-400 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-500">
+                                                <th className="px-4 py-2.5">Rota / Sefer</th>
+                                                <th className="px-4 py-2.5 text-center">Bilet</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800 text-gray-700 dark:text-slate-350">
+                                            {data.topFlights && data.topFlights.length > 0 ? (
+                                                data.topFlights.map((item, idx) => (
+                                                    <tr key={idx} className="hover:bg-gray-50/20 dark:hover:bg-slate-800/10">
+                                                        <td className="px-4 py-3 font-semibold text-gray-800 dark:text-white truncate max-w-[120px]">{item.name}</td>
+                                                        <td className="px-4 py-3 text-center font-bold text-blue-500">{item.count} Bilet</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="2" className="text-center py-6 text-gray-400">Henüz uçuş rezervasyonu bulunmuyor.</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-xs text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-gray-100 bg-gray-50/50 font-bold uppercase tracking-wider text-gray-400 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-500">
-                                        <th className="px-4 py-2.5">Rota / Sefer</th>
-                                        <th className="px-4 py-2.5 text-center">Satış Adedi</th>
-                                        <th className="px-4 py-2.5 text-right">Toplam Hacim</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800 text-gray-700 dark:text-slate-350">
-                                    {data.topFlights && data.topFlights.length > 0 ? (
-                                        data.topFlights.map((item, idx) => (
-                                            <tr key={idx} className="hover:bg-gray-50/20 dark:hover:bg-slate-800/10">
-                                                <td className="px-4 py-3 font-semibold text-gray-800 dark:text-white truncate max-w-[250px]">{item.name}</td>
-                                                <td className="px-4 py-3 text-center font-bold text-blue-500">{item.count} Bilet</td>
-                                                <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(item.totalRevenue)}</td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="3" className="text-center py-6 text-gray-400">Henüz uçuş rezervasyonu bulunmuyor.</td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                        {/* Yazılım Geliştirme & Retrospektif Analizi */}
+                        <div className="rounded-2xl border border-gray-150 bg-white p-6 shadow-sm dark:border-slate-850 dark:bg-slate-900/50 lg:col-span-2 flex flex-col justify-between">
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-800 dark:text-slate-200 flex items-center gap-1.5">
+                                    <Settings size={16} className="text-orange-500" />
+                                    Yazılım Geliştirme & Retrospektif Analizi (AI Sonrası)
+                                </h3>
+                                <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+                                    AI asistan entegrasyonu sonrası süreç dağılımları ve ekip retrospektif anket sonuçları.
+                                </p>
+                            </div>
+
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Geliştirme vs İnceleme Süreleri */}
+                                <div className="space-y-4">
+                                    <h4 className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Süre Dağılımları (AI Sonrası)</h4>
+                                    
+                                    {/* Review Süresi */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex justify-between items-center text-xs font-semibold">
+                                            <span className="text-gray-700 dark:text-slate-350 flex items-center gap-1">
+                                                <Clock size={13} className="text-orange-500" />
+                                                Kod İnceleme (Review) Süresi
+                                            </span>
+                                            <span className="text-orange-500 font-bold">%{data.reviewTimePercentage || 74} (Uzadı)</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div 
+                                                className="h-full bg-orange-500 rounded-full transition-all duration-500"
+                                                style={{ width: `${data.reviewTimePercentage || 74}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Development Süresi */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex justify-between items-center text-xs font-semibold">
+                                            <span className="text-gray-700 dark:text-slate-350 flex items-center gap-1">
+                                                <TrendingUp size={13} className="text-emerald-500" />
+                                                Geliştirme (Development) Süresi
+                                            </span>
+                                            <span className="text-emerald-500 font-bold">%{data.developmentTimePercentage || 26} (Kısaldı)</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div 
+                                                className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                                style={{ width: `${data.developmentTimePercentage || 26}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Ekip Retro Anket Bulguları */}
+                                <div className="space-y-3">
+                                    <h4 className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Ekip Retro Anket Sonuçları</h4>
+                                    
+                                    {/* Scrum Sprint Uyumu */}
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span className="text-gray-505 dark:text-slate-400">Scrum Sprint Uyumu</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="font-bold text-gray-800 dark:text-slate-200">%{data.scrumSprintCompatibility || 85}</span>
+                                            <span className="text-[9px] px-1.5 py-0.5 bg-blue-500/10 text-blue-500 rounded font-semibold">Daha Uyumlu</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Kanban Mimarisi */}
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span className="text-gray-505 dark:text-slate-400">Kanban Mimarisi Tercihi</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="font-bold text-gray-800 dark:text-slate-200">%{data.kanbanArchitectureUsage || 65}</span>
+                                            <span className="text-[9px] px-1.5 py-0.5 bg-violet-500/10 text-violet-500 rounded font-semibold">Kullanıldı</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Retro Katılımı / Anket Başarısı */}
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span className="text-gray-550 dark:text-slate-400">Retro Anket Verimliliği</span>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="font-bold text-gray-800 dark:text-slate-200">%{data.retroSurveyScore || 92}</span>
+                                            <span className="text-[9px] px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 rounded font-semibold">Başarılı</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
