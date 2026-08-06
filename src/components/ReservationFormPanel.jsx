@@ -43,6 +43,18 @@ function toDateOnly(value) {
 const normalizeIdentityNumber = (value) =>
   String(value || "").replace(/\s+/g, "").toUpperCase();
 
+const validateTCKN = (tckn) => {
+  if (!/^[1-9]\d{10}$/.test(tckn)) return false;
+  const digits = tckn.split("").map(Number);
+  const oddSum = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
+  const evenSum = digits[1] + digits[3] + digits[5] + digits[7];
+  const d10 = ((oddSum * 7 - evenSum) % 10 + 10) % 10;
+  if (d10 !== digits[9]) return false;
+  const d11 = digits.slice(0, 10).reduce((sum, d) => sum + d, 0) % 10;
+  if (d11 !== digits[10]) return false;
+  return true;
+};
+
 const isDuplicateTurkishIdentityNumber = (
   passengers = [],
   currentIndex
@@ -98,10 +110,10 @@ const getPassengerErrors = (
   }
 
   if (passenger.nationality?.toUpperCase() === "TR") {
-    if (!/^[1-9]\d{10}$/.test(passenger.identityNumber || "")) {
+    if (!validateTCKN(passenger.identityNumber || "")) {
       errors.identityNumber = t(
         "err_invalid_tc",
-        "Geçersiz T.C. Kimlik No (11 hane olmalı ve 0 ile başlamamalı)."
+        "Geçersiz T.C. Kimlik No (Doğrulama algoritmasına uymuyor)."
       );
     } else if (
       isDuplicateTurkishIdentityNumber(passengers, index)
@@ -566,43 +578,55 @@ export default function ReservationFormPanel({
       ? uniqueLocationParts.join(", ")
       : "";
 
-  const formattedPrice =
-    safeHotel?.price != null &&
-      !Number.isNaN(Number(safeHotel.price))
-      ? new Intl.NumberFormat("tr-TR", {
-        style: "currency",
-        currency: safeHotel.currency || "TRY",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(Number(safeHotel.price))
-      : `${safeHotel?.price || 0} ${safeHotel?.currency || "TRY"
-      }`;
+  const totalPriceVal = safeHotel?.price != null && !Number.isNaN(Number(safeHotel.price))
+    ? Number(safeHotel.price)
+    : (bookingDetails?.price != null && !Number.isNaN(Number(bookingDetails.price))
+        ? Number(bookingDetails.price)
+        : 0);
 
-  const roomPriceValue =
-    safeHotel?.price != null &&
-      !Number.isNaN(Number(safeHotel.price))
-      ? Number(safeHotel.price) * 0.92
-      : null;
+  const currencyVal = safeHotel?.currency || bookingDetails?.currency || "TRY";
 
-  const taxValue =
-    safeHotel?.price != null &&
-      !Number.isNaN(Number(safeHotel.price))
-      ? Number(safeHotel.price) * 0.08
-      : null;
+  const formattedPrice = new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: currencyVal,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(totalPriceVal);
+
+  const roomPriceValue = totalPriceVal * 0.92;
+  const taxValue = totalPriceVal * 0.08;
 
   const formatSubPrice = (value) => {
     if (value === null) return "-";
-
     return new Intl.NumberFormat("tr-TR", {
       style: "currency",
-      currency: safeHotel?.currency || "TRY",
+      currency: currencyVal,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
   };
 
-  const adultCount =
-    parseInt(bookingDetails?.adultCount, 10) || 1;
+  const adultCount = parseInt(bookingDetails?.adultCount, 10) || 1;
+  const childCount = parseInt(bookingDetails?.childCount, 10) || 0;
+  const infantCount = parseInt(bookingDetails?.infantCount, 10) || 0;
+
+  const adultWeight = 1.0;
+  const childWeight = 0.5;
+  const infantWeight = 0.1;
+  const totalWeight = (adultCount * adultWeight) + (childCount * childWeight) + (infantCount * infantWeight);
+
+  const adultUnitPrice = totalWeight > 0 ? (roomPriceValue / totalWeight) * adultWeight : 0;
+  const childUnitPrice = totalWeight > 0 ? (roomPriceValue / totalWeight) * childWeight : 0;
+  const infantUnitPrice = totalWeight > 0 ? (roomPriceValue / totalWeight) * infantWeight : 0;
+
+  const adultTotalPrice = adultUnitPrice * adultCount;
+  const childTotalPrice = childUnitPrice * childCount;
+  const infantTotalPrice = infantUnitPrice * infantCount;
+
+  // Passenger header unit prices
+  const adultHeaderPrice = totalWeight > 0 ? (totalPriceVal / totalWeight) * adultWeight : 0;
+  const childHeaderPrice = totalWeight > 0 ? (totalPriceVal / totalWeight) * childWeight : 0;
+  const infantHeaderPrice = totalWeight > 0 ? (totalPriceVal / totalWeight) * infantWeight : 0;
 
   const validateReservationForm = () => {
     if (!termsAccepted) {
@@ -911,21 +935,29 @@ export default function ReservationFormPanel({
                     const isExpanded =
                       expandedGuestId === guest.id;
 
+                    const typeIndex = (guests || [])
+                      .slice(0, index)
+                      .filter((g) => g.type === guest.type).length + 1;
+
                     const guestTitle =
                       guest.type === "ADULT"
-                        ? `${index + 1}. ${t(
-                          "unit_adult",
-                          "Yetişkin"
-                        )}`
-                        : guest.type === "INFANT"
-                          ? `${index - adultCount + 1}. ${t(
-                            "unit_infant",
-                            "Bebek"
-                          )}`
-                          : `${index - adultCount + 1}. ${t(
-                            "unit_child",
-                            "Çocuk"
-                          )}`;
+                        ? `${typeIndex}. ${t("unit_adult", "Yetişkin")}`
+                        : guest.type === "INFANT" || guest.type === "BABY"
+                          ? `${typeIndex}. ${t("unit_infant", "Bebek")}`
+                          : `${typeIndex}. ${t("unit_child", "Çocuk")}`;
+
+                    const passengerUnitPrice = guest.type === "ADULT"
+                      ? adultHeaderPrice
+                      : (guest.type === "INFANT" || guest.type === "BABY" ? infantHeaderPrice : childHeaderPrice);
+
+                    const formattedPassengerUnitPrice = passengerUnitPrice > 0
+                      ? new Intl.NumberFormat("tr-TR", {
+                          style: "currency",
+                          currency: currencyVal,
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }).format(passengerUnitPrice)
+                      : "";
 
                     const errors =
                       getPassengerErrors(
@@ -968,6 +1000,11 @@ export default function ReservationFormPanel({
 
                             <span className="text-base font-bold text-slate-800 dark:text-slate-200">
                               {guestTitle}
+                              {passengerUnitPrice > 0 && (
+                                <span className="ml-2 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                                  ({formattedPassengerUnitPrice})
+                                </span>
+                              )}
                             </span>
 
                             {index === 0 && (
@@ -1366,16 +1403,38 @@ export default function ReservationFormPanel({
                 </h3>
 
                 <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                    <span>
-                      {t("res_form_room_price", "Oda Fiyatı")}
-                    </span>
-                    <span className="font-medium">
-                      {formatSubPrice(
-                        roomPriceValue
-                      )}
-                    </span>
-                  </div>
+                  {adultCount > 0 && (
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span>
+                        {adultCount} x {t("unit_adult", "Yetişkin")}
+                      </span>
+                      <span className="font-medium">
+                        {formatSubPrice(adultTotalPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                  {childCount > 0 && (
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span>
+                        {childCount} x {t("unit_child", "Çocuk")}
+                      </span>
+                      <span className="font-medium">
+                        {formatSubPrice(childTotalPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                  {infantCount > 0 && (
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                      <span>
+                        {infantCount} x {t("unit_infant", "Bebek")}
+                      </span>
+                      <span className="font-medium">
+                        {formatSubPrice(infantTotalPrice)}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
                     <span>{t("res_form_taxes_fees", "Vergiler ve Harçlar")}</span>
