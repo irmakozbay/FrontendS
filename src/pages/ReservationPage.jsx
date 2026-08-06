@@ -522,7 +522,7 @@ export default function ReservationPage() {
                             passenger.gender ||
                             (passenger.type === "CHILD"
                                 ? "CHD"
-                                : "MR"),
+                                : (passenger.type === "INFANT" ? "INF" : "MR")),
                         nationality:
                             passenger.nationality || "TR",
                         age:
@@ -606,7 +606,7 @@ export default function ReservationPage() {
                 phone: "",
                 phoneCountry: "TR",
                 birthDate: "",
-                gender: "CHD",
+                gender: "INF",
                 nationality: "TR",
                 age:
                     infantAges[index] !== undefined
@@ -816,7 +816,7 @@ export default function ReservationPage() {
                         passenger.gender ||
                         (passenger.type === "CHILD"
                             ? "CHD"
-                            : "MR"),
+                            : (passenger.type === "INFANT" ? "INF" : "MR")),
                     nationality:
                         passenger.nationality || "TR",
                 })

@@ -321,14 +321,16 @@ export default function FlightReservationFormPanel({
           (passenger, index) => ({
             id:
               passenger.id ||
-              (passenger.type === "CHILD"
-                ? `child-${index}`
-                : `adult-${index}`),
+              (passenger.type === "INFANT" || passenger.type === "BABY"
+                ? `infant-${index}`
+                : (passenger.type === "CHILD" ? `child-${index}` : `adult-${index}`)),
             type:
               passenger.type ||
-              (passenger.age !== undefined
-                ? "CHILD"
-                : "ADULT"),
+              (passenger.gender === "INF"
+                ? "INFANT"
+                : (passenger.gender === "CHD" || passenger.age !== undefined
+                    ? "CHILD"
+                    : "ADULT")),
             firstName: passenger.firstName || "",
             lastName: passenger.lastName || "",
             identityNumber:
@@ -342,7 +344,7 @@ export default function FlightReservationFormPanel({
               "",
             birthDate: passenger.birthDate || "",
             gender:
-              passenger.gender === "CHD"
+              passenger.gender === "CHD" || passenger.gender === "INF"
                 ? "MR"
                 : (passenger.gender || "MR"),
             nationality:
@@ -636,10 +638,14 @@ export default function FlightReservationFormPanel({
           }
         }
 
-        const isChildOrInfant =
+        const isChild =
           guest.type === "CHILD" ||
+          (age !== null && age >= 2 && age < 18);
+
+        const isInfant =
           guest.type === "INFANT" ||
-          (age !== null && age < 18);
+          guest.type === "BABY" ||
+          (age !== null && age < 2);
 
         return {
           firstName: guest.firstName || "",
@@ -654,9 +660,9 @@ export default function FlightReservationFormPanel({
             "",
           identityNumber: guest.identityNumber || "",
           birthDate: guest.birthDate || null,
-          gender: isChildOrInfant
-            ? "CHD"
-            : (guest.gender || "MR"),
+          gender: isInfant
+            ? "INF"
+            : (isChild ? "CHD" : (guest.gender || "MR")),
           nationality: guest.nationality || "TR",
         };
       }),
